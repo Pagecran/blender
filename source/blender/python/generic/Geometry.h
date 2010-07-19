@@ -1,5 +1,5 @@
 /* 
- * $Id: Geometry.h 21094 2009-06-23 00:09:26Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,7 +32,7 @@
 #define EXPP_Geometry_H
 
 #include <Python.h>
-#include "Mathutils.h"
+#include "mathutils.h"
 
 PyObject *Geometry_Init(void);
 
