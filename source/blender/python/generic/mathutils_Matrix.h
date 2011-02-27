@@ -1,6 +1,5 @@
 /* 
  * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,28 +27,37 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Quaternion.h
+/** \file blender/python/generic/mathutils_Matrix.h
  *  \ingroup pygen
  */
 
 
-#ifndef MATHUTILS_QUAT_H
-#define MATHUTILS_QUAT_H
+#ifndef MATHUTILS_MATRIX_H
+#define MATHUTILS_MATRIX_H
 
-extern PyTypeObject quaternion_Type;
-#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
+extern PyTypeObject matrix_Type;
+#define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
+#define MATRIX_MAX_DIM 4
 
 typedef struct {
-	BASE_MATH_MEMBERS(quat)
-} QuaternionObject;
+	BASE_MATH_MEMBERS(contigPtr)
+	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
+	unsigned short row_size;
+	unsigned short col_size;
+} MatrixObject;
 
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
 be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
-//prototypes
-PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
-PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+/*prototypes*/
+PyObject *newMatrixObject(float *mat, const unsigned short row_size, const unsigned short col_size, int type, PyTypeObject *base_type);
+PyObject *newMatrixObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
 
-#endif /* MATHUTILS_QUAT_H */
+extern int mathutils_matrix_vector_cb_index;
+extern struct Mathutils_Callback mathutils_matrix_vector_cb;
+
+void matrix_as_3x3(float mat[3][3], MatrixObject *self);
+
+#endif /* MATHUTILS_MATRIX_H */
