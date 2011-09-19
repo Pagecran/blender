@@ -1,5 +1,5 @@
 /*
- * $Id: AUD_JOSResampleReaderCoeff.cpp 39809 2011-08-30 19:38:32Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
