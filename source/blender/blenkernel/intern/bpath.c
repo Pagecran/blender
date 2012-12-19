@@ -70,10 +70,8 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#include "DNA_freestyle_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_font.h"
@@ -83,6 +81,8 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_image.h" /* so we can check the image's type */
+
+#include "BKE_bpath.h"  /* own include */
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
@@ -96,9 +96,9 @@ static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), co
 }
 
 /* high level function */
-void BLI_bpath_missing_files_check(Main *bmain, ReportList *reports)
+void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 {
-	BLI_bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BLI_BPATH_TRAVERSE_ABS, reports);
+	BKE_bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BKE_BPATH_TRAVERSE_ABS, reports);
 }
 
 typedef struct BPathRemap_Data {
@@ -133,7 +133,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 	}
 }
 
-void BLI_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports)
+void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
 
@@ -145,7 +145,7 @@ void BLI_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *re
 	data.basedir = basedir;
 	data.reports = reports;
 
-	BLI_bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d | Changed %d | Failed %d",
@@ -175,8 +175,8 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 	}
 }
 
-/* similar to BLI_bpath_relative_convert - keep in sync! */
-void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports)
+/* similar to BKE_bpath_relative_convert - keep in sync! */
+void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
 
@@ -188,7 +188,7 @@ void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 	data.basedir = basedir;
 	data.reports = reports;
 
-	BLI_bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d | Changed %d | Failed %d",
@@ -299,14 +299,14 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	}
 }
 
-void BLI_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports)
+void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports)
 {
 	struct BPathFind_Data data = {NULL};
 
 	data.reports = reports;
 	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
 
-	BLI_bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
+	BKE_bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
@@ -384,11 +384,11 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
-	const char *absbase = (flag & BLI_BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
+	const char *absbase = (flag & BKE_BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
-	if ((flag & BLI_BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
+	if ((flag & BKE_BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;
 	}
 
@@ -397,7 +397,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		{
 			Image *ima;
 			ima = (Image *)id;
-			if (ima->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (ima->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 					rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
 				}
@@ -476,7 +476,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_SO:
 		{
 			bSound *sound = (bSound *)id;
-			if (sound->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (sound->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
 			}
 			break;
@@ -489,7 +489,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_VF:
 		{
 			VFont *vfont = (VFont *)id;
-			if (vfont->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (vfont->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (BKE_vfont_is_builtin(vfont) == FALSE) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
@@ -540,7 +540,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_SCE:
 		{
 			Scene *scene = (Scene *)id;
-			SceneRenderLayer *srl= scene->r.layers.first;
 			if (scene->ed) {
 				Sequence *seq;
 
@@ -557,7 +556,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							int len = MEM_allocN_len(se) / sizeof(*se);
 							int i;
 
-							if (flag & BLI_BPATH_TRAVERSE_SKIP_MULTIFILE) {
+							if (flag & BKE_BPATH_TRAVERSE_SKIP_MULTIFILE) {
 								/* only operate on one path */
 								len = MIN2(1, len);
 							}
@@ -575,12 +574,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 
 				}
 				SEQ_END
-			}
-			for(; srl; srl= srl->next) {
-				FreestyleModuleConfig* module= srl->freestyleConfig.modules.first;
-				for (; module; module= module->next) {
-					rewrite_path_fixed(module->module_path, visit_cb, absbase, bpath_user_data);
-				}
 			}
 			break;
 		}
@@ -612,26 +605,26 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 	}
 }
 
-void BLI_bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BKE_bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ID *id;
 	for (id = lb->first; id; id = id->next) {
-		BLI_bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
+		BKE_bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
 	}
 }
 
-void BLI_bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BKE_bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a = set_listbasepointers(bmain, lbarray);
 	while (a--) {
-		BLI_bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
+		BKE_bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
 	}
 }
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
  * absolute, in which case it is not altered. */
-int BLI_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
+int BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
 {
 	/* be sure there is low chance of the path being too short */
 	char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
@@ -708,23 +701,23 @@ static int bpath_list_restore(void *userdata, char *path_dst, const char *path_s
 }
 
 /* return ls_handle */
-void *BLI_bpath_list_backup(Main *bmain, const int flag)
+void *BKE_bpath_list_backup(Main *bmain, const int flag)
 {
 	ListBase *ls = MEM_callocN(sizeof(ListBase), __func__);
 
-	BLI_bpath_traverse_main(bmain, bpath_list_append, flag, ls);
+	BKE_bpath_traverse_main(bmain, bpath_list_append, flag, ls);
 
 	return ls;
 }
 
-void BLI_bpath_list_restore(Main *bmain, const int flag, void *ls_handle)
+void BKE_bpath_list_restore(Main *bmain, const int flag, void *ls_handle)
 {
 	ListBase *ls = ls_handle;
 
-	BLI_bpath_traverse_main(bmain, bpath_list_restore, flag, ls);
+	BKE_bpath_traverse_main(bmain, bpath_list_restore, flag, ls);
 }
 
-void BLI_bpath_list_free(void *ls_handle)
+void BKE_bpath_list_free(void *ls_handle)
 {
 	ListBase *ls = ls_handle;
 	BLI_assert(ls->first == NULL);  /* assumes we were used */
