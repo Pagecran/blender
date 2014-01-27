@@ -86291,6 +86291,42 @@
        style="opacity:0.7;fill:url(#linearGradient18212);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.98985863;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        sodipodi:type="arc" />
     <g
+       style="display:inline;enable-background:new"
+       id="g24559-2-1"
+       transform="translate(279.8665,506.92392)">
+      <rect
+         y="111"
+         x="103"
+         height="16"
+         width="16"
+         id="rect24489-7-4"
+         style="opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <rect
+         style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1"
+         id="rect29842"
+         width="11.816368"
+         height="2.1883197"
+         x="105.18671"
+         y="-116.88043"
+         transform="scale(1,-1)" />
+      <rect
+         style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1;display:inline;enable-background:new"
+         id="rect29842-4"
+         width="11.816368"
+         height="2.1883197"
+         x="105.31538"
+         y="-120.80865"
+         transform="scale(1,-1)" />
+      <rect
+         style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1;display:inline;enable-background:new"
+         id="rect29842-4-5"
+         width="11.816368"
+         height="2.1883197"
+         x="105.41832"
+         y="-124.71391"
+         transform="scale(1,-1)" />
+    </g>
+    <g
        inkscape:export-ydpi="90"
        inkscape:export-xdpi="90"
        inkscape:export-filename="C:\Documents and Settings\Pracownia\Pulpit\sss.png"
