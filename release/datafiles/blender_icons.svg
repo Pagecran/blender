@@ -29466,6 +29466,110 @@
        x2="155.67555"
        y2="506.45177"
        gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       y2="30.023426"
+       x2="278.25537"
+       y1="3.6831069"
+       x1="253.78497"
+       gradientTransform="matrix(0.888889,0,0,1,513.5,184.50451)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient39254-5"
+       xlink:href="#linearGradient17555"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient17555">
+      <stop
+         style="stop-color:#000000;stop-opacity:0.49803922;"
+         offset="0"
+         id="stop17557" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.49803922;"
+         offset="1"
+         id="stop17559" />
+    </linearGradient>
+    <radialGradient
+       r="6.9000001"
+       fy="206.40076"
+       fx="756.83508"
+       cy="206.40076"
+       cx="756.83508"
+       gradientTransform="matrix(0.3817213,-0.4377393,0.4780868,0.4169055,368.09749,451.76937)"
+       gradientUnits="userSpaceOnUse"
+       id="radialGradient39256-9"
+       xlink:href="#linearGradient17549"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient17549">
+      <stop
+         id="stop17551"
+         offset="0"
+         style="stop-color:#7f7f7f;stop-opacity:1;" />
+      <stop
+         id="stop17553"
+         offset="1"
+         style="stop-color:#7f7f7f;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       y2="249"
+       x2="93.0625"
+       y1="241.125"
+       x1="87"
+       gradientTransform="translate(670,-33)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient39258-0"
+       xlink:href="#linearGradient17543"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient17543">
+      <stop
+         id="stop17545"
+         offset="0.0000000"
+         style="stop-color:#ffffff;stop-opacity:0.87628865;" />
+      <stop
+         id="stop17547"
+         offset="1.0000000"
+         style="stop-color:#fffffe;stop-opacity:0.0000000;" />
+    </linearGradient>
+    <linearGradient
+       y2="305"
+       x2="758"
+       y1="300.83292"
+       x1="754.28558"
+       gradientTransform="translate(0,-95.999998)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient16784"
+       xlink:href="#linearGradient17530"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient17530">
+      <stop
+         style="stop-color:#7f7f7f;stop-opacity:1;"
+         offset="0"
+         id="stop17532" />
+      <stop
+         style="stop-color:#7f7f7f;stop-opacity:0;"
+         offset="1"
+         id="stop17534" />
+    </linearGradient>
+    <linearGradient
+       y2="305"
+       x2="758"
+       y1="300.83292"
+       x1="754.28558"
+       gradientTransform="translate(0,-95.999998)"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient16880"
+       xlink:href="#linearGradient17530"
+       inkscape:collect="always" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient18370"
+       id="linearGradient16720"
+       gradientUnits="userSpaceOnUse"
+       x1="432.83759"
+       y1="289.15814"
+       x2="441.44028"
+       y2="283.54819" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -29478,13 +29582,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="16"
-     inkscape:cx="320.24884"
-     inkscape:cy="387.11918"
+     inkscape:cx="495.37384"
+     inkscape:cy="572.11918"
      inkscape:document-units="px"
      inkscape:current-layer="g18198-9"
      showgrid="true"
      inkscape:window-width="1920"
-     inkscape:window-height="980"
+     inkscape:window-height="995"
      inkscape:window-x="0"
      inkscape:window-y="28"
      inkscape:snap-nodes="false"
@@ -90116,6 +90220,55 @@
            inkscape:connector-curvature="0"
            transform="matrix(0.99133288,0,0,1.0258199,107.90321,33.335806)"
            sodipodi:nodetypes="cssc" />
+        <g
+           transform="matrix(0.99133288,0,0,1.0258199,-153.79179,-122.50347)"
+           id="g39239-8"
+           style="fill:url(#linearGradient16720);display:inline;enable-background:new">
+          <path
+             inkscape:connector-curvature="0"
+             style="fill:url(#linearGradient39254-5);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;marker:none;display:inline"
+             d="m 756.16666,204.50001 10.33334,0 0,14.99999 -13,0 -10e-6,-11.99999 2.66667,-3 z"
+             id="path39241-60"
+             sodipodi:nodetypes="cccccc"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <path
+             inkscape:connector-curvature="0"
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+             sodipodi:nodetypes="cccccc"
+             id="path39243-9"
+             d="m 756.16666,204.50001 10.33334,0 0,14.99999 -13,0 -10e-6,-11.99999 2.66667,-3 z"
+             style="opacity:0.3;fill:url(#radialGradient39256-9);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+          <path
+             inkscape:connector-curvature="0"
+             id="path39245-1"
+             style="fill:none;stroke:url(#linearGradient39258-0);stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1;display:inline"
+             d="m 754.5,209 0,9.5 m 3.5,-13 7.5,0"
+             sodipodi:nodetypes="cccc" />
+          <path
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccc"
+             id="path39247-8"
+             d="m 753,208 4,0 0,-4 -4,4 z"
+             style="fill:#ffffff;fill-opacity:0.49803922;fill-rule:evenodd;stroke:none;display:inline" />
+          <path
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cccccc"
+             id="path39249-0"
+             style="fill:none;stroke:#7f7f7f;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+             d="m 753.5,207.00001 0,12.49999 13,0 0,-14.99999 -10.5,0 -2.5,2.5 z"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <path
+             inkscape:connector-curvature="0"
+             style="fill:none;stroke:url(#linearGradient16880);stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+             d="m 757.5,206.5 0,2 -2,0"
+             id="path39251-2" />
+        </g>
       </g>
     </g>
   </g>
