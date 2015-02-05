@@ -30087,6 +30087,130 @@
        y1="244.14676"
        x2="174.75458"
        y2="226.33672" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient23974-39"
+       id="linearGradient18721-2"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,244.3928,19.4113)"
+       x1="-88.73024"
+       y1="-120.6127"
+       x2="-78.787354"
+       y2="-128.30418" />
+    <linearGradient
+       id="linearGradient23974-39">
+      <stop
+         id="stop23976-8"
+         offset="0"
+         style="stop-color:#2561b7;stop-opacity:1;" />
+      <stop
+         id="stop23978-23"
+         offset="1"
+         style="stop-color:#f9fbff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient31320-9"
+       id="linearGradient18728-1"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,222.97812,19.5574)"
+       x1="68.688324"
+       y1="51.42366"
+       x2="72.671516"
+       y2="55.501457" />
+    <linearGradient
+       id="linearGradient31320-9">
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="0"
+         id="stop31322-6" />
+      <stop
+         style="stop-color:white;stop-opacity:0;"
+         offset="1"
+         id="stop31324-2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient14262-6"
+       id="linearGradient18765-5"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,309.42934,-349.44584)"
+       x1="-26.207859"
+       y1="252.77303"
+       x2="-5.4963508"
+       y2="253.15045" />
+    <linearGradient
+       id="linearGradient14262-6">
+      <stop
+         id="stop14264-29"
+         offset="0"
+         style="stop-color:#2661b6;stop-opacity:1;" />
+      <stop
+         id="stop14266-9"
+         offset="1"
+         style="stop-color:#c1d7f8;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-61"
+       id="linearGradient18712-6"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.8167109,0,0,0.8433415,239.34332,-149.78578)"
+       x1="103.65562"
+       y1="49.547874"
+       x2="120.79755"
+       y2="57.84819" />
+    <linearGradient
+       id="linearGradient319-61">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop320-47" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop321-45" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient23974-39"
+       id="linearGradient16862"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,244.3928,19.4113)"
+       x1="-88.73024"
+       y1="-120.6127"
+       x2="-78.787354"
+       y2="-128.30418" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient31320-9"
+       id="linearGradient16864"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,222.97812,19.5574)"
+       x1="68.688324"
+       y1="51.42366"
+       x2="72.671516"
+       y2="55.501457" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient14262-6"
+       id="linearGradient16866"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.004219,0,0,0.980922,309.42934,-349.44584)"
+       x1="-26.207859"
+       y1="252.77303"
+       x2="-5.4963508"
+       y2="253.15045" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-61"
+       id="linearGradient16868"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.8167109,0,0,0.8433415,239.34332,-149.78578)"
+       x1="103.65562"
+       y1="49.547874"
+       x2="120.79755"
+       y2="57.84819" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -30098,11 +30222,11 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.740919"
-     inkscape:cx="291.42828"
-     inkscape:cy="63.791344"
+     inkscape:zoom="7.2069341"
+     inkscape:cx="381.96928"
+     inkscape:cy="408.8621"
      inkscape:document-units="px"
-     inkscape:current-layer="ICON_BORDER_LASSO"
+     inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="995"
@@ -90319,6 +90443,106 @@
          width="16"
          id="rect18509"
          style="fill:none;stroke:none" />
+    </g>
+    <g
+       style="display:inline;enable-background:new"
+       id="ICON_MOD_NORMALEDIT"
+       transform="translate(105,-19)">
+      <rect
+         style="opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="rect18695-8"
+         width="16"
+         height="16"
+         x="236"
+         y="260" />
+      <g
+         id="g18697-9"
+         transform="translate(-86,370.75)">
+        <path
+           style="fill:none;stroke:#0b1728;stroke-width:1.70000005;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+           d="m 330,-107.75 -5,2 0.0372,6.324398 5,2.71875 4.99999,-2.71875 L 335,-105.75 l -5,-2 z"
+           id="path18699-5"
+           sodipodi:nodetypes="ccccccc"
+           inkscape:connector-curvature="0" />
+        <path
+           id="path18719-5"
+           d="m 330.03717,-107.6131 -5,1.875 0,6.312498 5,2.71875 4.99999,-2.71875 0,-6.312498 -4.99999,-1.875 z"
+           style="fill:url(#linearGradient16862);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.06666696px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           inkscape:connector-curvature="0" />
+        <g
+           id="g18703-7"
+           transform="translate(179,-179)">
+          <path
+             id="path18707-1"
+             d="m 146.0019,73.295281 5,-1.894157 5,1.894157 -5,2.073959 -5,-2.073959 z"
+             style="fill:url(#linearGradient16864);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.06666696px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             sodipodi:nodetypes="ccccc"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\4.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           id="path18763-1"
+           d="m 335,-105.5 -5,2 0,6.75 5,-2.75 0,-6 z"
+           style="fill:url(#linearGradient16866);fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+           sodipodi:nodetypes="ccccc"
+           inkscape:connector-curvature="0" />
+        <path
+           sodipodi:nodetypes="ccccccc"
+           id="path18709-8"
+           d="m 334.5,-105.25 0.002,5.587357 -4.5,2.480073 -4.5,-2.480073 -0.002,-5.587357 4.5,-1.75 4.5,1.75 z"
+           style="fill:none;stroke:url(#linearGradient16868);stroke-width:0.99999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           inkscape:connector-curvature="0" />
+        <path
+           id="path18758-5"
+           style="opacity:0.8;fill:none;stroke:#d7e3f4;stroke-width:3.29999995;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+           d="m 330.25,-103.25 3.25,-1.5"
+           sodipodi:nodetypes="cc"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"
+           inkscape:connector-curvature="0" />
+        <g
+           id="g18737-4"
+           style="opacity:0.7" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           sodipodi:nodetypes="cc"
+           d="M 330.25,-103.25 335,-105.5"
+           style="fill:#0b1728;fill-opacity:1;fill-rule:evenodd;stroke:#0b1728;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path18760-7"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           sodipodi:nodetypes="cc"
+           d="m 325.34712,-100.90914 4.75,-2.25"
+           style="fill:#dd23dd;fill-opacity:1;fill-rule:evenodd;stroke:#dd23dd;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path18760-7-5"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           sodipodi:nodetypes="cc"
+           d="m 330.29093,-103.24155 -0.0238,-5.2559"
+           style="fill:#dd23dd;fill-opacity:1;fill-rule:evenodd;stroke:#dd23dd;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path18760-7-5-6"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           sodipodi:nodetypes="cc"
+           d="m 330.36378,-103.20969 4.94432,1.78292"
+           style="fill:#dd23dd;fill-opacity:1;fill-rule:evenodd;stroke:#dd23dd;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           id="path18760-7-5-6-3"
+           inkscape:connector-curvature="0" />
+      </g>
     </g>
   </g>
   <g
