@@ -30320,6 +30320,434 @@
          stdDeviation="0.25149387"
          id="feGaussianBlur17891" />
     </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath15455">
+      <rect
+         style="color:#000000;fill:#d8d8d8;fill-opacity:1;stroke:none;stroke-width:1.20000005;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+         id="rect15457"
+         width="16"
+         height="16"
+         x="301.96045"
+         y="236.91833" />
+    </clipPath>
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask15700">
+      <path
+         style="color:#000000;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.20000005;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#filter15613);enable-background:new"
+         d="m 302.9292,245.91834 -2.4375,-1.125 -0.53125,-9.84375 19.95312,-0.0469 0.0156,9.95313 -2.9375,1.09375 0,5.96875 -14,0 z"
+         id="path15702"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccc" />
+    </mask>
+    <filter
+       color-interpolation-filters="sRGB"
+       inkscape:collect="always"
+       id="filter15613"
+       x="-0.092011765"
+       width="1.1840235"
+       y="-0.097762503"
+       height="1.1955251">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.65175"
+         id="feGaussianBlur15615" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient37542-55"
+       id="linearGradient15678"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.6025789,0,0,0.668336,262.51944,86.612922)"
+       x1="49.543404"
+       y1="230.81766"
+       x2="73.932747"
+       y2="247.27646" />
+    <linearGradient
+       id="linearGradient37542-55">
+      <stop
+         id="stop37544-61"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop37546-03"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-74"
+       id="linearGradient15680"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9120445,0,0,1,24.780995,9.8636515)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="308.97327"
+       y2="242" />
+    <linearGradient
+       id="linearGradient319-74">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop320-42" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop321-67" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient37542-55"
+       id="linearGradient15682"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.584271,0,0,0.661005,267.80323,78.438648)"
+       x1="51.682816"
+       y1="229.19724"
+       x2="73.932762"
+       y2="247.35141" />
+    <linearGradient
+       id="linearGradient14195">
+      <stop
+         id="stop14197"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop14199"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-74"
+       id="linearGradient15684"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9103441,0,0,0.989031,29.299938,2.5312404)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="307.25021"
+       y2="241.62509" />
+    <linearGradient
+       id="linearGradient14202">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop14204" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop14206" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient21609-6"
+       id="linearGradient15688"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.6025789,0,0,0.668336,273.45693,86.644181)"
+       x1="49.543404"
+       y1="230.81766"
+       x2="73.932747"
+       y2="247.27646" />
+    <linearGradient
+       id="linearGradient21609-6">
+      <stop
+         id="stop21611-3"
+         offset="0"
+         style="stop-color:black;stop-opacity:1" />
+      <stop
+         id="stop21613-0"
+         offset="1"
+         style="stop-color:white;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient29312-0"
+       id="linearGradient15690"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9120445,0,0,1,35.718484,9.8949108)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="308.97327"
+       y2="242" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient29312-0">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop29314-8" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop29316-3" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient16019"
+       id="linearGradient15692"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0.59375,1.375)"
+       x1="308.85309"
+       y1="245.43437"
+       x2="314.06238"
+       y2="245.43437" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient16019">
+      <stop
+         style="stop-color:#c6d7ef;stop-opacity:1"
+         offset="0"
+         id="stop16021" />
+      <stop
+         style="stop-color:#7fa4dc;stop-opacity:1"
+         offset="1"
+         id="stop16023" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient15996"
+       id="linearGradient15694"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0.59375,1.375)"
+       x1="304.86005"
+       y1="245.47992"
+       x2="310.04089"
+       y2="245.47992" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient15996">
+      <stop
+         style="stop-color:#5f8dd3;stop-opacity:1"
+         offset="0"
+         id="stop15998" />
+      <stop
+         style="stop-color:#d7e3f4;stop-opacity:1"
+         offset="1"
+         id="stop16000" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath15455-9">
+      <rect
+         style="color:#000000;fill:#d8d8d8;fill-opacity:1;stroke:none;stroke-width:1.20000005;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+         id="rect15457-6"
+         width="16"
+         height="16"
+         x="301.96045"
+         y="236.91833" />
+    </clipPath>
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask15700-4">
+      <path
+         style="color:#000000;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.20000005000000010;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#filter15613-8);enable-background:new"
+         d="m 302.9292,245.91834 -2.4375,-1.125 -0.53125,-9.84375 19.95312,-0.0469 0.0156,9.95313 -2.9375,1.09375 0,5.96875 -14,0 z"
+         id="path15702-5"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccc" />
+    </mask>
+    <filter
+       color-interpolation-filters="sRGB"
+       inkscape:collect="always"
+       id="filter15613-8"
+       x="-0.092011765"
+       width="1.1840235"
+       y="-0.097762503"
+       height="1.1955251">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.65175"
+         id="feGaussianBlur15615-1" />
+    </filter>
+    <filter
+       color-interpolation-filters="sRGB"
+       inkscape:label="Greyscale"
+       id="filter15388">
+      <feColorMatrix
+         values="0.21 0.72 0.072 0 0 0.21 0.72 0.072 0 0 0.21 0.72 0.072 0 0 0 0 0 1 0 "
+         id="feColorMatrix15390"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix15392" />
+      <feColorMatrix
+         id="feColorMatrix15394"
+         values="0.21 0.72 0.072 0 0 0.21 0.72 0.072 0 0 0.21 0.72 0.072 0 0 0 0 0 1 0 "
+         in="fbSourceGraphic" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient37542-91"
+       id="linearGradient15371"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.6025789,0,0,0.668336,262.51944,86.612922)"
+       x1="49.543404"
+       y1="230.81766"
+       x2="73.932747"
+       y2="247.27646" />
+    <linearGradient
+       id="linearGradient37542-91">
+      <stop
+         id="stop37544-81"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop37546-75"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-223"
+       id="linearGradient15373"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9120445,0,0,1,24.780995,9.8636515)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="308.97327"
+       y2="242" />
+    <linearGradient
+       id="linearGradient319-223">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop320-84" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop321-34" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient37542-91"
+       id="linearGradient15375"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.584271,0,0,0.661005,267.80323,78.438648)"
+       x1="51.682816"
+       y1="229.19724"
+       x2="73.932762"
+       y2="247.35141" />
+    <linearGradient
+       id="linearGradient14275">
+      <stop
+         id="stop14277"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop14279"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-223"
+       id="linearGradient15377"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9103441,0,0,0.989031,29.299938,2.5312404)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="307.25021"
+       y2="241.62509" />
+    <linearGradient
+       id="linearGradient14282">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop14284" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop14286" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient21609-3"
+       id="linearGradient15379"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.6025789,0,0,0.668336,273.45693,86.644181)"
+       x1="49.543404"
+       y1="230.81766"
+       x2="73.932747"
+       y2="247.27646" />
+    <linearGradient
+       id="linearGradient21609-3">
+      <stop
+         id="stop21611-9"
+         offset="0"
+         style="stop-color:black;stop-opacity:1" />
+      <stop
+         id="stop21613-8"
+         offset="1"
+         style="stop-color:white;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient29312-7"
+       id="linearGradient15381"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.9120445,0,0,1,35.718484,9.8949108)"
+       x1="305.12527"
+       y1="239.03134"
+       x2="308.97327"
+       y2="242" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient29312-7">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop29314-6" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop29316-8" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient16019-5"
+       id="linearGradient15384"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0.59375,1.375)"
+       x1="308.85309"
+       y1="245.43437"
+       x2="314.06238"
+       y2="245.43437" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient16019-5">
+      <stop
+         style="stop-color:#c6d7ef;stop-opacity:1"
+         offset="0"
+         id="stop16021-1" />
+      <stop
+         style="stop-color:#7fa4dc;stop-opacity:1"
+         offset="1"
+         id="stop16023-8" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient15996-5"
+       id="linearGradient15386"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0.59375,1.375)"
+       x1="304.86005"
+       y1="245.47992"
+       x2="310.04089"
+       y2="245.47992" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient15996-5">
+      <stop
+         style="stop-color:#5f8dd3;stop-opacity:1"
+         offset="0"
+         id="stop15998-9" />
+      <stop
+         style="stop-color:#d7e3f4;stop-opacity:1"
+         offset="1"
+         id="stop16000-1" />
+    </linearGradient>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -90739,6 +91167,464 @@
            id="path30830"
            inkscape:connector-curvature="0"
            sodipodi:nodetypes="cccccc" />
+        <g
+           mask="url(#mask15700)"
+           transform="translate(-149.97053,-18.918247)"
+           id="g15634"
+           style="display:inline;enable-background:new"
+           inkscape:export-filename="C:\Documents and Settings\Pracownia\Moje dokumenty\Moje obrazy\BLENDER ICONS redesign\RELEASES\g42357.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"
+           clip-path="url(#clipPath15455)">
+          <rect
+             style="opacity:0.01000001;fill:none;stroke:#e8a930;stroke-width:2.99999928;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             id="rect15636"
+             width="1.9930685"
+             height="1.9947703"
+             x="309.50693"
+             y="239.5"
+             ry="0.99734437"
+             rx="0.98426884" />
+          <rect
+             style="fill:none;stroke:#000000;stroke-width:0.99999946;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+             id="rect15638"
+             width="7.9999909"
+             height="8.000001"
+             x="299.4917"
+             y="247.35583"
+             ry="1.5185405"
+             rx="1.7691951"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0.0128693"
+             ry="0.010695697"
+             y="247.85583"
+             x="299.9917"
+             height="7.000001"
+             width="6.9999909"
+             id="rect15640"
+             style="fill:url(#linearGradient15678);fill-opacity:1;fill-rule:nonzero;stroke:none" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="1.5194846"
+             ry="1.4892343"
+             y="237.42615"
+             x="305.49991"
+             height="6.9921885"
+             width="8.9605312"
+             id="rect15642"
+             style="fill:none;stroke:#000000;stroke-width:0.99999958;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+          <rect
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="rect15644"
+             width="5.0000091"
+             height="0.99999899"
+             x="300.9917"
+             y="248.85583"
+             ry="0.0053478414"
+             rx="0.0086254831"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0"
+             ry="0"
+             y="248.35583"
+             x="300.4917"
+             height="6.000001"
+             width="5.9999909"
+             id="rect15646"
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15680);stroke-width:1.00000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+          <rect
+             style="fill:url(#linearGradient15682);fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="rect15648"
+             width="7.9604402"
+             height="5.9921885"
+             x="306"
+             y="237.92615"
+             ry="0"
+             rx="0"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0.0071879062"
+             ry="0.0053478414"
+             y="238.92615"
+             x="306.98389"
+             height="0.99218851"
+             width="5.9765534"
+             id="rect15650"
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none" />
+          <rect
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15684);stroke-width:1.00000036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+             id="rect15652"
+             width="5.9604402"
+             height="4.0030832"
+             x="306.5"
+             y="238.41525"
+             ry="0"
+             rx="0"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             rx="0"
+             style="fill:#ffb72a;fill-opacity:1;fill-rule:nonzero;stroke:#553800;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             id="rect15654"
+             width="2"
+             height="1.9882908"
+             x="313.45264"
+             y="240.50037"
+             ry="0" />
+          <rect
+             style="fill:none;stroke:#000000;stroke-width:0.99999946;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;display:inline;enable-background:new"
+             id="rect15656"
+             width="8.9614162"
+             height="7.9608927"
+             x="312.43652"
+             y="247.39494"
+             ry="1.5185405"
+             rx="1.7691951"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0.0128693"
+             ry="0.010695697"
+             y="247.8949"
+             x="312.93652"
+             height="6.9609385"
+             width="7.9614167"
+             id="rect15658"
+             style="fill:url(#linearGradient15688);fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline;enable-background:new" />
+          <rect
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline;enable-background:new"
+             id="rect15660"
+             width="5.9614167"
+             height="0.96093851"
+             x="313.93652"
+             y="248.8949"
+             ry="0.0053478414"
+             rx="0.0086254831"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0"
+             ry="0"
+             y="248.395"
+             x="313.43652"
+             height="5.9608316"
+             width="6.9614167"
+             id="rect15662"
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15690);stroke-width:1.00000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;display:inline;enable-background:new" />
+          <rect
+             rx="0"
+             style="fill:#ffb72a;fill-opacity:1;fill-rule:nonzero;stroke:#553800;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             id="rect15664"
+             width="2"
+             height="1.9882908"
+             x="304.42139"
+             y="240.46912"
+             ry="0" />
+          <path
+             style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new"
+             d="m 304.05985,242.89398 5.95666,5.92541"
+             id="path15666"
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0" />
+          <path
+             style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new"
+             d="m 316.05011,242.91732 -6.03144,5.909"
+             id="path15668"
+             sodipodi:nodetypes="cc"
+             inkscape:connector-curvature="0" />
+          <path
+             sodipodi:nodetypes="cc"
+             id="path15670"
+             d="m 315.98761,242.94305 -5.93475,5.88889"
+             style="fill:none;stroke:url(#linearGradient15692);stroke-width:1.20000005;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+             inkscape:connector-curvature="0" />
+          <path
+             sodipodi:nodetypes="cc"
+             id="path15672"
+             d="m 304.05985,242.89398 5.96875,5.95312"
+             style="fill:none;stroke:url(#linearGradient15694);stroke-width:1.20000005;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+             inkscape:connector-curvature="0" />
+          <ellipse
+             sodipodi:ry="0.61330098"
+             sodipodi:rx="0.59120387"
+             sodipodi:cy="242.89087"
+             sodipodi:cx="304.0946"
+             style="opacity:0.51799999;color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             id="ellipse15674"
+             cx="304.0946"
+             cy="242.89087"
+             rx="0.59120387"
+             ry="0.61330098"
+             d="m 304.68581,242.89087 c 0,0.33872 -0.26469,0.6133 -0.59121,0.6133 -0.32651,0 -0.5912,-0.27458 -0.5912,-0.6133 0,-0.33872 0.26469,-0.6133 0.5912,-0.6133 0.32652,0 0.59121,0.27458 0.59121,0.6133 z" />
+          <ellipse
+             sodipodi:ry="0.61330098"
+             sodipodi:rx="0.59120387"
+             sodipodi:cy="242.95337"
+             sodipodi:cx="315.98523"
+             style="opacity:0.51799999;color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             id="ellipse15676"
+             cx="315.98523"
+             cy="242.95337"
+             rx="0.59120387"
+             ry="0.61330098"
+             d="m 316.57643,242.95337 c 0,0.33872 -0.26469,0.6133 -0.5912,0.6133 -0.32651,0 -0.5912,-0.27458 -0.5912,-0.6133 0,-0.33872 0.26469,-0.6133 0.5912,-0.6133 0.32651,0 0.5912,0.27458 0.5912,0.6133 z" />
+        </g>
+        <g
+           clip-path="url(#clipPath15455-9)"
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Pracownia\Moje dokumenty\Moje obrazy\BLENDER ICONS redesign\RELEASES\g42357.png"
+           style="opacity:0.65;display:inline;filter:url(#filter15388);enable-background:new"
+           id="g15325"
+           transform="translate(-170.98527,-18.905399)"
+           mask="url(#mask15700-4)">
+          <rect
+             rx="0.98426884"
+             ry="0.99734437"
+             y="239.5"
+             x="309.50693"
+             height="1.9947703"
+             width="1.9930685"
+             id="rect15327"
+             style="opacity:0.01000001;fill:none;stroke:#e8a930;stroke-width:2.99999928;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="1.7691951"
+             ry="1.5185405"
+             y="247.35583"
+             x="299.4917"
+             height="8.000001"
+             width="7.9999909"
+             id="rect15329"
+             style="fill:none;stroke:#000000;stroke-width:0.99999946;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+          <rect
+             style="fill:url(#linearGradient15371);fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="rect15331"
+             width="6.9999909"
+             height="7.000001"
+             x="299.9917"
+             y="247.85583"
+             ry="0.010695697"
+             rx="0.0128693"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             style="fill:none;stroke:#000000;stroke-width:0.99999958;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+             id="rect15333"
+             width="8.9605312"
+             height="6.9921885"
+             x="305.49991"
+             y="237.42615"
+             ry="1.4892343"
+             rx="1.5194846"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0.0086254831"
+             ry="0.0053478414"
+             y="248.85583"
+             x="300.9917"
+             height="0.99999899"
+             width="5.0000091"
+             id="rect15335"
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none" />
+          <rect
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15373);stroke-width:1.00000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+             id="rect15337"
+             width="5.9999909"
+             height="6.000001"
+             x="300.4917"
+             y="248.35583"
+             ry="0"
+             rx="0"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0"
+             ry="0"
+             y="237.92615"
+             x="306"
+             height="5.9921885"
+             width="7.9604402"
+             id="rect15339"
+             style="fill:url(#linearGradient15375);fill-opacity:1;fill-rule:nonzero;stroke:none" />
+          <rect
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="rect15341"
+             width="5.9765534"
+             height="0.99218851"
+             x="306.98389"
+             y="238.92615"
+             ry="0.0053478414"
+             rx="0.0071879062"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0"
+             ry="0"
+             y="238.41525"
+             x="306.5"
+             height="4.0030832"
+             width="5.9604402"
+             id="rect15343"
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15377);stroke-width:1.00000036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+          <rect
+             ry="0"
+             y="240.50037"
+             x="313.45264"
+             height="1.9882908"
+             width="2"
+             id="rect15345"
+             style="fill:#ffb72a;fill-opacity:1;fill-rule:nonzero;stroke:#553800;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             rx="0" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="1.7691951"
+             ry="1.5185405"
+             y="247.39494"
+             x="312.43652"
+             height="7.9608927"
+             width="8.9614162"
+             id="rect15347"
+             style="fill:none;stroke:#000000;stroke-width:0.99999946;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;display:inline;enable-background:new" />
+          <rect
+             style="fill:url(#linearGradient15379);fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline;enable-background:new"
+             id="rect15349"
+             width="7.9614167"
+             height="6.9609385"
+             x="312.93652"
+             y="247.8949"
+             ry="0.010695697"
+             rx="0.0128693"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             rx="0.0086254831"
+             ry="0.0053478414"
+             y="248.8949"
+             x="313.93652"
+             height="0.96093851"
+             width="5.9614167"
+             id="rect15351"
+             style="fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none;display:inline;enable-background:new" />
+          <rect
+             style="opacity:0.8;fill:none;stroke:url(#linearGradient15381);stroke-width:1.00000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;display:inline;enable-background:new"
+             id="rect15354"
+             width="6.9614167"
+             height="5.9608316"
+             x="313.43652"
+             y="248.395"
+             ry="0"
+             rx="0"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90" />
+          <rect
+             ry="0"
+             y="240.46912"
+             x="304.42139"
+             height="1.9882908"
+             width="2"
+             id="rect15356"
+             style="fill:#ffb72a;fill-opacity:1;fill-rule:nonzero;stroke:#553800;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7.40000248;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             rx="0" />
+          <path
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc"
+             id="path15358"
+             d="m 304.05985,242.89398 5.95666,5.92541"
+             style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new" />
+          <path
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="cc"
+             id="path15360"
+             d="m 316.05011,242.91732 -6.03144,5.909"
+             style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new" />
+          <path
+             inkscape:connector-curvature="0"
+             style="fill:none;stroke:url(#linearGradient15384);stroke-width:1.20000005;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+             d="m 315.98761,242.94305 -5.93475,5.88889"
+             id="path15362"
+             sodipodi:nodetypes="cc" />
+          <path
+             inkscape:connector-curvature="0"
+             style="fill:none;stroke:url(#linearGradient15386);stroke-width:1.20000005;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:new"
+             d="m 304.05985,242.89398 5.96875,5.95312"
+             id="path15364"
+             sodipodi:nodetypes="cc" />
+          <ellipse
+             sodipodi:ry="0.61330098"
+             sodipodi:rx="0.59120387"
+             sodipodi:cy="242.89087"
+             sodipodi:cx="304.0946"
+             ry="0.61330098"
+             rx="0.59120387"
+             cy="242.89087"
+             cx="304.0946"
+             id="ellipse15366"
+             style="opacity:0.51799999;color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             d="m 304.68581,242.89087 c 0,0.33872 -0.26469,0.6133 -0.59121,0.6133 -0.32651,0 -0.5912,-0.27458 -0.5912,-0.6133 0,-0.33872 0.26469,-0.6133 0.5912,-0.6133 0.32652,0 0.59121,0.27458 0.59121,0.6133 z" />
+          <ellipse
+             sodipodi:ry="0.61330098"
+             sodipodi:rx="0.59120387"
+             sodipodi:cy="242.95337"
+             sodipodi:cx="315.98523"
+             ry="0.61330098"
+             rx="0.59120387"
+             cy="242.95337"
+             cx="315.98523"
+             id="ellipse15368"
+             style="opacity:0.51799999;color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+             d="m 316.57643,242.95337 c 0,0.33872 -0.26469,0.6133 -0.5912,0.6133 -0.32651,0 -0.5912,-0.27458 -0.5912,-0.6133 0,-0.33872 0.26469,-0.6133 0.5912,-0.6133 0.32651,0 0.5912,0.27458 0.5912,0.6133 z" />
+        </g>
       </g>
     </g>
   </g>
