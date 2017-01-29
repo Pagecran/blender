@@ -14,7 +14,7 @@
    height="640"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.91 r"
    version="1.0"
    sodipodi:docname="blender_icons.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -28201,7 +28201,7 @@
        xlink:href="#linearGradient37542-29"
        id="linearGradient17610"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(-1,0,0,1,461.01011,-167)"
+       gradientTransform="matrix(-1,0,0,1,865.01833,131.0342)"
        x1="392.0101"
        y1="224.99998"
        x2="392.0101"
@@ -28263,7 +28263,7 @@
        xlink:href="#linearGradient37542-29-7"
        id="linearGradient17610-0"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(-1,0,0,1,461.01011,-167)"
+       gradientTransform="translate(128.00098,130.98191)"
        x1="392.0101"
        y1="224.99998"
        x2="392.0101"
@@ -28402,7 +28402,7 @@
        x2="228.5468"
        y1="118.91647"
        x1="228.5468"
-       gradientTransform="matrix(1.180548,0,0,0.90042534,265.27784,265.13062)"
+       gradientTransform="matrix(1.180548,0,0,0.90042534,265.83288,265.61628)"
        gradientUnits="userSpaceOnUse"
        id="linearGradient17838"
        xlink:href="#linearGradient319-36-40-2"
@@ -28433,7 +28433,7 @@
        x2="228.5468"
        y1="118.91647"
        x1="228.5468"
-       gradientTransform="matrix(1.180548,0,0,0.90042534,223.26222,270.47438)"
+       gradientTransform="matrix(1.180548,0,0,0.90042534,223.81726,270.99473)"
        gradientUnits="userSpaceOnUse"
        id="linearGradient17872"
        xlink:href="#linearGradient319-36-40-2-4"
@@ -29073,7 +29073,7 @@
        xlink:href="#linearGradient27854-0-6-9"
        id="linearGradient17162"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0,1,-1,0,782.48614,-14.46331)"
+       gradientTransform="matrix(0,1,-1,0,783.04118,-13.977664)"
        x1="388.86502"
        y1="244.02"
        x2="391.43173"
@@ -29083,7 +29083,7 @@
        xlink:href="#linearGradient37542-29-7-8"
        id="linearGradient17165"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0,1,-1,0,782.48614,-14.46331)"
+       gradientTransform="matrix(0,1,-1,0,783.04118,-13.977664)"
        x1="368.97806"
        y1="249.99998"
        x2="393.85385"
@@ -29113,7 +29113,7 @@
        xlink:href="#linearGradient37542-29-1"
        id="linearGradient17185"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0,-1,-1,0,740.48614,764.46331)"
+       gradientTransform="matrix(0,-1,-1,0,741.04118,764.98366)"
        x1="409.93588"
        y1="249.99998"
        x2="385.11514"
@@ -31349,17 +31349,17 @@
      objecttolerance="10000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.274018"
-     inkscape:cx="519.70993"
-     inkscape:cy="325.90484"
+     inkscape:zoom="14.413868"
+     inkscape:cx="480.24726"
+     inkscape:cy="269.95478"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1005"
-     inkscape:window-x="-2"
-     inkscape:window-y="27"
-     inkscape:snap-nodes="false"
+     inkscape:window-width="1680"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="30"
+     inkscape:snap-nodes="true"
      inkscape:snap-bbox="true"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -31369,14 +31369,16 @@
      inkscape:snap-intersection-grid-guide="false"
      inkscape:window-maximized="1"
      inkscape:bbox-paths="false"
-     inkscape:snap-global="false"
+     inkscape:snap-global="true"
      inkscape:snap-bbox-midpoints="false"
-     inkscape:snap-grids="true"
+     inkscape:snap-grids="false"
      inkscape:snap-to-guides="false"
      inkscape:snap-page="false"
      units="pt"
      inkscape:snap-center="false"
-     inkscape:snap-object-midpoints="true">
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-midpoints="false"
+     inkscape:snap-others="false">
     <inkscape:grid
        type="xygrid"
        id="grid17394"
@@ -88001,37 +88003,37 @@
     <g
        style="display:inline;enable-background:new"
        id="ICON_COLLAPSEMENU"
-       transform="translate(279.8665,506.92392)">
+       transform="translate(280,508)">
       <rect
          y="111"
          x="103"
          height="16"
          width="16"
          id="rect24489-7-4"
-         style="opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate" />
       <rect
          style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1"
          id="rect29842"
-         width="11.816368"
-         height="2.1883197"
-         x="105.18671"
-         y="-116.88043"
+         width="11.209318"
+         height="2.1883163"
+         x="105.39484"
+         y="-116.60292"
          transform="scale(1,-1)" />
       <rect
-         style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1;display:inline;enable-background:new"
+         style="display:inline;fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1;enable-background:new"
          id="rect29842-4"
-         width="11.816368"
-         height="2.1883197"
-         x="105.31538"
-         y="-120.80865"
+         width="11.191971"
+         height="2.2056611"
+         x="105.41944"
+         y="-120.61786"
          transform="scale(1,-1)" />
       <rect
-         style="fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79452544;stroke-opacity:1;display:inline;enable-background:new"
+         style="display:inline;fill:#ececec;fill-opacity:1;stroke:#141414;stroke-width:0.79500002;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;enable-background:new"
          id="rect29842-4-5"
-         width="11.816368"
-         height="2.1883197"
-         x="105.41832"
-         y="-124.71391"
+         width="11.22666"
+         height="2.2056642"
+         x="105.38363"
+         y="-124.60985"
          transform="scale(1,-1)" />
     </g>
     <g
@@ -89360,17 +89362,18 @@
          y="69" />
       <g
          id="g17605"
-         transform="translate(-1.5467961,-0.48613592)">
+         transform="translate(-0.99177519,0.03419629)">
         <path
-           sodipodi:nodetypes="ccccccccccc"
+           style="fill:url(#linearGradient17610);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 472.51758,370.53516 -1.04688,0.0312 0.0371,9.96875 1.00977,0 3.95117,-3.70704 -5.3e-4,3.72852 3.1119,0 0,-10.01758 -3.1119,0 5.3e-4,3.73242 z"
+           transform="translate(-404.00822,-298.0342)"
+           id="path11011-6"
            inkscape:connector-curvature="0"
-           d="m 72.839729,82.521675 2.731705,0 0,-10.016275 -2.731705,0 L 72.84,76.59374 68.51011,72.5 67.4632,72.53125 67.5,82.49999 68.51011,82.5 72.84,78.43749 z"
-           style="fill:url(#linearGradient17610);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-           id="path11011-6" />
+           sodipodi:nodetypes="ccccccccccc" />
         <path
            sodipodi:nodetypes="ccc"
            style="fill:none;stroke:url(#linearGradient17612);stroke-width:0.91056824px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
-           d="m 73.7503,81.408784 0,-7.99274 0.910568,-6.3e-5"
+           d="m 73.368723,81.408784 0,-7.99274 1.292145,-6.3e-5"
            id="path10830-6"
            inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
            inkscape:export-xdpi="90"
@@ -89397,17 +89400,18 @@
          y="69" />
       <g
          id="g17605-3"
-         transform="translate(-1.5467961,-0.48613592)">
+         transform="translate(-1.9392553,-0.11820549)">
         <path
-           sodipodi:nodetypes="ccccccccccc"
+           style="fill:url(#linearGradient17610-0);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 520.5,370.48242 -4.01758,3.80078 -6.6e-4,-3.79492 -3.04231,0 0,10.01563 3.04231,0 6.6e-4,-3.79297 4.01758,3.77148 1.01172,0 0.0371,-9.96875 z"
+           transform="matrix(-1,0,0,1,589.01109,-297.98191)"
+           id="path11011-6-2"
            inkscape:connector-curvature="0"
-           d="m 72.839729,82.521675 2.731705,0 0,-10.016275 -2.731705,0 L 72.84,76.59374 68.51011,72.5 67.4632,72.53125 67.5,82.49999 68.51011,82.5 72.84,78.43749 z"
-           style="fill:url(#linearGradient17610-0);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-           id="path11011-6-2" />
+           sodipodi:nodetypes="ccccccccccc" />
         <path
            sodipodi:nodetypes="ccc"
            style="fill:none;stroke:url(#linearGradient17612-5);stroke-width:0.91056824px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
-           d="m 74.660868,81.408784 0,-7.99274 -0.910568,-6.3e-5"
+           d="m 74.660868,81.408784 0,-7.99274 -1.220453,-6.3e-5"
            id="path10830-6-2"
            inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
            inkscape:export-xdpi="90"
@@ -89432,16 +89436,16 @@
          y="-546"
          transform="matrix(0,-1,-1,0,0,0)" />
       <path
+         style="fill:url(#linearGradient17165);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 533.51953,371.46094 0,3.04042 3.79492,5.9e-4 -3.77343,4.01953 0,1.01172 9.96875,0.0352 0.0312,-1.04688 -3.80274,-4.01953 3.79688,-5.9e-4 0,-3.04042 z"
          id="path11011-6-2-1"
-         style="fill:url(#linearGradient17165);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 532.96447,373.70707 0,-2.7317 10.01627,0 0,2.7317 -4.08834,-2.7e-4 4.09374,4.32989 -0.0312,1.04691 -9.96874,-0.0368 -1e-5,-1.01011 4.06251,-4.32989 z"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccccccccccc" />
       <path
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccc"
          id="path11013-5-7-1"
-         d="m 541.73615,378.0468 -3.75,-4 -3.75,4"
+         d="m 542.29119,378.53246 -3.75,-4 -3.75,4"
          style="fill:none;stroke:url(#linearGradient17162);stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
       <path
          inkscape:connector-curvature="0"
@@ -89449,8 +89453,8 @@
          inkscape:export-xdpi="90"
          inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
          id="path10830-6-2-8"
-         d="m 542.11634,371.83103 -8.26386,0 -6e-5,0.90043"
-         style="fill:none;stroke:url(#linearGradient17838);stroke-width:0.92071104px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;display:inline;enable-background:new"
+         d="m 542.67138,372.31669 -8.26386,0 -6e-5,1.20843"
+         style="display:inline;fill:none;stroke:url(#linearGradient17838);stroke-width:0.92071104px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
          sodipodi:nodetypes="ccc" />
     </g>
     <g
@@ -89464,16 +89468,16 @@
          y="-504"
          transform="matrix(0,1,-1,0,0,0)" />
       <path
+         style="fill:url(#linearGradient17185);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 501.50977,371.4375 -9.96875,0.0352 0,1.01172 3.69336,3.93554 -3.71485,-0.005 0,3.13033 10.01563,0 0,-3.13033 -3.7168,0.007 3.72266,-3.9375 z"
          id="path11011-6-8"
-         style="fill:url(#linearGradient17185);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 490.96446,376.29293 0,2.7317 10.01628,0 0,-2.7317 -4.08834,2.7e-4 4.09374,-4.32989 -0.0312,-1.04691 -9.96874,0.0368 -10e-6,1.01011 4.06251,4.32989 z"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccccccccccc" />
       <path
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="cc"
          id="path11013-5-6"
-         d="m 492.23615,371.9532 7.5,0"
+         d="m 492.79119,372.47355 7.5,0"
          style="fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
       <path
          inkscape:connector-curvature="0"
@@ -89481,8 +89485,8 @@
          inkscape:export-xdpi="90"
          inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
          id="path10830-6-2-8-8"
-         d="m 500.10071,377.17478 -8.26386,0 -6e-5,0.90043"
-         style="fill:none;stroke:url(#linearGradient17872);stroke-width:0.92071104px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;display:inline;enable-background:new"
+         d="m 500.65575,377.29722 -8.26386,0 -6e-5,1.29834"
+         style="display:inline;fill:none;stroke:url(#linearGradient17872);stroke-width:0.92071104px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
          sodipodi:nodetypes="ccc" />
     </g>
     <g
