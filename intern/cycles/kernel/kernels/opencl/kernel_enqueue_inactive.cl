@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 Blender Foundation
+ * Copyright 2011-2017 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 #include "kernel/kernel_compat_opencl.h"
 #include "kernel/split/kernel_split_common.h"
-#include "kernel/split/kernel_scene_intersect.h"
+#include "kernel/split/kernel_enqueue_inactive.h"
 
-#define KERNEL_NAME scene_intersect
+#define KERNEL_NAME enqueue_inactive
+#define LOCALS_TYPE unsigned int
 #include "kernel/kernels/opencl/kernel_split_function.h"
 #undef KERNEL_NAME
+#undef LOCALS_TYPE
 
