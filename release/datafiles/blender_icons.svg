@@ -31694,94 +31694,6 @@
          id="stop32081" />
     </linearGradient>
     <linearGradient
-       id="linearGradient16201"
-       inkscape:collect="always">
-      <stop
-         id="stop16197"
-         offset="0"
-         style="stop-color:#3162a3;stop-opacity:1" />
-      <stop
-         id="stop16199"
-         offset="1"
-         style="stop-color:#f7fefe;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient32049">
-      <stop
-         style="stop-color:#000000;stop-opacity:0.502"
-         offset="0"
-         id="stop32045" />
-      <stop
-         style="stop-color:#000000;stop-opacity:0;"
-         offset="1"
-         id="stop32047" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient32083"
-       id="linearGradient1839"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.9995967,0,0,1.0002103,-78.949724,-0.02739749)"
-       x1="130.96371"
-       y1="93.79351"
-       x2="130.95943"
-       y2="102.0938" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient32049"
-       id="linearGradient1843"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.99959671,0,0,1.0002103,-77.491851,-1.6095542)"
-       x1="134.59244"
-       y1="102.70123"
-       x2="129.80527"
-       y2="99.260376" />
-    <radialGradient
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0756796,0,0,1.0756796,169.29413,52.235312)"
-       r="2.5804064"
-       fy="221.18524"
-       fx="126.53663"
-       cy="221.18524"
-       cx="126.53663"
-       id="radialGradient16215-8-6"
-       xlink:href="#linearGradient18134"
-       inkscape:collect="always" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient32275"
-       id="linearGradient1837"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.24672296,0,0,0.24587247,48.791231,-7.4945859)"
-       x1="-106.86201"
-       y1="54.004005"
-       x2="-118.21918"
-       y2="42.824642" />
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient32275">
-      <stop
-         style="stop-color:#ffffff;stop-opacity:0.502"
-         offset="0"
-         id="stop32271" />
-      <stop
-         style="stop-color:#ffffff;stop-opacity:0.502"
-         offset="1"
-         id="stop32273" />
-    </linearGradient>
-    <radialGradient
-       gradientTransform="matrix(0.74982815,0,0,0.74524045,-395.41513,-347.41042)"
-       r="8"
-       fy="116.10581"
-       fx="135.00543"
-       cy="116.10581"
-       cx="135.00543"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient16343-7"
-       xlink:href="#linearGradient20909"
-       inkscape:collect="always" />
-    <linearGradient
        id="linearGradient20909">
       <stop
          id="stop20905"
@@ -31793,70 +31705,6 @@
          style="stop-color:#be6405;stop-opacity:1" />
     </linearGradient>
     <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient18134"
-       id="linearGradient1833"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.68749955,0,0,0.68749925,174.25458,209.80705)"
-       x1="125.81818"
-       y1="111.81818"
-       x2="143.88347"
-       y2="129.27184" />
-    <radialGradient
-       r="4.0908751"
-       fy="224.26517"
-       fx="129.04718"
-       cy="224.26517"
-       cx="129.04718"
-       gradientTransform="matrix(2.3313393,0.09414236,-0.07778124,1.9261749,-17.080128,-154.09391)"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient16345-9"
-       xlink:href="#linearGradient20915"
-       inkscape:collect="always" />
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient20915">
-      <stop
-         style="stop-color:#efa351;stop-opacity:1"
-         offset="0"
-         id="stop20911" />
-      <stop
-         style="stop-color:#f7fefe;stop-opacity:1"
-         offset="1"
-         id="stop20913" />
-    </linearGradient>
-    <radialGradient
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0756796,0,0,1.0756796,126.28771,52.31486)"
-       r="2.5804064"
-       fy="221.18524"
-       fx="126.53663"
-       cy="221.18524"
-       cx="126.53663"
-       id="radialGradient16215-2"
-       xlink:href="#linearGradient18134"
-       inkscape:collect="always" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient37542"
-       id="linearGradient15186"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.9995967,0,0,1.0002103,-78.949724,-0.02739749)"
-       x1="109.04134"
-       y1="75.666725"
-       x2="135.45256"
-       y2="103.11092" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient319"
-       id="linearGradient15188"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.1000194,0,0,1.0998287,-4.6508478,-9.2334126)"
-       x1="47.655102"
-       y1="93.805557"
-       x2="59.057678"
-       y2="105.27895" />
-    <linearGradient
        id="linearGradient16192">
       <stop
          style="stop-color:#b69f83;stop-opacity:1"
@@ -31867,58 +31715,6 @@
          offset="1"
          id="stop16190" />
     </linearGradient>
-    <radialGradient
-       gradientTransform="matrix(0.74982815,0,0,0.74524045,-395.41513,-347.41042)"
-       r="8"
-       fy="116.10581"
-       fx="135.00543"
-       cy="116.10581"
-       cx="135.00543"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient16343"
-       xlink:href="#linearGradient16192"
-       inkscape:collect="always" />
-    <linearGradient
-       gradientTransform="matrix(0.68749955,0,0,0.68749925,174.25458,209.80705)"
-       y2="129.27184"
-       x2="143.88347"
-       y1="111.81818"
-       x1="125.81818"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient15938"
-       xlink:href="#linearGradient18134"
-       inkscape:collect="always" />
-    <radialGradient
-       r="4.0908751"
-       fy="224.26517"
-       fx="129.04718"
-       cy="224.26517"
-       cx="129.04718"
-       gradientTransform="matrix(2.3313393,0.09414236,-0.07778124,1.9261749,-17.080128,-154.09391)"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient16345"
-       xlink:href="#linearGradient16201"
-       inkscape:collect="always" />
-    <radialGradient
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0756796,0,0,1.0756796,126.28771,52.31486)"
-       r="2.5804064"
-       fy="221.18524"
-       fx="126.53663"
-       cy="221.18524"
-       cx="126.53663"
-       id="radialGradient16215"
-       xlink:href="#linearGradient18134"
-       inkscape:collect="always" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient27277-1-8"
-       id="linearGradient18811"
-       gradientUnits="userSpaceOnUse"
-       x1="4.1933641"
-       y1="199.12067"
-       x2="17.16466"
-       y2="211.01585" />
     <mask
        maskUnits="userSpaceOnUse"
        id="mask25369-1">
@@ -32205,6 +32001,162 @@
        y1="238"
        x2="226.625"
        y2="251.71078" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient18495"
+       id="radialGradient45309-02"
+       cx="336.42892"
+       cy="611.10455"
+       fx="336.42892"
+       fy="611.10455"
+       r="5.9852905"
+       gradientTransform="matrix(1.0070601,0.03386866,-0.03770425,1.1211085,20.665977,-85.772965)"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:collect="always"
+       id="filter24186-3-2-2"
+       x="-0.12810811"
+       width="1.2562162"
+       y="-0.11285714"
+       height="1.2257143">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.395"
+         id="feGaussianBlur24188-3-7-2" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-9-1"
+       id="linearGradient42578"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(301.02752,449.99999)"
+       x1="25.963812"
+       y1="155.66899"
+       x2="29.972469"
+       y2="168" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1610-06-1-5"
+       id="linearGradient42580"
+       gradientUnits="userSpaceOnUse"
+       x1="335.96875"
+       y1="607.09375"
+       x2="337.04251"
+       y2="628.20752" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient15859-1-3"
+       id="linearGradient42617"
+       gradientUnits="userSpaceOnUse"
+       x1="12.602254"
+       y1="206.13333"
+       x2="26.167894"
+       y2="220.66356" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient48327-1"
+       id="radialGradient42840"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.4461753,0.01083717,0.0036163,6.752143,-191.34795,-740.3814)"
+       cx="131.99811"
+       cy="126.63337"
+       fx="131.99811"
+       fy="126.63337"
+       r="9.1978254" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient10069-74-1"
+       id="linearGradient42842"
+       gradientUnits="userSpaceOnUse"
+       x1="125.20553"
+       y1="111.38132"
+       x2="132.35237"
+       y2="118.69846" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-7409-3-7"
+       id="linearGradient42844"
+       gradientUnits="userSpaceOnUse"
+       x1="130.60338"
+       y1="115.87343"
+       x2="143.88347"
+       y2="129.27184" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319-7409-3-7"
+       id="linearGradient42846"
+       gradientUnits="userSpaceOnUse"
+       x1="125.81818"
+       y1="111.81818"
+       x2="143.88347"
+       y2="129.27184" />
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:collect="always"
+       x="-0.71999419"
+       width="2.4399884"
+       y="-0.72000581"
+       height="2.4400115"
+       id="filter31351-7">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.83077614"
+         id="feGaussianBlur31353-1" />
+    </filter>
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask43822-7">
+      <rect
+         y="208"
+         x="754"
+         height="9"
+         width="12"
+         id="rect43824-6"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0.93999993;fill:url(#linearGradient43826);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:new" />
+    </mask>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient37542"
+       id="linearGradient43187"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.888889,0,0,1,61.53822,346.48241)"
+       x1="246.89435"
+       y1="-4.4418921"
+       x2="277.68143"
+       y2="30.743095" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient319"
+       id="linearGradient43189"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(218.01612,129)"
+       x1="87.03125"
+       y1="241"
+       x2="92.8125"
+       y2="245.625" />
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask43822-5">
+      <rect
+         y="208"
+         x="754"
+         height="9"
+         width="12"
+         id="rect43824-61"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0.93999993;fill:url(#linearGradient43826);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:new" />
+    </mask>
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask43822-7-6">
+      <rect
+         y="208"
+         x="754"
+         height="9"
+         width="12"
+         id="rect43824-6-2"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0.93999993;fill:url(#linearGradient43826);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:new" />
+    </mask>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -92328,305 +92280,6 @@
            inkscape:connector-curvature="0" />
       </g>
     </g>
-    <g
-       transform="translate(63,-21)"
-       style="display:inline;enable-background:new"
-       id="ICON_LIBRARY_DATA_DIRECT-3">
-      <g
-         transform="translate(0,128)"
-         id="g24024-6">
-        <rect
-           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
-           id="rect22150-0"
-           width="16"
-           height="16"
-           x="299"
-           y="365" />
-        <path
-           inkscape:export-ydpi="90"
-           inkscape:export-xdpi="90"
-           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
-           sodipodi:nodetypes="cccccc"
-           id="path12337-6"
-           d="m 304.20488,366.47791 h 8.33334 v 13 h -11 l -1e-5,-10 z"
-           style="display:inline;fill:url(#linearGradient14966);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;marker:none"
-           inkscape:connector-curvature="0" />
-        <path
-           transform="matrix(1.2999758,0,0,1.2999988,365.56499,31.43979)"
-           sodipodi:nodetypes="ccc"
-           id="path12339-2"
-           style="display:inline;opacity:0.7;fill:none;stroke:#000000;stroke-width:0.76923829px;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:1;filter:url(#filter31351-5)"
-           d="M -48.500031,260.50809 -46.5,260.5 l -3.1e-5,-1.99191"
-           inkscape:connector-curvature="0" />
-        <path
-           sodipodi:nodetypes="cccc"
-           id="path12341-6"
-           d="m 301.01612,370 h 4 v -4 z"
-           style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
-           inkscape:connector-curvature="0" />
-        <path
-           sodipodi:nodetypes="cccc"
-           id="path12343-18"
-           style="display:inline;fill:none;stroke:url(#linearGradient14968);stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
-           d="m 302.51612,371.00001 v 7.5 m 3.5,-11 h 5.5"
-           inkscape:connector-curvature="0" />
-        <path
-           inkscape:export-ydpi="90"
-           inkscape:export-xdpi="90"
-           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
-           d="m 301.53822,368.97791 v 10.5 h 11 v -13 h -8.5 z"
-           style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-           id="path12345-79"
-           sodipodi:nodetypes="cccccc"
-           inkscape:connector-curvature="0" />
-      </g>
-      <path
-         transform="rotate(90,390.14304,130.94532)"
-         mask="url(#mask43822-1)"
-         sodipodi:nodetypes="cccccccc"
-         id="path43815-2"
-         d="m 765.0088,212.5 -3.9824,3.5 -0.0176,-2 h -6.9736 l -0.0132,-3 h 6.9868 l 0.004,-2 z"
-         style="display:inline;opacity:0.93999993;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none;enable-background:new"
-         inkscape:transform-center-x="1"
-         inkscape:transform-center-y="2"
-         inkscape:connector-curvature="0" />
-      <rect
-         y="388.14911"
-         x="236.65889"
-         height="15.857694"
-         width="15.371461"
-         id="rect24007-4-3"
-         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.73221993;marker:none;enable-background:accumulate" />
-      <rect
-         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:8.5497179;marker:none;enable-background:accumulate"
-         id="rect15296-7-7"
-         width="48.855526"
-         height="48.855526"
-         x="-358.88776"
-         y="435.15311" />
-      <g
-         transform="matrix(1.0409533,0,0,1.0409533,-31.873537,156.12279)"
-         id="ICON_OUTLINER_OB_LIGHTPROBE"
-         style="display:inline;opacity:1;enable-background:new">
-        <ellipse
-           id="path15301-7-9"
-           style="display:inline;fill:white;fill-opacity:1;fill-rule:nonzero;stroke:#422200;stroke-width:0.90000004;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
-           cx="265.0126"
-           cy="290.93195"
-           rx="6.4540777"
-           ry="6.4615378" />
-        <ellipse
-           style="display:inline;opacity:1;fill:url(#radialGradient16343-7);fill-opacity:1.0;fill-rule:nonzero;stroke:none;stroke-width:0.74753082;enable-background:new"
-           id="path15303-40-2"
-           transform="matrix(-0.99371287,-0.11195862,0.11396043,-0.99348529,0,0)"
-           cx="-296.43781"
-           cy="-259.47205"
-           rx="5.9986253"
-           ry="5.9619236" />
-        <ellipse
-           id="path15305-1-2"
-           style="display:inline;fill:none;stroke:url(#linearGradient1833);stroke-width:1.00000083;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
-           cx="265.00449"
-           cy="290.93195"
-           rx="5.4999962"
-           ry="5.4999943" />
-        <path
-           style="display:inline;opacity:1;fill:url(#radialGradient16345-9);fill-opacity:1;stroke:none;stroke-width:1.70456684;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;enable-background:new"
-           d="m 269.25291,290.16569 c 0,1.9641 -1.9029,2.10245 -4.25024,2.10245 -2.34735,0 -4.25025,-0.13833 -4.25025,-2.10245 0,-1.96408 1.9029,-3.5563 4.25025,-3.5563 2.34734,0 4.25024,1.59222 4.25024,3.5563 z"
-           id="path16194-8"
-           inkscape:connector-curvature="0"
-           sodipodi:nodetypes="cscsc" />
-        <circle
-           style="display:inline;opacity:1;fill:url(#radialGradient16215-2);fill-opacity:1;stroke:none;stroke-width:1.70456684;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;enable-background:new"
-           id="path16207-97"
-           cx="262.40057"
-           cy="290.23932"
-           r="2.7756906" />
-      </g>
-      <rect
-         y="388.53351"
-         x="276.20624"
-         height="15.857694"
-         width="15.371461"
-         id="rect41257-5-3"
-         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.73221993;marker:none;enable-background:accumulate" />
-      <g
-         style="display:inline;opacity:1;stroke-width:0.92378205;enable-background:new"
-         id="ICON_LIGHTPROBE_GRID"
-         transform="matrix(4.1824085,0,0,4.3147085,197.8811,376.91182)"
-         inkscape:label="#ICON_LIGHTPROBE_GRID">
-        <g
-           id="g41259-1-1"
-           style="display:inline;stroke-width:0.92378205;enable-background:new"
-           transform="matrix(0.26467734,0,0,0.26447615,7.1493505,-21.614208)">
-          <rect
-             style="fill:url(#linearGradient15186);fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:0.73904407;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-             id="rect41261-7-2"
-             width="11.995742"
-             height="12.004883"
-             x="46.499645"
-             y="92.490814" />
-          <path
-             inkscape:connector-curvature="0"
-             style="fill:#fdfefe;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
-             d="m 46.907234,96.606288 v -3.716421 l 3.713597,5e-6 v 3.716421 z"
-             id="path41263-3-9"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#6289b8;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 50.631333,96.588054 v -3.698738 l 3.695921,1.2e-5 v 3.698738 z"
-             id="path41263-3-7-3"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#4e709a;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 54.316208,96.645534 v -3.751799 l 3.784289,1.2e-5 v 3.751798 z"
-             id="path41263-3-7-9-19"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#6289b8;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 46.906687,100.31554 v -3.703172 l 3.709175,1.2e-5 v 3.70317 z"
-             id="path41263-3-7-2-4"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#3c5d86;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 54.325051,100.3509 v -3.796008 l 3.810799,1.2e-5 v 3.796016 z"
-             id="path41263-3-7-9-1-7"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#4e709a;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 50.57831,100.31995 v -3.769487 l 3.748939,1e-5 v 3.769487 z"
-             id="path41263-3-7-9-2-8"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#bba891;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 46.904544,104.10308 v -3.78489 l 3.691501,1e-5 v 3.7849 z"
-             id="path41263-3-7-9-2-2-4"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#65492b;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 50.595983,104.10048 v -3.77389 l 3.771034,1e-5 v 3.77389 z"
-             id="path41263-3-7-9-2-2-7-5"
-             sodipodi:nodetypes="ccccc" />
-          <path
-             inkscape:connector-curvature="0"
-             style="display:inline;fill:#422200;fill-opacity:1;stroke:none;stroke-width:0.92380506px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
-             d="m 54.355973,104.10187 v -3.76645 l 3.763582,1e-5 v 3.76645 z"
-             id="path41263-3-7-9-2-2-7-6-0"
-             sodipodi:nodetypes="ccccc" />
-        </g>
-        <path
-           inkscape:connector-curvature="0"
-           d="m 21.528344,3.0779311 v 2.704597 m -0.986891,-2.704597 v 2.704597 m 1.850422,-0.860554 h -2.713953 m 2.713953,-0.983488 h -2.713953"
-           style="display:inline;fill:none;stroke:url(#linearGradient1837);stroke-width:0.24441732;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;enable-background:new"
-           id="path41281-4-3" />
-      </g>
-      <rect
-         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.73221993;marker:none;enable-background:accumulate"
-         id="rect31205-8-6"
-         width="15.371461"
-         height="15.857694"
-         x="256.10117"
-         y="388.50687" />
-      <g
-         transform="matrix(0.96071629,0,0,0.99110589,-29.963907,107.82778)"
-         id="ICON_LIGHTPROBE_PLANAR"
-         style="display:inline;opacity:1;enable-background:new">
-        <g
-           transform="matrix(1.0003553,0,0,0.9995949,255.07114,193.09317)"
-           style="display:inline"
-           id="g9148-9-0">
-          <path
-             sodipodi:nodetypes="ccccc"
-             inkscape:connector-curvature="0"
-             id="rect9150-2-6"
-             d="m 45.5,91.491928 12.995382,2.511515 v 8.228337 L 45.5,104.49568 Z"
-             style="fill:url(#linearGradient1839);fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:0.80001998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-          <path
-             inkscape:connector-curvature="0"
-             sodipodi:nodetypes="ccccc"
-             id="path9152-7-3"
-             d="M 46.49945,103.49527 V 92.492523 l 10.996287,2.228527 v 6.75793 z"
-             style="fill:none;stroke:url(#linearGradient15188);stroke-width:1.0000248px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-          <path
-             sodipodi:nodetypes="ccccc"
-             inkscape:connector-curvature="0"
-             id="rect9150-2-7-2"
-             d="m 47.081592,93.111072 9.92023,2.069352 0.01767,5.911376 -10.061616,1.82172 z"
-             style="display:inline;fill:url(#linearGradient1843);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.80001998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new" />
-        </g>
-        <circle
-           style="display:inline;opacity:1;fill:url(#radialGradient16215-8-6);fill-opacity:1;stroke:none;stroke-width:1.70456684;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;enable-background:new"
-           id="path16207-4-0"
-           cx="305.40698"
-           cy="290.15979"
-           r="2.7756906" />
-      </g>
-      <g
-         id="layer1-2"
-         inkscape:label="Capa 1"
-         transform="matrix(3.7795276,0,0,3.7795276,-191.20889,408.4512)">
-        <rect
-           y="1.3906925"
-           x="7.0330977"
-           height="4.2333331"
-           width="4.2333331"
-           id="rect24007-4"
-           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.74083334;marker:none;enable-background:accumulate" />
-        <rect
-           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.74083334;marker:none;enable-background:accumulate"
-           id="rect15296-7"
-           width="4.2333331"
-           height="4.2333331"
-           x="1.4538921"
-           y="1.3897316" />
-        <g
-           id="ICON_LIGHTPROBE_CUBEMAP"
-           style="display:inline;opacity:1;enable-background:new"
-           transform="matrix(0.26458333,0,0,0.26458333,45.041487,-80.256633)">
-          <ellipse
-             id="path15301-7"
-             style="display:inline;fill:white;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:0.90000004;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
-             cx="265.0126"
-             cy="290.93195"
-             rx="6.4540777"
-             ry="6.4615378" />
-          <ellipse
-             style="display:inline;opacity:1;fill:url(#radialGradient16343);fill-opacity:1.0;fill-rule:nonzero;stroke:none;stroke-width:0.74753082;enable-background:new"
-             id="path15303-40"
-             transform="matrix(-0.99371287,-0.11195862,0.11396043,-0.99348529,0,0)"
-             cx="-296.43781"
-             cy="-259.47205"
-             rx="5.9986253"
-             ry="5.9619236" />
-          <ellipse
-             id="path15305-1"
-             style="display:inline;fill:none;stroke:url(#linearGradient15938);stroke-width:1.00000083;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
-             cx="265.00449"
-             cy="290.93195"
-             rx="5.4999962"
-             ry="5.4999943" />
-          <path
-             style="display:inline;opacity:1;fill:url(#radialGradient16345);fill-opacity:1;stroke:none;stroke-width:1.70456684;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;enable-background:new"
-             d="m 269.25291,290.16569 c 0,1.9641 -1.9029,2.10245 -4.25024,2.10245 -2.34735,0 -4.25025,-0.13833 -4.25025,-2.10245 0,-1.96408 1.9029,-3.5563 4.25025,-3.5563 2.34734,0 4.25024,1.59222 4.25024,3.5563 z"
-             id="path16194"
-             inkscape:connector-curvature="0"
-             sodipodi:nodetypes="cscsc" />
-          <circle
-             style="display:inline;opacity:1;fill:url(#radialGradient16215);fill-opacity:1;stroke:none;stroke-width:1.70456684;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers;enable-background:new"
-             id="path16207"
-             cx="262.40057"
-             cy="290.23932"
-             r="2.7756906" />
-        </g>
-      </g>
-    </g>
     <path
        id="path14068"
        style="display:inline;overflow:visible;visibility:visible;opacity:0.35;fill:none;stroke:url(#radialGradient23167-6);stroke-width:2.12000012;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
@@ -92966,46 +92619,6 @@
       <g
          transform="matrix(0.94058502,0,0,0.94058502,0.9128606,12.74924)"
          id="g56716-3" />
-    </g>
-    <g
-       transform="translate(461.99301,376.87052)"
-       style="display:inline;enable-background:new"
-       id="ICON_SOLO_OFF-1">
-      <rect
-         y="198.9792"
-         x="4.9506397"
-         height="16"
-         width="16"
-         id="rect23018-5-4-2"
-         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate" />
-      <g
-         transform="matrix(0.94058502,0,0,0.94058502,0.9128606,12.74924)"
-         id="g56716-7">
-        <path
-           sodipodi:type="star"
-           style="fill:url(#linearGradient18811);fill-opacity:1.0;stroke:#000000;stroke-width:0.96882826;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.80000001"
-           id="path15855-0"
-           sodipodi:sides="5"
-           sodipodi:cx="13.700194"
-           sodipodi:cy="207.20645"
-           sodipodi:r1="7.1873641"
-           sodipodi:r2="3.3158474"
-           sodipodi:arg1="0.94697287"
-           sodipodi:arg2="1.5618338"
-           inkscape:flatsided="false"
-           inkscape:rounded="0"
-           inkscape:randomized="0"
-           d="m 17.898641,213.04008 -4.168729,-2.51791 -4.280439,2.47993 1.106473,-4.74277 -3.6812884,-3.3046 4.8525664,-0.41328 2.005278,-4.52229 1.892578,4.48735 4.920618,0.50967 -3.682889,3.18662 z"
-           inkscape:transform-center-x="-0.010954063"
-           inkscape:transform-center-y="-0.74285516"
-           transform="matrix(1.0972098,0,0,1.0975406,-2.0923019,-19.740595)" />
-        <path
-           style="fill:none;stroke:#ffffff;stroke-width:1.06316817;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:0.51147538"
-           d="m 12.931855,202.51514 -1.201334,2.70994 c -0.137665,0.32193 -0.454082,0.55986 -0.800889,0.60222 l -2.9032248,0.26765 2.2358168,1.97391 c 0.261321,0.2395 0.380487,0.62447 0.300333,0.97022 l -0.667408,2.81032"
-           id="path15869-9"
-           inkscape:connector-curvature="0"
-           sodipodi:nodetypes="ccccccc" />
-      </g>
     </g>
     <g
        style="display:inline;enable-background:new"
@@ -93788,6 +93401,540 @@
        id="path15475-0-6-8-7"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
+    <g
+       id="g7004"
+       transform="translate(126.03866,42.479059)"
+       style="display:inline;opacity:0.8;enable-background:new">
+      <path
+         sodipodi:nodetypes="ccccc"
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+         d="m 57.5,410.5 v 2 h -2 v -2 z"
+         id="path6988"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6990"
+         d="m 59.5,420.5 v 1.9999 h -2 V 420.5 Z"
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path6994"
+         d="m 51.5,415.5 v 2 h -2 v -2 z"
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         sodipodi:nodetypes="cccccccccccc"
+         inkscape:connector-curvature="0"
+         id="path6998"
+         style="display:inline;opacity:0.9;fill:none;stroke:#ffffff;stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;enable-background:new"
+         d="m 62.5,411.49995 -3,5e-5 m -4,0 -8,-5e-5 m 15,5 -9,5e-5 m -4,0 -2,-5e-5 m 15,5 -1,5e-5 m -4,0 -10,-5e-5" />
+    </g>
+    <g
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       transform="translate(-28.153595,-46.022098)"
+       id="ICON_PREFERENCES-3"
+       style="display:inline;enable-background:new">
+      <rect
+         y="602"
+         x="327"
+         height="16"
+         width="16"
+         id="rect42947-6"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate" />
+      <g
+         id="g42949-1">
+        <g
+           style="opacity:0.85"
+           id="g42951-2">
+          <path
+             style="fill:#e6e6e6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             d="M 341.5161,616.38229 340.5,617.5 l -10.73389,-10e-6 -1.25,-1.25 L 328.5,605.5 h 13 z"
+             id="path42953-9"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90"
+             sodipodi:nodetypes="ccccccc"
+             inkscape:connector-curvature="0" />
+          <path
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+             id="path42955-3"
+             d="m 340,616 h -8.25 v -1 H 340 Z"
+             style="display:inline;overflow:visible;visibility:visible;fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.9999994px;marker:none;enable-background:accumulate"
+             sodipodi:nodetypes="ccccc"
+             inkscape:connector-curvature="0" />
+          <rect
+             style="display:inline;overflow:visible;visibility:visible;opacity:0.2;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.9999994px;marker:none;enable-background:accumulate"
+             id="rect38927-1"
+             width="11.970581"
+             height="8.0306396"
+             x="329.02942"
+             y="605.96936" />
+          <rect
+             y="605.96936"
+             x="329.02942"
+             height="8.0306396"
+             width="11.970581"
+             id="rect45307-9"
+             style="display:inline;overflow:visible;visibility:visible;opacity:0.3;fill:url(#radialGradient45309-02);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.9999994px;marker:none;enable-background:accumulate" />
+          <path
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+             id="path42957-4"
+             d="m 340.48389,606.50001 c -3.66204,-3e-5 -7.70403,2e-5 -10.98389,-10e-6 l 0.002,10.00007 10.99778,-7e-5 -0.0161,-9.99999 z"
+             style="display:inline;overflow:visible;visibility:visible;fill:none;stroke:url(#linearGradient42578);stroke-width:0.99999923px;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+             sodipodi:nodetypes="ccccc"
+             inkscape:connector-curvature="0" />
+          <rect
+             inkscape:export-ydpi="90"
+             inkscape:export-xdpi="90"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+             y="615"
+             x="330"
+             height="1.0000043"
+             width="1"
+             id="rect42959-7"
+             style="display:inline;overflow:visible;visibility:visible;fill:#d40000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate" />
+          <path
+             sodipodi:nodetypes="ccccc"
+             style="display:inline;overflow:visible;visibility:visible;opacity:0.35;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.9999994px;marker:none;enable-background:accumulate"
+             d="m 340.5,614 h -11 v -1 h 11 z"
+             id="path38929-8"
+             inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+             inkscape:export-xdpi="90"
+             inkscape:export-ydpi="90"
+             inkscape:connector-curvature="0" />
+        </g>
+        <path
+           style="opacity:0.25;fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter24186-3-2-2)"
+           d="m 337.7,606.7 v 2.75 l 2,1.5 v 2.5 l -0.25,0.25 h -1.75 v -2 h -2 v 2 h -1.75 l -0.25,-0.25 v -2.5 l 2,-1.5 v -2.75 z"
+           id="path42961-4"
+           sodipodi:nodetypes="ccccccccccccccc"
+           inkscape:connector-curvature="0" />
+        <path
+           sodipodi:nodetypes="ccccccccccccccccccccccccc"
+           id="path42963-5"
+           d="m 333.75,602.5 h 1.75 c 0,0 0,2 0,2 h 2 v -2 h 1.75 l 0.25,0.25 v 2.5 l -2,1.5 v 2.5 l 2,1.5 v 2.5 l -0.25,0.25 h -1.75 v -2 h -2 v 2 h -1.75 l -0.25,-0.25 v -2.5 l 2,-1.5 v -2.5 l -2,-1.5 v -2.5 z"
+           style="fill:#ffffff;fill-rule:evenodd;stroke:url(#linearGradient42580);stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <g
+       transform="translate(315.05087,356.60901)"
+       style="display:inline;enable-background:new"
+       id="ICON_SOLO_ON-6">
+      <rect
+         y="198.9792"
+         x="4.9506397"
+         height="16"
+         width="16"
+         id="rect23018-5-4-4-1"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate" />
+      <g
+         transform="matrix(0.94058502,0,0,0.94058502,0.9128606,12.74924)"
+         id="g56716-9-0">
+        <path
+           sodipodi:type="star"
+           style="fill:url(#linearGradient42617);fill-opacity:1;stroke:#341b00;stroke-width:0.96882826;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           id="path15855-2-6"
+           sodipodi:sides="5"
+           sodipodi:cx="13.700194"
+           sodipodi:cy="207.20645"
+           sodipodi:r1="7.1873641"
+           sodipodi:r2="3.3158474"
+           sodipodi:arg1="0.94697287"
+           sodipodi:arg2="1.5618338"
+           inkscape:flatsided="false"
+           inkscape:rounded="0"
+           inkscape:randomized="0"
+           d="m 17.898641,213.04008 -4.168729,-2.51791 -4.280439,2.47993 1.106473,-4.74277 -3.6812884,-3.3046 4.8525664,-0.41328 2.005278,-4.52229 1.892578,4.48735 4.920618,0.50967 -3.682889,3.18662 z"
+           inkscape:transform-center-x="-0.010954063"
+           inkscape:transform-center-y="-0.74285516"
+           transform="matrix(1.0972098,0,0,1.0975406,-2.0923019,-19.740595)" />
+        <path
+           style="fill:none;stroke:#ffffff;stroke-width:1.06316817;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1"
+           d="m 12.931855,202.51514 -1.201334,2.70994 c -0.137665,0.32193 -0.454082,0.55986 -0.800889,0.60222 l -2.9032248,0.26765 2.2358168,1.97391 c 0.261321,0.2395 0.380487,0.62447 0.300333,0.97022 l -0.667408,2.81032"
+           id="path15869-5-3"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccccc" />
+      </g>
+    </g>
+    <g
+       style="display:inline;enable-background:new"
+       id="g42838"
+       transform="translate(84.038997,23)">
+      <g
+         id="g42836">
+        <rect
+           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+           id="rect42818"
+           width="16"
+           height="16"
+           x="26"
+           y="92" />
+        <circle
+           r="8"
+           cy="118"
+           cx="132"
+           style="display:inline;opacity:0.75;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           id="circle42820"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"
+           transform="matrix(-0.7606373,-0.08449162,0.08669728,-0.7451645,124.04885,199.0823)" />
+        <circle
+           r="8"
+           cy="118"
+           cx="132"
+           transform="matrix(0.8125001,0,0,0.8125002,-73.250026,4.1249738)"
+           id="circle42822"
+           style="fill:none;stroke:#000000;stroke-width:1.23076892;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           sodipodi:open="true"
+           transform="matrix(0.8077059,0,0,-0.2072667,-72.578821,124.6156)"
+           sodipodi:end="3.12636"
+           sodipodi:start="0"
+           d="m 140,118 a 8,10.07671 0 0 1 -7.93907,10.07642 8,10.07671 0 0 1 -8.06,-9.92293"
+           sodipodi:ry="10.07671"
+           sodipodi:rx="8"
+           sodipodi:cy="118"
+           sodipodi:cx="132"
+           id="path42824"
+           style="opacity:0.1;fill:none;stroke:url(#radialGradient42840);stroke-width:2.44404984;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           sodipodi:type="arc"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <circle
+           r="8"
+           cy="118"
+           cx="132"
+           style="display:inline;opacity:0.15;fill:url(#linearGradient42842);fill-opacity:1;fill-rule:nonzero;stroke:none;enable-background:new"
+           id="circle42826"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\Kopia blender\.blender\icons\blender's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"
+           transform="matrix(-0.7451139,-0.08394973,0.08492792,-0.7403854,122.33348,198.48526)" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           sodipodi:open="true"
+           sodipodi:end="3.12636"
+           sodipodi:start="0"
+           d="m 140,118 a 8,8 0 0 1 -7.93907,7.99977 8,8 0 0 1 -8.06,-7.87791"
+           sodipodi:ry="8"
+           sodipodi:rx="8"
+           sodipodi:cy="118"
+           sodipodi:cx="132"
+           id="path42828"
+           style="display:inline;fill:none;stroke:#000000;stroke-width:1.50070953;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           sodipodi:type="arc"
+           transform="matrix(0.780896,0,0,0.2786183,-69.081831,66.644097)" />
+        <circle
+           r="8"
+           cy="118"
+           cx="132"
+           transform="matrix(0.6875009,0,0,0.687501,-56.75013,18.874887)"
+           id="circle42830"
+           style="display:inline;overflow:visible;visibility:visible;opacity:0.5;fill:none;stroke:url(#linearGradient42844);stroke-width:1.45454454;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:new"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <path
+           transform="matrix(0,0.7811136,-0.34375,0,74.562502,-3.1287373)"
+           sodipodi:open="true"
+           sodipodi:end="6.2712816"
+           sodipodi:start="0"
+           d="m 140,118 a 8,8 0 0 1 -7.97619,7.99996 8,8 0 0 1 -8.02367,-7.95235 8,8 0 0 1 7.92844,-8.04729 8,8 0 0 1 8.07085,7.90445"
+           sodipodi:ry="8"
+           sodipodi:rx="8"
+           sodipodi:cy="118"
+           sodipodi:cx="132"
+           id="path42832"
+           style="display:inline;fill:none;stroke:#000000;stroke-width:1.35088885;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           sodipodi:type="arc"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <circle
+           r="8"
+           cy="118"
+           cx="132"
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+           style="display:inline;overflow:visible;visibility:visible;opacity:0.18000004;fill:none;stroke:url(#linearGradient42846);stroke-width:1.0666672;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:new"
+           id="circle42834"
+           transform="matrix(0.9374995,0,0,0.9374996,-89.749939,-10.62495)" />
+      </g>
+    </g>
+    <g
+       style="display:inline;enable-background:new;opacity:0.7"
+       id="ICON_DOT-1"
+       transform="translate(112.05535,339.92702)">
+      <rect
+         y="111"
+         x="103"
+         height="16"
+         width="16"
+         id="rect24489-4"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate" />
+      <circle
+         transform="matrix(-0.248353,0.02816779,0.02830718,0.248422,140.45214,86.01031)"
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+         id="path10768-9"
+         style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;opacity:1"
+         cx="132"
+         cy="118"
+         r="8" />
+    </g>
+    <path
+       style="display:inline;opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
+       d="m 265.05663,454.00567 4.99112,5.02507 -4.99112,4.97493 -5,-5 z"
+       id="path23352"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path23378"
+       d="m 243.85662,453.95566 4.99112,5.02507 -4.99112,4.97493 -5,-5 z"
+       style="display:inline;opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;enable-background:new"
+       sodipodi:nodetypes="ccccc" />
+    <g
+       transform="matrix(-1,0,0,1,529.37263,-42.471164)"
+       style="display:inline;enable-background:new"
+       id="g12146">
+      <path
+         inkscape:connector-curvature="0"
+         d="m 237.171,504.53983 5.34213,0.008 m -2.18083,-4.04784 -4,4 M 240.5,508.5 l -4.1677,-4.00001"
+         style="display:inline;opacity:1;fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.40000057;stroke-opacity:1;enable-background:new"
+         id="path10766-9"
+         sodipodi:nodetypes="cccccc" />
+      <path
+         sodipodi:nodetypes="cz"
+         id="path12139"
+         style="display:inline;opacity:1;fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.40000057;stroke-opacity:1;enable-background:new"
+         d="m 246.5,499.5 c -2.5,-2.5 -0.25,-4.25 4,-5"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 246.5,499.5 c 3.5,3.5 2.75,5.04783 -3.98687,5.04783"
+         style="display:inline;opacity:1;fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.40000057;stroke-opacity:1;enable-background:new"
+         id="path12141"
+         sodipodi:nodetypes="cz" />
+    </g>
+    <g
+       transform="translate(63.014518,-20.992088)"
+       style="display:inline;enable-background:new"
+       id="ICON_LIBRARY_DATA_DIRECT-6">
+      <g
+         transform="translate(0,128)"
+         id="g24024-5">
+        <rect
+           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+           id="rect22150-6"
+           width="16"
+           height="16"
+           x="299"
+           y="365" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+           sodipodi:nodetypes="cccccc"
+           id="path12337-39"
+           d="m 304.20488,366.47791 h 8.33334 v 13 h -11 l -1e-5,-10 z"
+           style="display:inline;fill:url(#linearGradient43187);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;marker:none"
+           inkscape:connector-curvature="0" />
+        <path
+           transform="matrix(1.2999758,0,0,1.2999988,365.56499,31.43979)"
+           sodipodi:nodetypes="ccc"
+           id="path12339-4"
+           style="display:inline;opacity:0.7;fill:none;stroke:#000000;stroke-width:0.76923829px;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:1;filter:url(#filter31351-7)"
+           d="M -48.500031,260.50809 -46.5,260.5 l -3.1e-5,-1.99191"
+           inkscape:connector-curvature="0" />
+        <path
+           sodipodi:nodetypes="cccc"
+           id="path12341-8"
+           d="m 301.01612,370 h 4 v -4 z"
+           style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           inkscape:connector-curvature="0" />
+        <path
+           sodipodi:nodetypes="cccc"
+           id="path12343-12"
+           style="display:inline;fill:none;stroke:url(#linearGradient43189);stroke-width:1px;stroke-linecap:square;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 302.51612,371.00001 v 7.5 m 3.5,-11 h 5.5"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+           d="m 301.53822,368.97791 v 10.5 h 11 v -13 h -8.5 z"
+           style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="path12345-9"
+           sodipodi:nodetypes="cccccc"
+           inkscape:connector-curvature="0" />
+      </g>
+      <path
+         transform="matrix(0,1,1,0,95.24196,-260.68059)"
+         mask="url(#mask43822-7)"
+         sodipodi:nodetypes="cccccccc"
+         id="path43815-3"
+         d="m 765.0088,212.5 -3.9824,3.5 -0.0176,-2 h -6.9736 l -0.0132,-3 h 6.9868 l 0.004,-2 z"
+         style="display:inline;opacity:0.93999993;fill:#4d4d4d;fill-opacity:1;fill-rule:nonzero;stroke:none;enable-background:new"
+         inkscape:transform-center-x="-1"
+         inkscape:transform-center-y="2"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       transform="translate(0.05047111,-42.001653)"
+       style="display:inline;enable-background:new"
+       id="ICON_LIBRARY_DATA_DIRECT-9">
+      <g
+         transform="translate(0,128)"
+         id="g24024-8">
+        <rect
+           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+           id="rect22150-4"
+           width="16"
+           height="16"
+           x="299"
+           y="365" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+           d="m 301.53822,368.97791 v 10.5 h 11 v -13 h -8.5 z"
+           style="fill:none;stroke:#ffffff;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.92765957"
+           id="path12345-4"
+           sodipodi:nodetypes="cccccc"
+           inkscape:connector-curvature="0" />
+      </g>
+      <path
+         transform="translate(-454.0088,290)"
+         mask="url(#mask43822-5)"
+         sodipodi:nodetypes="cccccccc"
+         id="path43815-4"
+         d="m 765.0088,212.5 -3.9824,3.5 -0.0176,-2 h -6.9736 l -0.0132,-3 h 6.9868 l 0.004,-2 z"
+         style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;enable-background:new"
+         inkscape:transform-center-x="-2"
+         inkscape:transform-center-y="1"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       transform="translate(20.991155,-41.985633)"
+       style="display:inline;enable-background:new"
+       id="ICON_LIBRARY_DATA_DIRECT-6-8">
+      <g
+         transform="translate(0,128)"
+         id="g24024-5-5">
+        <rect
+           style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+           id="rect22150-6-7"
+           width="16"
+           height="16"
+           x="299"
+           y="365" />
+        <path
+           inkscape:export-ydpi="90"
+           inkscape:export-xdpi="90"
+           inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\Kopia blender\.blender\icons\jendrzych's iconset.png"
+           d="m 301.53822,368.97791 v 10.5 h 11 v -13 h -8.5 z"
+           style="fill:none;stroke:#ffffff;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="path12345-9-9"
+           sodipodi:nodetypes="cccccc"
+           inkscape:connector-curvature="0" />
+      </g>
+      <path
+         transform="matrix(0,1,1,0,95.24196,-260.68059)"
+         mask="url(#mask43822-7-6)"
+         sodipodi:nodetypes="cccccccc"
+         id="path43815-3-7"
+         d="m 765.0088,212.5 -3.9824,3.5 -0.0176,-2 h -6.9736 l -0.0132,-3 h 6.9868 l 0.004,-2 z"
+         style="display:inline;opacity:1;fill:#fefefe;fill-opacity:1;fill-rule:nonzero;stroke:none;enable-background:new"
+         inkscape:transform-center-x="-1"
+         inkscape:transform-center-y="2"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g5040"
+       transform="translate(335.99091,-63.042558)"
+       style="display:inline;opacity:1;enable-background:new">
+      <rect
+         ry="0"
+         rx="0"
+         y="514"
+         x="-42"
+         height="16"
+         width="16"
+         id="rect4914"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+         transform="scale(-1,1)" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 37.5,519.99995 v -0.75 c 0,-1.75 -0.75,-2.75 -3.00003,-2.75008 C 32.25,516.49995 31.5,517.49995 31.5,519.24995 V 520"
+         id="path4905"
+         sodipodi:nodetypes="csccc"
+         inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 38.5,521.49995 h -8 v 6.00003 h 8 z"
+         id="rect4909"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         id="rect36043-2-8-6"
+         d="m 34,523 h 1 v 2 h -1 z"
+         style="display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3.29999995;marker:none;enable-background:accumulate"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g5034"
+       transform="translate(314.99091,-84.042558)"
+       style="display:inline;opacity:0.7;enable-background:new">
+      <rect
+         transform="scale(-1,1)"
+         style="display:inline;overflow:visible;visibility:visible;opacity:0;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.79999995;marker:none;enable-background:accumulate"
+         id="rect4998"
+         width="16"
+         height="16"
+         x="-42"
+         y="535"
+         rx="0"
+         ry="0" />
+      <path
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="C:\Documents and Settings\Tata\Pulpit\BLENDER ICONSET\blender-cvs-windows\.blender\.blender\icons\jendrzych's iconset.png"
+         sodipodi:nodetypes="csccc"
+         id="path5000"
+         d="m 33.5,541 v -0.75005 c 0,-1.75 -0.75,-2.75 -3.00003,-2.75008 C 28.25,537.49995 27.5,538.49995 27.5,540.24995 V 541"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         inkscape:connector-curvature="0" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         inkscape:connector-curvature="0"
+         id="path5002"
+         d="m 40.5,542.49995 h -8 v 6.00003 h 8 z"
+         style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         style="display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3.29999995;marker:none;enable-background:accumulate"
+         d="m 36,544 h 1 v 2 h -1 z"
+         id="path5004" />
+    </g>
   </g>
   <g
      inkscape:groupmode="layer"
