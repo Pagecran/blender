@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2017, Blender Foundation
+ * The Original Code is Copyright (C) 2018, Blender Foundation
  * This is a new part of Blender
  *
  * Contributor(s): Antonio Vazquez
@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/shader_fx/intern/FX_shader_flip.c
+/** \file blender/shader_fx/intern/FX_shader_glow.c
  *  \ingroup shader_fx
  */
 
@@ -36,12 +36,20 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_modifier.h"
+#include "BKE_shader_fx.h"
+
 #include "FX_shader_types.h"
 
-static void initData(ShaderFxData *fx)
+static void initData(ShaderFxData *md)
 {
-	FlipShaderFxData *gpfx = (FlipShaderFxData *)fx;
-	gpfx->flag |= FX_FLIP_HORIZONTAL;
+	GlowShaderFxData *gpfx = (GlowShaderFxData *)md;
+	ARRAY_SET_ITEMS(gpfx->glow_color, 0.75f, 1.0f, 1.0f);
+	ARRAY_SET_ITEMS(gpfx->select_color, 0.0f, 0.0f, 0.0f);
+	gpfx->threshold = 0.1f;
+
+	ARRAY_SET_ITEMS(gpfx->blur, 50, 0);
+	gpfx->samples = 16;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
@@ -49,12 +57,12 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
 	BKE_shaderfx_copyData_generic(md, target);
 }
 
-ShaderFxTypeInfo  shaderfx_Type_Flip = {
-	/* name */              "Flip",
-	/* structName */        "FlipShaderFxData",
-	/* structSize */        sizeof(FlipShaderFxData),
+ShaderFxTypeInfo shaderfx_Type_Glow = {
+	/* name */              "Glow",
+	/* structName */        "GlowShaderFxData",
+	/* structSize */        sizeof(GlowShaderFxData),
 	/* type */              eShaderFxType_GpencilType,
-	/* flags */             eShaderFxTypeFlag_Single,
+	/* flags */             0,
 
 	/* copyData */          copyData,
 
