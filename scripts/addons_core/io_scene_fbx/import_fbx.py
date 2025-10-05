@@ -2050,6 +2050,15 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Material')
 
     nodal_material_wrap_map = settings.nodal_material_wrap_map
+
+    # Check if we should reuse existing materials
+    if settings.use_existing_materials:
+        # Try to find existing material with same name
+        existing_ma = bpy.data.materials.get(elem_name_utf8)
+        if existing_ma is not None:
+            # Reuse existing material without modifying it
+            return existing_ma
+
     ma = bpy.data.materials.new(name=elem_name_utf8)
 
     const_color_white = 1.0, 1.0, 1.0
@@ -3181,7 +3190,7 @@ def load(operator, context, filepath="",
         use_custom_props, use_custom_props_enum_as_string,
         nodal_material_wrap_map, image_cache,
         ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
-        use_prepost_rot, colors_type,
+        use_prepost_rot, colors_type, operator.use_existing_materials,
     )
 
     # #### And now, the "real" data.

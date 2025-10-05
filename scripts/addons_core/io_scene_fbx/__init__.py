@@ -124,6 +124,12 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         default=0.0,
     )
 
+    use_existing_materials: BoolProperty(
+        name="Reuse Materials",
+        description="If materials with same name already exist, use them and do not add a new material",
+        default=False,
+    )
+
     use_anim: BoolProperty(
         name="Import Animation",
         description="Import FBX animation",
@@ -239,6 +245,7 @@ def import_panel_include(layout, operator):
         sub.prop(operator, "use_custom_props_enum_as_string")
         body.prop(operator, "use_image_search")
         body.prop(operator, "colors_type")
+        body.prop(operator, "use_existing_materials")
 
 
 def import_panel_transform(layout, operator):
