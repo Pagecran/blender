@@ -379,6 +379,11 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   /* For render, compute base visibility again since BKE_base_eval_flags
    * assumed viewport visibility. Select-ability does not matter here. */
   if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
+    /* If object is hidden in this view layer, disable it for rendering. */
+    if (base->flag & BASE_HIDDEN) {
+      base->flag &= ~BASE_ENABLED_RENDER;
+    }
+    
     if (base->flag & BASE_ENABLED_RENDER) {
       base->flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
     }
