@@ -14,3 +14,4 @@ int BPY_library_load_type_ready();
 
 extern PyMethodDef BPY_library_load_method_def;
 extern PyMethodDef BPY_library_write_method_def;
+extern PyMethodDef BPY_library_modify_external_method_def;

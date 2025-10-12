@@ -1801,6 +1801,7 @@ enum eOutlinerLibOverrideOpTypes {
   OUTLINER_LIBOVERRIDE_OP_RESYNC_HIERARCHY,
   OUTLINER_LIBOVERRIDE_OP_RESYNC_HIERARCHY_ENFORCE,
   OUTLINER_LIBOVERRIDE_OP_DELETE_HIERARCHY,
+  OUTLINER_LIBOVERRIDE_OP_PUSH_BACK,
 };
 
 static const EnumPropertyItem prop_liboverride_op_types[] = {
@@ -1821,6 +1822,11 @@ static const EnumPropertyItem prop_liboverride_op_types[] = {
      "Clear",
      "Delete the selected local overrides and relink their usages to the linked data-blocks if "
      "possible, else reset them and mark them as non editable"},
+    {OUTLINER_LIBOVERRIDE_OP_PUSH_BACK,
+     "OVERRIDE_LIBRARY_PUSH_BACK",
+     0,
+     "Push Back",
+     "Push modifications from the selected overrides back into their linked library"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2010,6 +2016,14 @@ static wmOperatorStatus outliner_liboverride_operation_exec(bContext *C, wmOpera
       id_override_library_delete_hierarchy_process(C, op->reports, override_data);
 
       ED_undo_push(C, "Delete Overridden Data Hierarchy");
+      break;
+    }
+    case OUTLINER_LIBOVERRIDE_OP_PUSH_BACK: {
+      wmWindowManager *wm = CTX_wm_manager(C);
+      wm->op_undo_depth++;
+      WM_operator_name_call(
+          C, "OBJECT_OT_library_override_pushback", wm::OpCallContext::ExecDefault, nullptr, nullptr);
+      wm->op_undo_depth--;
       break;
     }
     default:
