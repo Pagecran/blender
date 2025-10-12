@@ -260,6 +260,22 @@ int pyrna_py_to_array_index(PointerRNA *ptr,
                             int index,
                             PyObject *py,
                             const char *error_prefix);
+/**
+ * Convert a Python object to an RNA property value.
+ *
+ * Handles all RNA property types (bool, int, float, string, enum, pointer, collection).
+ * For array properties, converts the entire array. For indexed access, use
+ * #pyrna_py_to_array_index instead.
+ *
+ * \param ptr: RNA pointer to the struct containing the property.
+ * \param prop: The property to set.
+ * \param data: Optional pointer to write to (nullptr to use RNA_property_*_set).
+ * \param value: Python object to convert.
+ * \param error_prefix: Prefix for error messages.
+ * \return: 0 on success, -1 on error (with Python exception set).
+ */
+int pyrna_py_to_prop(
+    PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix);
 PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
