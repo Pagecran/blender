@@ -61,6 +61,7 @@ static PyMethodDef pyrna_blenddata_methods[] = {
 static PyMethodDef pyrna_blenddatalibraries_methods[] = {
     {nullptr, nullptr, 0, nullptr}, /* #BPY_library_load_method_def */
     {nullptr, nullptr, 0, nullptr}, /* #BPY_library_write_method_def */
+    {nullptr, nullptr, 0, nullptr}, /* #BPY_library_modify_external_method_def */
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -285,9 +286,11 @@ void BPY_rna_types_extend_capi()
   pyrna_struct_type_extend_capi(&RNA_BlendData, pyrna_blenddata_methods, nullptr);
 
   /* BlendDataLibraries */
-  ARRAY_SET_ITEMS(
-      pyrna_blenddatalibraries_methods, BPY_library_load_method_def, BPY_library_write_method_def);
-  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddatalibraries_methods) == 3,
+  ARRAY_SET_ITEMS(pyrna_blenddatalibraries_methods,
+                  BPY_library_load_method_def,
+                  BPY_library_write_method_def,
+                  BPY_library_modify_external_method_def);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddatalibraries_methods) == 4,
                     "Unexpected number of methods")
   pyrna_struct_type_extend_capi(
       &RNA_BlendDataLibraries, pyrna_blenddatalibraries_methods, nullptr);
