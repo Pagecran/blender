@@ -484,8 +484,6 @@ void pyrna_write_set(bool /*val*/)
 
 static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyArrayRNA *self);
-static int pyrna_py_to_prop(
-    PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix);
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item);
 
 #ifdef USE_MATHUTILS
@@ -1597,7 +1595,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
   return error_val;
 }
 
-static int pyrna_py_to_prop(
+int pyrna_py_to_prop(
     PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
 {
   /* XXX hard limits should be checked here. */
