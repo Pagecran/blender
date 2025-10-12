@@ -819,15 +819,15 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   if (id_code == ID_MA && id->lib != nullptr) {
     Material *material = reinterpret_cast<Material *>(id);
 
-    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (!ID_IS_LINKED(&object->id)) {
+    for (Object &object : bmain->objects) {
+      if (!ID_IS_LINKED(&object.id)) {
         continue;
       }
 
       bool matched = false;
 
-      if (Material ***materials_ptr = BKE_object_material_array_p(object)) {
-        if (short *materials_len_ptr = BKE_object_material_len_p(object)) {
+      if (Material ***materials_ptr = BKE_object_material_array_p(&object)) {
+        if (short *materials_len_ptr = BKE_object_material_len_p(&object)) {
           Material **materials = *materials_ptr;
           const int materials_len = *materials_len_ptr;
           for (int slot = 0; slot < materials_len; slot++) {
@@ -839,8 +839,8 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
         }
       }
 
-      if (!matched && object->data != nullptr) {
-        ID *data_id = static_cast<ID *>(object->data);
+      if (!matched && object.data != nullptr) {
+        ID *data_id = static_cast<ID *>(object.data);
         if (Material ***data_mat_ptr = BKE_id_material_array_p(data_id)) {
           if (short *data_mat_len_ptr = BKE_id_material_len_p(data_id)) {
             Material **data_materials = *data_mat_ptr;
@@ -856,18 +856,18 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
       }
 
       if (matched) {
-        owner_object_ref = object;
+        owner_object_ref = &object;
         break;
       }
     }
 
     if (owner_object_ref != nullptr) {
-      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-        if (!ID_IS_OVERRIDE_LIBRARY_REAL(&object->id)) {
+      for (Object &object : bmain->objects) {
+        if (!ID_IS_OVERRIDE_LIBRARY_REAL(&object.id)) {
           continue;
         }
-        if (object->id.override_library->reference == &owner_object_ref->id) {
-          owner_object_override = object;
+        if (object.id.override_library->reference == &owner_object_ref->id) {
+          owner_object_override = &object;
           break;
         }
       }
