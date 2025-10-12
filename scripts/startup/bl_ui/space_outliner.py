@@ -393,6 +393,12 @@ class OUTLINER_MT_liboverride(Menu):
 
         layout.separator()
 
+        op = layout.operator("outliner.liboverride_operation", text="Push Back")
+        op.selection_set = 'SELECTED'
+        op.type = 'OVERRIDE_LIBRARY_PUSH_BACK'
+
+        layout.separator()
+
         layout.operator_menu_enum(
             "outliner.liboverride_troubleshoot_operation", "type",
             text="Troubleshoot",

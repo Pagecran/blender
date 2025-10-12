@@ -990,6 +990,269 @@ class OBJECT_OT_assign_property_defaults(Operator):
         return {'FINISHED'}
 
 
+class OBJECT_OT_library_override_pushback(Operator):
+    """Push override modifications back to their source library"""
+    bl_idname = "object.library_override_pushback"
+    bl_label = "Push Override to Library"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    create_backup: BoolProperty(
+        name="Create Backup",
+        description="Create a timestamped backup of the library before modifying it",
+        default=True,
+    )
+
+    delete_override: BoolProperty(
+        name="Delete Override After Push",
+        description="Remove the override and revert to a simple library link after pushing",
+        default=False,
+    )
+
+    @classmethod
+    def poll(cls, context):
+        # Check if there are selected IDs with library overrides (from Outliner or 3D view)
+        # First check context.selected_ids (Outliner)
+        if hasattr(context, 'selected_ids') and context.selected_ids:
+            return any(hasattr(id_data, 'override_library') and id_data.override_library
+                      for id_data in context.selected_ids)
+        # Also check context.id (single ID selected in Outliner)
+        if hasattr(context, 'id') and context.id:
+            return hasattr(context.id, 'override_library') and context.id.override_library
+        # Fallback to selected objects (3D view)
+        if context.selected_objects:
+            return any(hasattr(obj, 'override_library') and obj.override_library
+                      for obj in context.selected_objects)
+        return False
+
+    def execute(self, context):
+        import shutil
+        import traceback
+        from datetime import datetime
+        from pathlib import Path
+
+        # Collect all override IDs from multiple sources
+        override_ids = []
+
+        # Priority 1: context.selected_ids (Outliner multi-selection)
+        if hasattr(context, 'selected_ids') and context.selected_ids:
+            for id_data in context.selected_ids:
+                if hasattr(id_data, 'override_library') and id_data.override_library:
+                    override_ids.append(id_data)
+
+        # Priority 2: context.id (single ID in Outliner)
+        if not override_ids and hasattr(context, 'id') and context.id:
+            if hasattr(context.id, 'override_library') and context.id.override_library:
+                override_ids.append(context.id)
+
+        # Priority 3: fallback to selected objects (3D view)
+        if not override_ids and context.selected_objects:
+            for obj in context.selected_objects:
+                if hasattr(obj, 'override_library') and obj.override_library:
+                    override_ids.append(obj)
+
+        if not override_ids:
+            self.report({'WARNING'}, "No library overrides found in selection")
+            return {'CANCELLED'}
+
+        # Group overrides by library
+        from collections import defaultdict
+        overrides_by_lib = defaultdict(list)
+
+        for override_id in override_ids:
+            if override_id.override_library and override_id.override_library.reference:
+                lib = override_id.override_library.reference.library
+                if lib:
+                    overrides_by_lib[lib.filepath].append(override_id)
+
+        if not overrides_by_lib:
+            self.report({'WARNING'}, "No valid library references found")
+            return {'CANCELLED'}
+
+        # Process each library
+        for library_path, overrides in overrides_by_lib.items():
+            backup_path = None
+            abs_library_path = bpy.path.abspath(library_path)
+
+            if self.create_backup:
+                try:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    path_obj = Path(abs_library_path)
+                    backup_path = path_obj.with_name(
+                        f"{path_obj.stem}_backup_{timestamp}{path_obj.suffix}"
+                    )
+                    shutil.copy2(abs_library_path, backup_path)
+                except Exception as e:
+                    self.report({'ERROR'}, f"Failed to create backup for '{library_path}': {e}")
+                    return {'CANCELLED'}
+
+            for override_id in overrides:
+                try:
+                    reference = override_id.override_library.reference
+
+                    # Extract override properties
+                    properties = {}
+                    skipped_paths = []
+                    if override_id.override_library.properties:
+                        for prop_override in override_id.override_library.properties:
+                            rna_path = prop_override.rna_path
+
+                            pointer_rna = None
+                            property_rna = None
+                            try:
+                                pointer_rna, property_rna = override_id.path_resolve_property(rna_path)
+                            except Exception:
+                                pointer_rna = property_rna = None
+
+                            # Get the current value from the override
+                            try:
+                                value = override_id.path_resolve(rna_path)
+                            except Exception as e:
+                                self.report({'WARNING'}, f"Failed to get value for {rna_path}: {str(e)}")
+                                continue
+                            else:
+                                # Skip pointer-based overrides (e.g. Object.data) which cannot be pushed safely.
+                                id_data = getattr(pointer_rna, "id_data", None)
+                                if (
+                                    isinstance(value, bpy.types.ID) or
+                                    (hasattr(value, "id_data") and isinstance(value.id_data, bpy.types.ID)) or
+                                    isinstance(property_rna, bpy.types.PointerProperty) or
+                                    isinstance(property_rna, bpy.types.CollectionProperty) or
+                                    isinstance(id_data, bpy.types.ID)
+                                ):
+                                    skipped_paths.append(rna_path)
+                                    continue
+
+                                # Convert mathutils types to plain tuples for serialization.
+                                value_to_store = value
+                                to_tuple = getattr(value, "to_tuple", None)
+                                if callable(to_tuple):
+                                    try:
+                                        value_to_store = to_tuple()
+                                    except Exception:
+                                        value_to_store = tuple(value)
+                                elif isinstance(value, (list, tuple)):
+                                    value_to_store = tuple(value)
+
+                                properties[rna_path] = value_to_store
+
+                    if not properties:
+                        self.report({'INFO'}, f"No properties to push for {override_id.name}")
+                        continue
+
+                    if skipped_paths:
+                        self.report(
+                            {'INFO'},
+                            f"Skipped pointer overrides for {override_id.name}: {', '.join(skipped_paths)}",
+                        )
+
+                    # Try multiple type name variants (Blender's type naming is inconsistent)
+                    type_candidates = []
+
+                    # Get ID type from the reference
+                    if hasattr(reference, 'id_type'):
+                        id_type_attr = getattr(reference, 'id_type', None)
+                        if isinstance(id_type_attr, str):
+                            type_candidates.append(id_type_attr)
+
+                    # Get bl_rna identifier
+                    if hasattr(reference.__class__, 'bl_rna'):
+                        bl_identifier = getattr(reference.__class__.bl_rna, 'identifier', None)
+                        if isinstance(bl_identifier, str):
+                            type_candidates.append(bl_identifier)
+
+                    # Add type name from class
+                    type_candidates.append(type(reference).__name__)
+
+                    # Normalize and deduplicate
+                    normalized_candidates = []
+                    seen = set()
+                    for candidate in type_candidates:
+                        case_variants = [
+                            candidate.upper(),
+                            candidate,
+                            candidate.lower(),
+                            candidate.title(),
+                        ]
+                        for variant in case_variants:
+                            if variant not in seen:
+                                normalized_candidates.append(variant)
+                                seen.add(variant)
+
+                    # Try each type name until one works
+                    success = False
+                    last_error = None
+
+                    for type_name in normalized_candidates:
+                        try:
+                            bpy.data.libraries.modify_external(
+                                filepath=library_path,
+                                id_type=type_name,
+                                id_name=reference.name,
+                                properties=properties,
+                                create_backup=False,
+                            )
+                            success = True
+                            self.report({'INFO'}, f"Pushed {override_id.name} to library using type '{type_name}'")
+                            break
+                        except AttributeError as ex:
+                            last_error = ex
+                            continue
+                        except Exception as ex:
+                            last_error = ex
+                            error_message = str(ex)
+                            # Only continue trying if it's an "Unknown ID type" error
+                            if "Unknown ID type" in error_message or "unknown" in error_message.lower():
+                                continue
+                            else:
+                                # It's a different error, don't try other type names
+                                raise
+
+                    if not success:
+                        error_msg = f"Failed to push {override_id.name}: {str(last_error)}"
+                        self.report({'ERROR'}, error_msg)
+                        return {'CANCELLED'}
+
+                    # Delete override if requested
+                    if self.delete_override:
+                        try:
+                            # Make the override a regular linked object
+                            override_id.override_library_clear()
+                            self.report({'INFO'}, f"Cleared override for {override_id.name}")
+                        except Exception as e:
+                            self.report({'WARNING'}, f"Failed to clear override: {str(e)}")
+
+                except Exception as e:
+                    error_msg = f"Error processing {override_id.name}: {str(e)}\n{traceback.format_exc()}"
+                    self.report({'ERROR'}, error_msg)
+                    if backup_path and backup_path.exists():
+                        try:
+                            shutil.copy2(backup_path, abs_library_path)
+                        except Exception as restore_error:
+                            self.report({'ERROR'}, f"Failed to restore library from backup: {restore_error}")
+                        else:
+                            self.report({'INFO'}, f"Backup left at '{backup_path}' for manual inspection.")
+                    return {'CANCELLED'}
+
+            if backup_path and backup_path.exists():
+                try:
+                    backup_path.unlink()
+                except Exception as e:
+                    self.report({'WARNING'}, f"Failed to remove backup '{backup_path}': {e}")
+
+        # Reload libraries to see the changes
+        for library_path in overrides_by_lib.keys():
+            try:
+                for lib in bpy.data.libraries:
+                    if lib.filepath == library_path:
+                        lib.reload()
+                        break
+            except Exception as e:
+                self.report({'WARNING'}, f"Failed to reload library: {str(e)}")
+
+        self.report({'INFO'}, "Push-back completed successfully")
+        return {'FINISHED'}
+
+
 classes = (
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
@@ -998,6 +1261,7 @@ classes = (
     IsolateTypeRender,
     JoinUVs,
     MakeDupliFace,
+    OBJECT_OT_library_override_pushback,
     SelectCamera,
     SelectHierarchy,
     SelectPattern,
