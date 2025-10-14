@@ -36,9 +36,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include <algorithm>
-#include <limits>
-
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
@@ -1016,9 +1013,6 @@ struct OutlinerLiboverrideDataIDRoot {
 
   /** If this override comes from an instancing object (which would be `id_instance_hint` then). */
   bool is_override_instancing_object;
-
-  /** Depth of the corresponding tree element in the Outliner (parents processed first). */
-  int depth;
 };
 
 struct OutlinerLibOverrideData {
@@ -1050,30 +1044,17 @@ struct OutlinerLibOverrideData {
   void id_root_add(ID *id_hierarchy_root_reference,
                    ID *id_root_reference,
                    ID *id_instance_hint,
-                   const bool is_override_instancing_object,
-                   const int depth = 0)
+                   const bool is_override_instancing_object)
   {
     OutlinerLiboverrideDataIDRoot id_root_data;
     id_root_data.id_root_reference = id_root_reference;
     id_root_data.id_hierarchy_root_override = nullptr;
     id_root_data.id_instance_hint = id_instance_hint;
     id_root_data.is_override_instancing_object = is_override_instancing_object;
-    id_root_data.depth = depth;
 
     Vector<OutlinerLiboverrideDataIDRoot> &value = id_hierarchy_roots.lookup_or_add_default(
         id_hierarchy_root_reference);
-    for (OutlinerLiboverrideDataIDRoot &existing_data : value) {
-      if (existing_data.id_root_reference == id_root_reference) {
-        existing_data.depth = std::min(existing_data.depth, depth);
-        return;
-      }
-    }
-
-    int insert_position = value.size();
-    while (insert_position > 0 && value[insert_position - 1].depth > depth) {
-      insert_position--;
-    }
-    value.insert(insert_position, id_root_data);
+    value.append(id_root_data);
   }
   void id_root_set(ID *id_hierarchy_root_reference)
   {
@@ -1082,7 +1063,6 @@ struct OutlinerLibOverrideData {
     id_root_data.id_hierarchy_root_override = nullptr;
     id_root_data.id_instance_hint = nullptr;
     id_root_data.is_override_instancing_object = false;
-    id_root_data.depth = 0;
 
     Vector<OutlinerLiboverrideDataIDRoot> &value = id_hierarchy_roots.lookup_or_add_default(
         id_hierarchy_root_reference);
@@ -1091,81 +1071,6 @@ struct OutlinerLibOverrideData {
     }
   }
 };
-
-struct OutlinerLibOverrideNestedParentInfo {
-  ID *id;
-  ID *instance_hint;
-  bool is_override_instancing_object;
-  int depth;
-};
-
-struct OutlinerLibOverrideRootProcessItem {
-  ID *id_hierarchy_root_reference;
-  Vector<OutlinerLiboverrideDataIDRoot> *data_idroots;
-  int min_depth;
-};
-
-/**
- * Extract the real ID from a TreeElement, handling both TSE_SOME_ID and TSE_LAYER_COLLECTION.
- * For nested libraries, returns the original linked reference instead of local overrides.
- * Returns nullptr if the element doesn't represent an ID.
- */
-static ID *outliner_element_get_real_id(const TreeElement *te)
-{
-  if (te == nullptr || te->store_elem == nullptr) {
-    return nullptr;
-  }
-
-  TreeStoreElem *tselem = te->store_elem;
-
-  /* TSE_LAYER_COLLECTION: ID is accessed through LayerCollection
-   * IMPORTANT: Check this BEFORE TSE_IS_REAL_ID because TSE_LAYER_COLLECTION
-   * can also have tselem->id set, but we need to get the collection from directdata instead. */
-  if (tselem->type == TSE_LAYER_COLLECTION) {
-    if (te->directdata == nullptr) {
-      return nullptr;
-    }
-
-    LayerCollection *lc = static_cast<LayerCollection *>(te->directdata);
-    Collection *collection = lc->collection;
-
-    if (collection == nullptr) {
-      return nullptr;
-    }
-
-    /* For nested library overrides: if this collection is a local override,
-     * we want the original linked reference instead. This ensures we detect
-     * and process the actual linked parent, not its local copy. */
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(&collection->id) &&
-        collection->id.override_library->reference != nullptr) {
-      ID *reference = collection->id.override_library->reference;
-      return reference;
-    }
-
-    /* If the collection is directly linked (not an override yet), return it as-is.
-     * This is the case for nested libraries where the parent collection hasn't been
-     * overridden yet. */
-    return &collection->id;
-  }
-
-  /* TSE_SOME_ID: ID is stored directly in tselem->id */
-  if (TSE_IS_REAL_ID(tselem)) {
-    return tselem->id;
-  }
-
-  return nullptr;
-}
-
-static int outliner_liboverride_tree_depth(const TreeElement *te)
-{
-  int depth = 0;
-  for (const TreeElement *iter = te; iter != nullptr; iter = iter->parent) {
-    if (outliner_element_get_real_id(iter) != nullptr) {
-      depth++;
-    }
-  }
-  return depth;
-}
 
 /* Store 'UUID' of IDs of selected elements in the Outliner tree, before generating the override
  * hierarchy. */
@@ -1180,7 +1085,6 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
 
   const bool do_hierarchy = data->do_hierarchy;
   ID *id_root_reference = tselem->id;
-  const int element_depth = outliner_liboverride_tree_depth(te);
 
   if (!BKE_idtype_idcode_is_linkable(GS(id_root_reference->name)) ||
       (id_root_reference->flag & (ID_FLAG_EMBEDDED_DATA | ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE)) !=
@@ -1255,14 +1159,13 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
   if (do_hierarchy) {
     /* Tag all linked parents in tree hierarchy to be also overridden. */
     ID *id_hierarchy_root_reference = id_root_reference;
-    Vector<OutlinerLibOverrideNestedParentInfo> nested_linked_parents;
-    for (TreeElement *parent_te = te->parent; parent_te != nullptr; parent_te = parent_te->parent) {
-      /* Get the real ID, handling both TSE_SOME_ID and TSE_LAYER_COLLECTION */
-      ID *id_current_hierarchy_root = outliner_element_get_real_id(parent_te);
-
-      if (id_current_hierarchy_root == nullptr) {
+    while ((te = te->parent) != nullptr) {
+      if (!TSE_IS_REAL_ID(te->store_elem)) {
         continue;
       }
+
+      /* Tentative hierarchy root. */
+      ID *id_current_hierarchy_root = te->store_elem->id;
 
       /* If the parent ID is from a different library than the reference root one, we are done
        * with upwards tree processing in any case. */
@@ -1286,18 +1189,16 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
         }
 
         if (ID_IS_LINKED(id_current_hierarchy_root)) {
-          const int parent_depth = outliner_liboverride_tree_depth(parent_te);
-          const bool already_registered = std::any_of(
-              nested_linked_parents.begin(),
-              nested_linked_parents.end(),
-              [&](const OutlinerLibOverrideNestedParentInfo &info) {
-                return info.id == id_current_hierarchy_root;
-              });
-          if (!already_registered) {
-            nested_linked_parents.append(
-                {id_current_hierarchy_root, nullptr, false, parent_depth});
-          }
-          continue;
+          /* No local 'anchor' was found for the hierarchy to override, do not proceed, as this
+           * would most likely generate invisible/confusing/hard to use and manage overrides. */
+          BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Invalid anchor ('%s') found, needed to create library override from "
+                      "data-block '%s'",
+                      id_current_hierarchy_root->name,
+                      id_root_reference->name);
+          return;
         }
 
         /* In all other cases, `id_current_hierarchy_root` cannot be a valid hierarchy root, so
@@ -1348,31 +1249,14 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
      * the system override flag is supported for non-selected items for now.
      */
     const bool is_selected = tselem->flag & TSE_SELECTED;
-    Vector<OutlinerLibOverrideNestedParentInfo> hierarchy_entries;
-    hierarchy_entries.reserve(nested_linked_parents.size() + 1);
-    for (const OutlinerLibOverrideNestedParentInfo &parent_info : nested_linked_parents) {
-      hierarchy_entries.append(parent_info);
-    }
-    hierarchy_entries.append(
-        {id_root_reference, id_instance_hint, is_override_instancing_object, element_depth});
-
-    std::sort(hierarchy_entries.begin(),
-              hierarchy_entries.end(),
-              [](const OutlinerLibOverrideNestedParentInfo &a,
-                 const OutlinerLibOverrideNestedParentInfo &b) { return a.depth < b.depth; });
-
-    ID *effective_hierarchy_root_reference = hierarchy_entries.first().id;
-    if (!is_selected && data->id_hierarchy_roots.contains(effective_hierarchy_root_reference)) {
+    if (!is_selected && data->id_hierarchy_roots.contains(id_hierarchy_root_reference)) {
       return;
     }
 
-    for (const OutlinerLibOverrideNestedParentInfo &entry : hierarchy_entries) {
-      data->id_root_add(effective_hierarchy_root_reference,
-                        entry.id,
-                        entry.instance_hint,
-                        entry.is_override_instancing_object,
-                        entry.depth);
-    }
+    data->id_root_add(id_hierarchy_root_reference,
+                      id_root_reference,
+                      id_instance_hint,
+                      is_override_instancing_object);
   }
   else if (ID_IS_OVERRIDABLE_LIBRARY(id_root_reference)) {
     data->id_root_add(
@@ -1428,6 +1312,7 @@ static void id_override_library_create_hierarchy(
         BLI_assert(id_root_override != nullptr);
         BLI_assert(!ID_IS_LINKED(id_root_override));
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
+
         ID *id_hierarchy_root_override = id_root_override->override_library->hierarchy_root;
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_override));
         if (ID_IS_LINKED(id_hierarchy_root_reference)) {
@@ -1485,84 +1370,10 @@ static void id_override_library_create_hierarchy_process(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool do_hierarchy = data.do_hierarchy;
 
-  Vector<OutlinerLibOverrideRootProcessItem> process_items;
-  process_items.reserve(data.id_hierarchy_roots.size());
-  for (auto &&item : data.id_hierarchy_roots.items()) {
-    int min_depth = std::numeric_limits<int>::max();
-    for (const OutlinerLiboverrideDataIDRoot &id_root_data : item.value) {
-      min_depth = std::min(min_depth, id_root_data.depth);
-    }
-    if (min_depth == std::numeric_limits<int>::max()) {
-      min_depth = 0;
-    }
-    process_items.append({item.key, &item.value, min_depth});
-  }
-
-  std::sort(process_items.begin(),
-            process_items.end(),
-            [](const OutlinerLibOverrideRootProcessItem &a,
-               const OutlinerLibOverrideRootProcessItem &b) {
-              return a.min_depth < b.min_depth;
-            });
-
   bool success = true;
-  for (OutlinerLibOverrideRootProcessItem &process_item : process_items) {
-    ID *id_hierarchy_root_reference = process_item.id_hierarchy_root_reference;
-
-    /* If this hierarchy root is still linked (nested library case), we need to find or create
-     * its override before processing its children. This ensures children have a valid local
-     * parent. */
-    if (ID_IS_LINKED(id_hierarchy_root_reference)) {
-      /* First, check if an override already exists for this linked ID.
-       * This is important for nested libraries where a parent collection might already have
-       * been overridden. We want to reuse that existing override instead of creating a new one.
-       * Note: Cannot use 'break' inside FOREACH_MAIN_ID_BEGIN as per BKE_main.hh documentation.
-       */
-      ID *id_override_root = nullptr;
-      ID *id_iter;
-      FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-        if (id_override_root == nullptr && ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) &&
-            id_iter->override_library->reference == id_hierarchy_root_reference) {
-          id_override_root = id_iter;
-        }
-      }
-      FOREACH_MAIN_ID_END;
-
-      /* If no existing override was found, create a new one */
-      if (id_override_root == nullptr) {
-        id_override_root = BKE_lib_override_library_create_from_id(
-            bmain, id_hierarchy_root_reference, false /* do_tagged_remap */);
-
-        if (id_override_root == nullptr) {
-          /* Skip ID type prefix (first 2 characters) for display */
-          const char *display_name = id_hierarchy_root_reference->name;
-          if (display_name[0] != '\0' && display_name[1] != '\0') {
-            display_name += 2;
-          }
-          BKE_reportf(reports,
-                      RPT_ERROR,
-                      "Failed to create library override for nested parent '%s'",
-                      display_name);
-          success = false;
-          continue;
-        }
-      }
-
-      /* Clear LIBOVERRIDE_FLAG_SYSTEM_DEFINED so it's editable */
-      id_override_root->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
-
-      /* Now use this override (existing or newly created) as the hierarchy root for processing
-       * children */
-      id_hierarchy_root_reference = id_override_root;
-    }
-
-    id_override_library_create_hierarchy(*bmain,
-                                         scene,
-                                         view_layer,
-                                         data,
-                                         id_hierarchy_root_reference,
-                                         *process_item.data_idroots,
-                                         success);
+  for (auto &&[id_hierarchy_root_reference, data_idroots] : data.id_hierarchy_roots.items()) {
+    id_override_library_create_hierarchy(
+        *bmain, scene, view_layer, data, id_hierarchy_root_reference, data_idroots, success);
   }
 
   if (!success) {
