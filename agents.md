@@ -1,176 +1,113 @@
 ## Library Override Push-Back
 
-  This feature integrates into Blender's existing library override workflow through three key components:
+This feature integrates into Blender's existing library override workflow through three key components:
 
-  **1. Python Operator (scripts/startup/bl_operators/object.py)**
-     - Added OBJECT_OT_library_override_pushback operator (lines 993-1254)
-     - Supports all ID types through context.selected_ids and context.id (Outliner)
-     - Fallback support for context.selected_objects (3D view)
-     - Collects override properties, skipping unsafe pointer-based overrides
-     - Handles type name resolution with multiple variants for Blender's inconsistent ID type naming
-     - Converts mathutils types to tuples for proper serialization
-     - Creates timestamped backups before modification
-     - Implements error handling with automatic backup restoration on failure
-     - Optional override deletion after successful push
-     - Calls bpy.data.libraries.modify_external() C++ API for the actual file modification
+**1. Python Operator (scripts/startup/bl_operators/object.py)**
+- Adds the `OBJECT_OT_library_override_pushback` operator (lines 993-1254).
+- Supports all ID types via `context.selected_ids` and `context.id` (Outliner).
+- Provides a fallback for `context.selected_objects` (3D view).
+- Collects override properties while skipping unsafe pointer-based overrides.
+- Resolves type names across Blender's inconsistent ID naming.
+- Converts `mathutils` values to tuples for serialization.
+- Creates timestamped backups before modification.
+- Restores the backup automatically on failure.
+- Optionally removes overrides after a successful push.
+- Calls the `bpy.data.libraries.modify_external()` C++ API to patch the linked blend file.
 
-  **2. Outliner Menu Integration (scripts/startup/bl_ui/space_outliner.py)**
-     - Added "Push Back" menu entry to OUTLINER_MT_liboverride menu (lines 396-398)
-     - Positioned between "Clear" and "Troubleshoot" for intuitive workflow
-     - Uses outliner.liboverride_operation with type OVERRIDE_LIBRARY_PUSH_BACK
-     - Respects existing menu conventions with selection_set = 'SELECTED'
+**2. Outliner Menu Integration (scripts/startup/bl_ui/space_outliner.py)**
+- Adds a "Push Back" entry to `OUTLINER_MT_liboverride` (lines 396-398).
+- Places the entry between "Clear" and "Troubleshoot" to match the workflow.
+- Uses `outliner.liboverride_operation` with `OVERRIDE_LIBRARY_PUSH_BACK`.
+- Respects existing menu conventions (`selection_set = 'SELECTED'`).
 
-  **3. C++ Integration (source/blender/editors/space_outliner/outliner_tools.cc)**
-     - Added OUTLINER_LIBOVERRIDE_OP_PUSH_BACK to enum (line 1811)
-     - Added enum property definition with documentation (lines 1811-1815)
-     - Implemented case handler in liboverride operation executor (lines 2007-2014)
-     - Calls Python operator through WM_operator_name_call with proper undo depth management
-     - Triggers appropriate notifiers for UI updates
+**3. C++ Integration (source/blender/editors/space_outliner/outliner_tools.cc)**
+- Adds `OUTLINER_LIBOVERRIDE_OP_PUSH_BACK` to the enum (line 1811).
+- Declares the enum property with documentation (lines 1811-1815).
+- Implements the executor case (lines 2007-2014).
+- Invokes the Python operator through `WM_operator_name_call` with undo depth management.
+- Triggers the necessary notifiers so the UI updates immediately.
 
-  **Key Features:**
-  - Works with all ID types (Objects, Materials, Collections, Armatures, etc.)
-  - Multi-selection support via Outliner and 3D viewport
-  - Automatic backup creation with optional retention
-  - Safe property filtering (skips pointer and collection properties)
-  - Robust error handling with detailed user feedback
-  - Automatic library reload after modification
-  - Full undo/redo support
+### Key Features
+- Works with all ID types (Objects, Materials, Collections, Armatures, etc.).
+- Handles multi-selection via the Outliner and the 3D viewport.
+- Creates automatic backups with optional retention.
+- Filters unsafe properties to avoid corrupt overrides.
+- Provides robust error handling with detailed user reports.
+- Reloads affected libraries after modification.
+- Fully supports undo/redo.
 
-  **Use Case:**
-  Artists can now modify library-linked assets through overrides and push those changes back to the source library for reuse across
-  multiple blend files, streamlining asset pipeline workflows for studios and collaborative projects.)
+### Primary Use Case
+Artists can modify library-linked assets through overrides and push those changes back to the source library, letting multiple .blend files share the updated data with minimal manual work.
 
-## Known Gaps (single-level libraries)
-- **Materials / Node Trees**
-  - Many RNA paths are still flagged non-override → attributes should be green( overided) but they look juste normal and have no persistence (not saved in the file) = broken overide
-  - modified `NodeTree` revert to previous state when pushed backed ...
-- **Lights**
-  - Remain flagged `LIBOVERRIDE_FLAG_SYSTEM_DEFINED`, keeping properties locked.
-- `NodeTree` created via "Use Nodes" stays local; nothing is pushed back.
-  _Next steps_: expose key material/light properties for overrides, create overrides for the companion node trees, clear the system flag when we create the override.
+---
 
-## Other Known Gaps – Nested Library Overrides
-- **Symptom**: `id_override_library_create_hierarchy_pre_process()` bails out when an anchor points into a nested library → we get "ghost" overrides (listed in the Outliner but no local datablock, UI stays locked, duplicates stay visible).
-For any item (material, mesh, etc.), if you make a library override, the object is just duplicated. So the coyp is tagged as overide but obviously this is just broken overide.
-- **Proposed plan**:
-  1. When walking up the hierarchy, push every nested parent through `OutlinerLibOverrideData::id_root_add` instead of returning early.
-  2. In `id_override_library_create_hierarchy_process()` create these parents first so the children (materials, meshes, etc.) get a valid local anchor.
-  3. Rebuild (`./make.bat release`) and validate:
-     - nested material → `override_library` populated, editor unlocked;
-     - nested object → no duplicate remains;
-     - non-nested material → regression check.
+## Current Scope (after reverting 66f5609)
 
-## Plan de developpement
+1. **Push-back for volatile material overrides**
+   - Session-only overrides (e.g. materials edited but not saved) keep their override operations in memory.
+   - Ensure node sockets that should persist (float/vector/color default values) are flagged with `PROPOVERRIDE_OVERRIDABLE_LIBRARY` in `source/blender/makesrna/intern/rna_node_socket.cc` and the matching interface helpers.
+   - Refresh override operations inside `OBJECT_OT_library_override_pushback.execute()` by calling `override_library.operations_update(id_override)` before `bpy.data.libraries.modify_external()` is invoked.
+   - Continue converting `mathutils` values to tuples before serialization so the push-back payload is JSON-safe.
+   - Validation path: edit a Principled BSDF color on an override, push back headlessly, reopen the source library and assert the value changed.
 
-  ———
+2. **Level-2 material overrides stay locked**
+   - Scenario: a level-2 library (matlib) material assigned to a level-1 library (testwitmatlib) mesh. The override appears in the Outliner but `override_library` stays `None`, so the UI remains locked.
+   - Cause: `id_override_library_create_hierarchy_pre_process()` returns as soon as it finds a parent anchored in another library, skipping the creation of a local anchor.
+   - Fix outline (all in `source/blender/editors/space_outliner/outliner_tools.cc`):
+     * When climbing parents, enqueue linked parents from other libraries through `OutlinerLibOverrideData::id_root_add` instead of returning.
+     * In `id_override_library_create_hierarchy()` / `id_override_library_create_hierarchy_process()`, create those parent overrides first with `BKE_lib_override_library_create()`, clear `LIBOVERRIDE_FLAG_SYSTEM_DEFINED`, then process the children (the level-2 material).
+     * Confirm no stray linked IDs remain instanced once the override exists.
+   - Once `override_library` is populated for the material, apply the push-back pipeline from task 1.
 
-  ### Phase 0 – Préparation
+---
 
-  - Jeux de tests
-      - Préparer deux fichiers .blend de référence :
-          1. tests/liboverride_single_level.blend — un objet, un matériau (avec node tree actif) et une light provenant d’une lib non
-             imbriquée.
-          2. tests/liboverride_nested.blend — même typologie mais la collection provient d’une lib imbriquée.
-      - Écrire un script de validation (Python) qui :
-          - force un override sur chaque ID/chemin,
-          - logge ID.override_library et le contenu de override_library.properties,
-          - déclenche bpy.ops.object.library_override_pushback() et vérifie la persistance.
+## Known Gaps (current base)
+- Collections nested inside linked collections occasionally attach at the wrong location after override creation; keep in mind while testing but still out of scope for the immediate fix.
+- Automate the headless regression scripts once the collection issue above is addressed (current validation is manual via the dedicated .blend repros).
 
-  ———
+---
 
-  ### Phase 1 – Gestion hiérarchique des librairies imbriquées
+## Updated Development Plan
 
-  (fichiers C++ Outliner)
+### Phase 0 - Preparation
+- Maintain two reference .blend files focused on the two problem areas:
+  1. `tests/liboverride_single_level.blend` - one linked object with a linked material (active node tree) from a single-level library; no lights needed.
+  2. `tests/liboverride_nested_material.blend` - source collection at level 1 that instantiates a level-2 library containing the material we want to override (material belongs to lib L2, mesh to lib L1).
+- Provide a Python validation script that:
+  - Forces overrides for each relevant ID and RNA path.
+  - Logs `ID.override_library` and the collected property operations.
+  - Calls `bpy.ops.object.library_override_pushback()` and checks that the linked library records the changes.
 
-  1. Refactorisation de la remontée hiérarchique
-      - Fichier : source/blender/editors/space_outliner/outliner_tools.cc
-      - Fonction principale à modifier : id_override_library_create_hierarchy_pre_process(...) (ligne ~1077).
-      - Actions :
-          - Extraire la boucle while ((te = te->parent) != nullptr) dans un helper privé (ex. collect_hierarchy_chain(...)) pour clarifier
-            le flux.
-          - Lorsqu’un parent id_current_hierarchy_root appartient à une autre lib, ne pas return :
-              - appeler data->id_root_add(id_current_hierarchy_root, ...) avec id_root_reference et id_instance_hint.
-              - Continuer la remontée jusqu’à trouver un parent local ou un override réel.
-          - Conserver un ordre de traitement (parent → enfant) : ajouter un champ Vector<ID *> hierarchy_chain à OutlinerLibOverrideData
-            si nécessaire.
-  2. Création effective des parents
-      - Fichier : même (outliner_tools.cc)
-      - Fonction : id_override_library_create_hierarchy(...) (ligne 1267) et son caller
-        id_override_library_create_hierarchy_process(...).
-      - Actions :
-          - Avant de boucler sur data_idroots, trier la liste selon la profondeur (parents en premier).
-          - ⚠️ La structure actuelle (Map<ID*, Vector<...>>) n'est pas ordonnée :
-            * Option A : ajouter un champ depth dans OutlinerLiboverrideDataIDRoot et trier la Vector.
-            * Option B : convertir la map en Vector ordonnée parent → enfant.
-          - Si id_hierarchy_root_reference est encore lié, créer son override via BKE_lib_override_library_create(...) et l’utiliser comme
-            nouvelle racine pour les enfants.
-          - Dans la branche if (success && data_idroot.is_override_instancing_object), s’assurer que l’override remplace bien l’ancien
-            parent (base unlink).
-          - Après création, retirer LIBOVERRIDE_FLAG_SYSTEM_DEFINED pour les types manquants (y compris lights) et enregistrer la
-            hiérarchie dans data.id_hierarchy_roots_uid.
-  3. Gestion des erreurs
-      - Toujours dans pre_process : remplacer les return par des continue lorsqu’une hiérarchie est simplement imbriquée.
-      - Conserver les return uniquement si le parent est réellement « non overridable » (type non libéré, datas locales, etc.).
+### Phase 1 - Push-back pipeline for volatile materials (Python/RNA)
+1. `source/blender/makesrna/intern/rna_node_socket.cc` (and interface helpers)
+   - ✅ `default_value` for float/int/vector/color sockets – plus their interface variants – now carry `PROPOVERRIDE_OVERRIDABLE_LIBRARY`, so material node defaults participate in push-back even when the override is still volatile.
+   - ✅ Principled BSDF sockets register override operations correctly after the refresh.
+2. `scripts/startup/bl_operators/object.py`
+   - ✅ `_collect_override_ids` is shared between `poll()` and `execute()` and keeps material overrides in the batch even when their operations are still in-memory.
+   - ✅ `override_library.operations_update(id_override)` is called on-demand before serialisation, preserving volatile edits for push-back.
+   - ✅ mathutils-to-tuple conversion and grouped reporting remain in place (error messages now include the failing ID).
+3. Optional utility: script to reload the library and compare the updated values for automated verification. *(still optional)*.
 
-  ———
+### Phase 2 - Level-2 material override unlock (C++)
+1. `source/blender/editors/space_outliner/outliner_tools.cc`
+   - ✅ Cross-library parents discovered during the hierarchy walk are now enqueued instead of aborting, and depth sorting ensures anchors are created before their children.
+2. `id_override_library_create_hierarchy(...)` / `id_override_library_create_hierarchy_process(...)`
+   - ✅ Root batches are sorted by depth, and parent overrides are created first (system flags cleared) before processing the child ID (e.g. the level-2 material).
+   - ✅ Instance empties are still removed only when appropriate; no extra duplicates are left behind.
+3. Validation
+   - ⏳ `Material.override_hierarchy_create()` still returns `None` in the nested scenario; the Outliner path is functional but the direct API remains to be wired through the new anchor scheduling.
+   - ⏳ `Material.override_create()` continues to return `None`; it will pick up the nested support once the direct path above is completed.
 
-  ### Phase 2 – Exposer les propriétés manquantes (RNA)
+### Phase 3 - Tests
+1. Rebuild via `./make.bat release`.
+2. Manual scenarios:
+   - Single-level: override a material (change Principled color), push back, reload the library, confirm persistence.
+   - Nested scenario: override the level-1 mesh and the level-2 material; ensure the material unlocks, accepts edits, and the edits survive push-back.
+   - Regression: verify single-level overrides still behave after the hierarchy change.
+3. Automation: extend `tools/liboverride_tests/run_pushback_validation.py` (or add a new script) to cover both scenarios headlessly once the hierarchy fix lands.
+   - 2025-10-15: Headless smoke-test still shows `override_create` / `override_hierarchy_create` returning `None` on the nested material; automated coverage will be updated once the direct API is aligned with the Outliner implementation.
 
-  1. Node sockets
-      - Fichier : source/blender/makesrna/intern/rna_node_socket.cc
-      - Fonctions :
-          - rna_def_node_socket_float(...) (ligne 981)
-          - rna_def_node_socket_int(...) (ligne 1070)
-          - rna_def_node_socket_vector(...) (ligne 1272)
-          - rna_def_node_socket_color(...) (ligne 1357)
-      - Actions : ajouter RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY); sur les propriétés default_value.
-  - ⚠️ De nombreuses propriétés (lights, Material.node_tree) sont déjà marquées overrideables ; l'éditeur reste verrouillé à cause du flag LIBOVERRIDE_FLAG_SYSTEM_DEFINED.
-      - Vérifier aussi les structs d’interface correspondants dans rna_node_socket.cc (fonctions
-        rna_def_node_socket_interface_float, ..._vector, ..._color).
-  2. Lights
-      - Fichier : source/blender/makesrna/intern/rna_light.cc (si certaines propriétés sont encore marquées PROPOVERRIDE_NO_COMPARISON).
-      - Ajuster les flags pour les principales propriétés (color, energy) si besoin.
-      - Côté C++ : dans id_override_library_create_hierarchy_pre_process, lorsque ID_IS_OVERRIDE_LIBRARY_REAL(...), ajouter un bloc pour
-        retirer LIBOVERRIDE_FLAG_SYSTEM_DEFINED pour les lights (similaire aux objets/collections).
-  3. Node tree pointer
-      - Optionnel : décider si on autorise l’override du pointer material.node_tree.
-      - Si oui, ajouter le flag dans rna_material.cc (prop = RNA_def_property(srna, "node_tree", ...);).
-      - l’idée est de rendre persistants les node trees externalisés, mais ce point peut venir dans un deuxième temps si on se limite aux default_value.
-
-  ———
-
-  ### Phase 3 – Intégration Python
-
-  (Adapter notre opérateur si les nouveaux chemins apparaissent)
-
-  - Fichier : scripts/startup/bl_operators/object.py
-  - S’assurer que _collect_override_ids / execute ne filtrent plus les nouveaux chemins (les sockets étant maintenant sérialisés, rien à
-    faire si on se contente d’exists).
-  - Si on voit des default_value pointer vers des node trees ou lights (pointeurs), vérifier que la branche « skip pointer types » reste
-    pertinente.
-  - Adapter le reporting si besoin.
-
-  ———
-
-  ### Phase 4 – Tests
-
-  1. Rebuild
-      - ./make.bat release
-  2. Scénarios
-      - Cas non imbriqué :
-          - Override d’un matériau (modifier la couleur du Principled) → chemin vert → push back → recharger la lib → valeur persistante.
-          - Override d’une light → slider modifiable + push back.
-      - Cas imbriqué :
-          - Override d’un objet → l’original disparaît, override_library est renseigné.
-          - Override d’un matériau imbriqué → plus de duplicata, properties éditables, push back OK.
-          - Regression sur matériau non imbriqué.
-  3. Automatisation
-      - Script Python (basé sur Phase 0) qui exécute ces cas et vérifie override_library.properties.
-
-  ———
-
-  ### Phase 5 – Finalisation
-
-  - Retirer ou conditionner les logs d’instrumentation s’il y en avait.
-  - Mettre à jour agents.md avec un état final.
-  - Préparer le patch ou la PR (discussions, tests, doc).
+### Phase 5 - Finalisation
+- Remove temporary instrumentation/logging.
+- Update this document with the final state and testing evidence.
+- Prepare the final patch (code + tests + documentation).
