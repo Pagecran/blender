@@ -17,6 +17,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
+#include "DNA_ID.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -35,6 +36,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+
+#include <algorithm>
+#include <limits>
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -1013,6 +1017,15 @@ struct OutlinerLiboverrideDataIDRoot {
 
   /** If this override comes from an instancing object (which would be `id_instance_hint` then). */
   bool is_override_instancing_object;
+
+  /** Depth of the corresponding tree element in the Outliner (parents processed first). */
+  int depth;
+
+  /** Linked owner ID (object or mesh) that references this entry. */
+  ID *owner_reference;
+
+  /** Linked collection owning this entry when relevant. */
+  ID *collection_owner_reference;
 };
 
 struct OutlinerLibOverrideData {
@@ -1041,20 +1054,57 @@ struct OutlinerLibOverrideData {
   /** All 'session_uid' of all hierarchy root IDs used or created by the operation. */
   Set<uint> id_hierarchy_roots_uid;
 
+  /** Map of reference -> override created during processing. */
+  Map<ID *, ID *> created_overrides;
+
   void id_root_add(ID *id_hierarchy_root_reference,
                    ID *id_root_reference,
                    ID *id_instance_hint,
-                   const bool is_override_instancing_object)
+                   const bool is_override_instancing_object,
+                   const int depth = 0,
+                   ID *owner_reference = nullptr,
+                   ID *collection_owner_reference = nullptr)
   {
+    CLOG_INFO(&LOG,
+              1,
+              "Register id_root_add root '%s' entry '%s' depth %d owner '%s' collection '%s'",
+              id_hierarchy_root_reference ? id_hierarchy_root_reference->name + 2 : "<none>",
+              id_root_reference ? id_root_reference->name + 2 : "<none>",
+              depth,
+              owner_reference ? owner_reference->name + 2 : "<none>",
+              collection_owner_reference ? collection_owner_reference->name + 2 : "<none>");
+
     OutlinerLiboverrideDataIDRoot id_root_data;
     id_root_data.id_root_reference = id_root_reference;
     id_root_data.id_hierarchy_root_override = nullptr;
     id_root_data.id_instance_hint = id_instance_hint;
     id_root_data.is_override_instancing_object = is_override_instancing_object;
+    id_root_data.depth = depth;
+    id_root_data.owner_reference = owner_reference;
+    id_root_data.collection_owner_reference = collection_owner_reference;
 
     Vector<OutlinerLiboverrideDataIDRoot> &value = id_hierarchy_roots.lookup_or_add_default(
         id_hierarchy_root_reference);
-    value.append(id_root_data);
+    for (OutlinerLiboverrideDataIDRoot &existing_data : value) {
+      if (existing_data.id_root_reference == id_root_reference) {
+        existing_data.depth = std::min(existing_data.depth, depth);
+        if (existing_data.owner_reference == nullptr && owner_reference != nullptr) {
+          existing_data.owner_reference = owner_reference;
+        }
+        if (existing_data.collection_owner_reference == nullptr && collection_owner_reference !=
+                                                                     nullptr)
+        {
+          existing_data.collection_owner_reference = collection_owner_reference;
+        }
+        return;
+      }
+    }
+
+    int insert_position = value.size();
+    while (insert_position > 0 && value[insert_position - 1].depth > depth) {
+      insert_position--;
+    }
+    value.insert(insert_position, id_root_data);
   }
   void id_root_set(ID *id_hierarchy_root_reference)
   {
@@ -1063,6 +1113,9 @@ struct OutlinerLibOverrideData {
     id_root_data.id_hierarchy_root_override = nullptr;
     id_root_data.id_instance_hint = nullptr;
     id_root_data.is_override_instancing_object = false;
+    id_root_data.depth = 0;
+    id_root_data.owner_reference = nullptr;
+    id_root_data.collection_owner_reference = nullptr;
 
     Vector<OutlinerLiboverrideDataIDRoot> &value = id_hierarchy_roots.lookup_or_add_default(
         id_hierarchy_root_reference);
@@ -1071,6 +1124,293 @@ struct OutlinerLibOverrideData {
     }
   }
 };
+
+struct OverrideOwnerSearchData {
+  ID *object_owner = nullptr;
+  ID *mesh_owner = nullptr;
+  ID *collection_owner = nullptr;
+};
+
+struct OutlinerLibOverrideNestedParentInfo {
+  ID *id;
+  ID *instance_hint;
+  bool is_override_instancing_object;
+  int depth;
+  ID *owner_reference;
+  ID *collection_owner_reference;
+};
+
+struct OutlinerLibOverrideRootProcessItem {
+  ID *id_hierarchy_root_reference;
+  Vector<OutlinerLiboverrideDataIDRoot> *data_idroots;
+  int min_depth;
+};
+
+static OverrideOwnerSearchData lib_override_find_material_owner(Main &bmain,
+                                                                Material &material_reference)
+{
+  OverrideOwnerSearchData data;
+
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    if (!ID_IS_LINKED(&object->id)) {
+      continue;
+    }
+
+    const bool is_mesh_object = (object->type == OB_MESH) && (object->data != nullptr);
+    bool uses_material = false;
+
+    if (object->mat != nullptr) {
+      for (int slot_index = 0; slot_index < object->totcol; slot_index++) {
+        if (object->mat[slot_index] == &material_reference) {
+          uses_material = true;
+          break;
+        }
+      }
+    }
+
+    if (!uses_material && is_mesh_object) {
+      Mesh *mesh = reinterpret_cast<Mesh *>(object->data);
+      if (mesh->mat != nullptr) {
+        for (int slot_index = 0; slot_index < mesh->totcol; slot_index++) {
+          if (mesh->mat[slot_index] == &material_reference) {
+            data.mesh_owner = &mesh->id;
+            uses_material = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (uses_material) {
+      data.object_owner = &object->id;
+      if (is_mesh_object && data.mesh_owner == nullptr) {
+        data.mesh_owner = static_cast<ID *>(object->data);
+      }
+      break;
+    }
+  }
+
+  if (data.mesh_owner == nullptr) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain.meshes) {
+      if (!ID_IS_LINKED(&mesh->id) || mesh->mat == nullptr) {
+        continue;
+      }
+      for (int slot_index = 0; slot_index < mesh->totcol; slot_index++) {
+        if (mesh->mat[slot_index] == &material_reference) {
+          data.mesh_owner = &mesh->id;
+          break;
+        }
+      }
+      if (data.mesh_owner != nullptr) {
+        break;
+      }
+    }
+  }
+
+  if (data.collection_owner == nullptr && data.object_owner != nullptr) {
+    Object *owner_object = reinterpret_cast<Object *>(data.object_owner);
+    LISTBASE_FOREACH (Collection *, collection, &bmain.collections) {
+      if (!ID_IS_LINKED(&collection->id)) {
+        continue;
+      }
+      LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+        if (cob->ob == owner_object) {
+          data.collection_owner = &collection->id;
+          break;
+        }
+      }
+      if (data.collection_owner != nullptr) {
+        break;
+      }
+    }
+  }
+
+  return data;
+}
+
+static OverrideOwnerSearchData lib_override_find_mesh_owner(Main &bmain, Mesh &mesh_reference)
+{
+  OverrideOwnerSearchData data;
+
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    if (!ID_IS_LINKED(&object->id)) {
+      continue;
+    }
+    if (object->data == &mesh_reference) {
+      data.object_owner = &object->id;
+      break;
+    }
+  }
+
+  if (data.collection_owner == nullptr && data.object_owner != nullptr) {
+    Object *owner_object = reinterpret_cast<Object *>(data.object_owner);
+    LISTBASE_FOREACH (Collection *, collection, &bmain.collections) {
+      if (!ID_IS_LINKED(&collection->id)) {
+        continue;
+      }
+      if (BKE_collection_has_object_recursive(collection, owner_object)) {
+        data.collection_owner = &collection->id;
+        break;
+      }
+    }
+  }
+
+  data.mesh_owner = &mesh_reference.id;
+  return data;
+}
+
+static ID *lib_override_find_existing_override(Main &bmain, ID &reference_id)
+{
+  if (!ID_IS_LINKED(&reference_id)) {
+    return nullptr;
+  }
+
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+      continue;
+    }
+    if (id_iter->override_library == nullptr) {
+      continue;
+    }
+    if (id_iter->override_library->reference == &reference_id) {
+      return id_iter;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  return nullptr;
+}
+
+static bool lib_override_ensure_material_nodetree_override(Main &bmain,
+                                                           Scene *scene,
+                                                           ViewLayer *view_layer,
+                                                           Material &material_reference,
+                                                           Material &material_override,
+                                                           OutlinerLibOverrideData &data)
+{
+  bNodeTree *nodetree_reference = material_reference.nodetree;
+  if (nodetree_reference == nullptr) {
+    return false;
+  }
+
+  ID &nodetree_reference_id = nodetree_reference->id;
+  const bool is_linked = ID_IS_LINKED(&nodetree_reference_id);
+  const bool is_embedded = (nodetree_reference_id.flag & ID_FLAG_EMBEDDED_DATA) != 0;
+  const bool is_embedded_override = (nodetree_reference_id.flag &
+                                     ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) != 0;
+
+  /* Embedded node trees (whether original or already turned into an override copy) are duplicated
+   * together with the material and are already wired correctly. */
+  if (is_embedded || is_embedded_override) {
+    CLOG_INFO(&LOG,
+              2,
+              "Skipping node tree override creation for embedded node tree '%s' "
+              "of material '%s'",
+              nodetree_reference_id.name + 2,
+              material_reference.id.name + 2);
+    return true;
+  }
+
+  if (!is_linked) {
+    return true;
+  }
+
+  ID *nodetree_override_id = lib_override_find_existing_override(bmain, nodetree_reference_id);
+  if (nodetree_override_id == nullptr) {
+    bool success = BKE_lib_override_library_create(&bmain,
+                                                   scene,
+                                                   view_layer,
+                                                   nullptr,
+                                                   &nodetree_reference_id,
+                                                   &nodetree_reference_id,
+                                                   nullptr,
+                                                   &nodetree_override_id,
+                                                   data.do_fully_editable);
+    if (!success || nodetree_override_id == nullptr) {
+      CLOG_INFO(&LOG,
+                1,
+                "Failed to create node tree override for material '%s'",
+                material_reference.id.name + 2);
+      return false;
+    }
+  }
+
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(nodetree_override_id));
+  nodetree_override_id->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+
+  data.created_overrides.add_overwrite(&nodetree_reference_id, nodetree_override_id);
+
+  CLOG_INFO(&LOG,
+            1,
+            "Material '%s' now uses node tree override '%s'",
+            material_override.id.name + 2,
+            nodetree_override_id->name + 2);
+
+  return true;
+}
+
+/**
+ * Extract the real ID from a TreeElement, handling both TSE_SOME_ID and TSE_LAYER_COLLECTION.
+ * For nested libraries, returns the original linked reference instead of local overrides.
+ * Returns nullptr if the element doesn't represent an ID.
+ */
+static ID *outliner_element_get_real_id(const TreeElement *te)
+{
+  if (te == nullptr || te->store_elem == nullptr) {
+    return nullptr;
+  }
+
+  TreeStoreElem *tselem = te->store_elem;
+
+  /* TSE_LAYER_COLLECTION: ID is accessed through LayerCollection
+   * IMPORTANT: Check this BEFORE TSE_IS_REAL_ID because TSE_LAYER_COLLECTION
+   * can also have tselem->id set, but we need to get the collection from directdata instead. */
+  if (tselem->type == TSE_LAYER_COLLECTION) {
+    if (te->directdata == nullptr) {
+      return nullptr;
+    }
+
+    LayerCollection *lc = static_cast<LayerCollection *>(te->directdata);
+    Collection *collection = lc->collection;
+
+    if (collection == nullptr) {
+      return nullptr;
+    }
+
+    /* For nested library overrides: if this collection is a local override,
+     * we want the original linked reference instead. This ensures we detect
+     * and process the actual linked parent, not its local copy. */
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(&collection->id) &&
+        collection->id.override_library->reference != nullptr) {
+      ID *reference = collection->id.override_library->reference;
+      return reference;
+    }
+
+    /* If the collection is directly linked (not an override yet), return it as-is.
+     * This is the case for nested libraries where the parent collection hasn't been
+     * overridden yet. */
+    return &collection->id;
+  }
+
+  /* TSE_SOME_ID: ID is stored directly in tselem->id */
+  if (TSE_IS_REAL_ID(tselem)) {
+    return tselem->id;
+  }
+
+  return nullptr;
+}
+
+static int outliner_liboverride_tree_depth(const TreeElement *te)
+{
+  int depth = 0;
+  for (const TreeElement *iter = te; iter != nullptr; iter = iter->parent) {
+    if (outliner_element_get_real_id(iter) != nullptr) {
+      depth++;
+    }
+  }
+  return depth;
+}
 
 /* Store 'UUID' of IDs of selected elements in the Outliner tree, before generating the override
  * hierarchy. */
@@ -1085,6 +1425,7 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
 
   const bool do_hierarchy = data->do_hierarchy;
   ID *id_root_reference = tselem->id;
+  const int element_depth = outliner_liboverride_tree_depth(te);
 
   if (!BKE_idtype_idcode_is_linkable(GS(id_root_reference->name)) ||
       (id_root_reference->flag & (ID_FLAG_EMBEDDED_DATA | ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE)) !=
@@ -1159,13 +1500,14 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
   if (do_hierarchy) {
     /* Tag all linked parents in tree hierarchy to be also overridden. */
     ID *id_hierarchy_root_reference = id_root_reference;
-    while ((te = te->parent) != nullptr) {
-      if (!TSE_IS_REAL_ID(te->store_elem)) {
+    Vector<OutlinerLibOverrideNestedParentInfo> nested_linked_parents;
+    for (TreeElement *parent_te = te->parent; parent_te != nullptr; parent_te = parent_te->parent) {
+      /* Get the real ID, handling both TSE_SOME_ID and TSE_LAYER_COLLECTION */
+      ID *id_current_hierarchy_root = outliner_element_get_real_id(parent_te);
+
+      if (id_current_hierarchy_root == nullptr) {
         continue;
       }
-
-      /* Tentative hierarchy root. */
-      ID *id_current_hierarchy_root = te->store_elem->id;
 
       /* If the parent ID is from a different library than the reference root one, we are done
        * with upwards tree processing in any case. */
@@ -1189,16 +1531,18 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
         }
 
         if (ID_IS_LINKED(id_current_hierarchy_root)) {
-          /* No local 'anchor' was found for the hierarchy to override, do not proceed, as this
-           * would most likely generate invisible/confusing/hard to use and manage overrides. */
-          BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
-          BKE_reportf(reports,
-                      RPT_WARNING,
-                      "Invalid anchor ('%s') found, needed to create library override from "
-                      "data-block '%s'",
-                      id_current_hierarchy_root->name,
-                      id_root_reference->name);
-          return;
+          const int parent_depth = outliner_liboverride_tree_depth(parent_te);
+          const bool already_registered = std::any_of(
+              nested_linked_parents.begin(),
+              nested_linked_parents.end(),
+              [&](const OutlinerLibOverrideNestedParentInfo &info) {
+                return info.id == id_current_hierarchy_root;
+              });
+          if (!already_registered) {
+            nested_linked_parents.append(
+                {id_current_hierarchy_root, nullptr, false, parent_depth, nullptr, nullptr});
+          }
+          continue;
         }
 
         /* In all other cases, `id_current_hierarchy_root` cannot be a valid hierarchy root, so
@@ -1249,18 +1593,377 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
      * the system override flag is supported for non-selected items for now.
      */
     const bool is_selected = tselem->flag & TSE_SELECTED;
-    if (!is_selected && data->id_hierarchy_roots.contains(id_hierarchy_root_reference)) {
+    Vector<OutlinerLibOverrideNestedParentInfo> hierarchy_entries;
+    hierarchy_entries.reserve(nested_linked_parents.size() + 1);
+    for (const OutlinerLibOverrideNestedParentInfo &parent_info : nested_linked_parents) {
+      hierarchy_entries.append(parent_info);
+    }
+
+    ID *child_owner_reference = nullptr;
+    ID *child_collection_reference = nullptr;
+    const short id_code = GS(id_root_reference->name);
+    if (ID_IS_LINKED(id_root_reference) && ELEM(id_code, ID_MA, ID_ME)) {
+      auto has_entry = [&](ID *candidate) {
+        if (candidate == nullptr) {
+          return true;
+        }
+        return std::any_of(hierarchy_entries.begin(),
+                           hierarchy_entries.end(),
+                           [&](const OutlinerLibOverrideNestedParentInfo &info) {
+                             return info.id == candidate;
+                           });
+      };
+
+      if (id_code == ID_MA) {
+        OverrideOwnerSearchData owner_data{};
+        Material *material_reference = reinterpret_cast<Material *>(id_root_reference);
+        owner_data = lib_override_find_material_owner(*bmain, *material_reference);
+
+        if (owner_data.collection_owner != nullptr && !has_entry(owner_data.collection_owner)) {
+          hierarchy_entries.append({owner_data.collection_owner,
+                                    nullptr,
+                                    false,
+                                    element_depth - 2,
+                                    nullptr,
+                                    nullptr});
+        }
+        if (owner_data.mesh_owner != nullptr && !has_entry(owner_data.mesh_owner)) {
+          hierarchy_entries.append({owner_data.mesh_owner,
+                                    nullptr,
+                                    false,
+                                    element_depth - 1,
+                                    nullptr,
+                                    nullptr});
+        }
+        if (owner_data.object_owner != nullptr && !has_entry(owner_data.object_owner)) {
+          hierarchy_entries.append({owner_data.object_owner,
+                                    nullptr,
+                                    false,
+                                    element_depth - 2,
+                                    nullptr,
+                                    nullptr});
+        }
+
+        if (owner_data.object_owner != nullptr) {
+          child_owner_reference = owner_data.object_owner;
+        }
+        else if (owner_data.mesh_owner != nullptr) {
+          child_owner_reference = owner_data.mesh_owner;
+        }
+        if (owner_data.collection_owner != nullptr) {
+          child_collection_reference = owner_data.collection_owner;
+        }
+      }
+      else if (id_code == ID_ME) {
+        Mesh *mesh_reference = reinterpret_cast<Mesh *>(id_root_reference);
+        OverrideOwnerSearchData owner_data = lib_override_find_mesh_owner(*bmain, *mesh_reference);
+
+        if (owner_data.object_owner != nullptr && !has_entry(owner_data.object_owner)) {
+          hierarchy_entries.append({owner_data.object_owner,
+                                    nullptr,
+                                    false,
+                                    element_depth - 1,
+                                    nullptr,
+                                    nullptr});
+        }
+        if (owner_data.collection_owner != nullptr && !has_entry(owner_data.collection_owner)) {
+          hierarchy_entries.append({owner_data.collection_owner,
+                                    nullptr,
+                                    false,
+                                    element_depth - 2,
+                                    nullptr,
+                                    nullptr});
+        }
+
+        if (owner_data.object_owner != nullptr) {
+          child_owner_reference = owner_data.object_owner;
+        }
+        if (owner_data.collection_owner != nullptr) {
+          child_collection_reference = owner_data.collection_owner;
+        }
+      }
+    }
+
+    data->selected_id_uid.add(id_root_reference->session_uid);
+
+    hierarchy_entries.append({id_root_reference,
+                              id_instance_hint,
+                              is_override_instancing_object,
+                              element_depth,
+                              child_owner_reference,
+                              child_collection_reference});
+
+    if (id_code == ID_MA) {
+      Material *material_reference = reinterpret_cast<Material *>(id_root_reference);
+      if (material_reference->nodetree != nullptr) {
+        ID *nodetree_id = &material_reference->nodetree->id;
+        const bool nodetree_is_linked = ID_IS_LINKED(nodetree_id);
+        const bool nodetree_is_embedded = (nodetree_id->flag &
+                                           (ID_FLAG_EMBEDDED_DATA |
+                                            ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE)) != 0;
+        if (nodetree_is_linked && !nodetree_is_embedded) {
+          const bool already_registered = std::any_of(
+              hierarchy_entries.begin(),
+              hierarchy_entries.end(),
+              [&](const OutlinerLibOverrideNestedParentInfo &info) {
+                return info.id == nodetree_id;
+              });
+          if (!already_registered) {
+            hierarchy_entries.append({nodetree_id,
+                                      nullptr,
+                                      false,
+                                      element_depth + 1,
+                                      id_root_reference,
+                                      nullptr});
+          }
+        }
+      }
+    }
+
+    std::sort(hierarchy_entries.begin(),
+              hierarchy_entries.end(),
+              [](const OutlinerLibOverrideNestedParentInfo &a,
+                 const OutlinerLibOverrideNestedParentInfo &b) { return a.depth < b.depth; });
+
+    auto find_parent_of_type = [&](int current_index, short id_code) -> ID * {
+      for (int parent_index = current_index - 1; parent_index >= 0; parent_index--) {
+        const OutlinerLibOverrideNestedParentInfo &candidate = hierarchy_entries[parent_index];
+        if (candidate.depth >= hierarchy_entries[current_index].depth) {
+          continue;
+        }
+        if (GS(candidate.id->name) == id_code) {
+          return candidate.id;
+        }
+      }
+      return nullptr;
+    };
+
+    for (int entry_index = 0; entry_index < hierarchy_entries.size(); entry_index++) {
+      OutlinerLibOverrideNestedParentInfo &entry = hierarchy_entries[entry_index];
+      const short entry_code = GS(entry.id->name);
+
+      if (entry.collection_owner_reference == nullptr) {
+        if (ELEM(entry_code, ID_ME, ID_MA, ID_OB, ID_NT)) {
+          entry.collection_owner_reference = find_parent_of_type(entry_index, ID_GR);
+        }
+      }
+
+      if (entry.owner_reference == nullptr) {
+        if (entry_code == ID_OB) {
+          entry.owner_reference = find_parent_of_type(entry_index, ID_GR);
+        }
+        else if (ELEM(entry_code, ID_ME, ID_NT, ID_MA)) {
+          ID *object_parent = find_parent_of_type(entry_index, ID_OB);
+          if (object_parent != nullptr) {
+            entry.owner_reference = object_parent;
+          }
+          else if (entry_code == ID_MA) {
+            /* As a fallback, try meshes for material entries (object fallback handled above). */
+            entry.owner_reference = find_parent_of_type(entry_index, ID_ME);
+          }
+        }
+      }
+    }
+
+    ID *effective_hierarchy_root_reference = hierarchy_entries.first().id;
+    if (!is_selected && data->id_hierarchy_roots.contains(effective_hierarchy_root_reference)) {
       return;
     }
 
-    data->id_root_add(id_hierarchy_root_reference,
-                      id_root_reference,
-                      id_instance_hint,
-                      is_override_instancing_object);
+    for (const OutlinerLibOverrideNestedParentInfo &entry : hierarchy_entries) {
+      data->id_root_add(effective_hierarchy_root_reference,
+                        entry.id,
+                        entry.instance_hint,
+                        entry.is_override_instancing_object,
+                        entry.depth,
+                        entry.owner_reference,
+                        entry.collection_owner_reference);
+    }
   }
   else if (ID_IS_OVERRIDABLE_LIBRARY(id_root_reference)) {
-    data->id_root_add(
-        id_root_reference, id_root_reference, id_instance_hint, is_override_instancing_object);
+    data->id_root_add(id_root_reference,
+                      id_root_reference,
+                      id_instance_hint,
+                      is_override_instancing_object,
+                      0,
+                      nullptr,
+                      nullptr);
+  }
+}
+
+static void lib_override_owner_update(Main &bmain,
+                                      ID *child_reference,
+                                      ID *child_override,
+                                      ID *owner_override)
+{
+  CLOG_INFO(&LOG,
+            0,
+            "Owner update: child '%s' (%p -> %p) owner '%s'",
+            child_reference ? child_reference->name + 2 : "<none>",
+            child_reference,
+            child_override,
+            owner_override ? owner_override->name + 2 : "<none>");
+  if (child_reference == nullptr || child_override == nullptr || owner_override == nullptr) {
+    return;
+  }
+
+  const short child_code = GS(child_reference->name);
+  const short owner_code = GS(owner_override->name);
+
+  if (child_code == ID_MA) {
+    Material *material_reference = reinterpret_cast<Material *>(child_reference);
+    Material *material_override = reinterpret_cast<Material *>(child_override);
+
+    if (owner_code == ID_OB) {
+      Object *object_override = reinterpret_cast<Object *>(owner_override);
+      bool changed = false;
+      if (object_override->mat != nullptr) {
+        for (int slot_index = 0; slot_index < object_override->totcol; slot_index++) {
+          if (object_override->mat[slot_index] == material_reference) {
+            object_override->mat[slot_index] = material_override;
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        BKE_libblock_relink_ex(&bmain,
+                               owner_override,
+                               child_reference,
+                               child_override,
+                               ID_REMAP_SKIP_INDIRECT_USAGE);
+        DEG_id_tag_update(&object_override->id, ID_RECALC_SHADING);
+      }
+    }
+    else if (owner_code == ID_ME) {
+      Mesh *mesh_override = reinterpret_cast<Mesh *>(owner_override);
+      bool changed = false;
+      if (mesh_override->mat != nullptr) {
+        for (int slot_index = 0; slot_index < mesh_override->totcol; slot_index++) {
+          if (mesh_override->mat[slot_index] == material_reference) {
+            mesh_override->mat[slot_index] = material_override;
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        BKE_libblock_relink_ex(&bmain,
+                               owner_override,
+                               child_reference,
+                               child_override,
+                               ID_REMAP_SKIP_INDIRECT_USAGE);
+        DEG_id_tag_update(&mesh_override->id, ID_RECALC_SHADING);
+      }
+    }
+  }
+  else if (child_code == ID_NT && owner_code == ID_MA) {
+    Material *material_override = reinterpret_cast<Material *>(owner_override);
+    bNodeTree *node_tree_override = reinterpret_cast<bNodeTree *>(child_override);
+    if (material_override->nodetree != node_tree_override) {
+      material_override->nodetree = node_tree_override;
+      BKE_libblock_relink_ex(
+          &bmain, owner_override, child_reference, child_override, ID_REMAP_SKIP_INDIRECT_USAGE);
+      DEG_id_tag_update(&material_override->id, ID_RECALC_SHADING);
+    }
+  }
+  else if (child_code == ID_ME && owner_code == ID_OB) {
+    CLOG_INFO(&LOG,
+              0,
+              "Remapping mesh owner: object '%s' now uses mesh override of '%s'",
+              owner_override->name + 2,
+              child_reference->name + 2);
+    Object *object_override = reinterpret_cast<Object *>(owner_override);
+    if (object_override->data == child_reference) {
+      object_override->data = child_override;
+      BKE_libblock_relink_ex(&bmain,
+                             owner_override,
+                             child_reference,
+                              child_override,
+                              ID_REMAP_SKIP_INDIRECT_USAGE);
+      DEG_id_tag_update(&object_override->id, ID_RECALC_GEOMETRY);
+    }
+  }
+  else if (child_code == ID_OB && owner_code == ID_GR) {
+    Collection *collection_override = reinterpret_cast<Collection *>(owner_override);
+    bool changed = false;
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection_override->gobject) {
+      if (cob->ob == reinterpret_cast<Object *>(child_reference)) {
+        cob->ob = reinterpret_cast<Object *>(child_override);
+        changed = true;
+      }
+    }
+    if (changed) {
+      BKE_libblock_relink_ex(
+          &bmain, owner_override, child_reference, child_override, ID_REMAP_SKIP_INDIRECT_USAGE);
+      DEG_id_tag_update(&collection_override->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+  }
+}
+
+static void id_override_library_post_process_child_links(Main &bmain,
+                                                         OutlinerLibOverrideData &data)
+{
+  for (auto &&[hierarchy_root_reference, data_idroots] : data.id_hierarchy_roots.items()) {
+    for (OutlinerLiboverrideDataIDRoot &entry : data_idroots) {
+      if (entry.id_root_reference == nullptr) {
+        continue;
+      }
+      CLOG_INFO(&LOG,
+                1,
+                "Post-process entry id '%s' depth %d owner_ref '%s' hierarchy_override %p",
+                entry.id_root_reference->name + 2,
+                entry.depth,
+                entry.owner_reference ? entry.owner_reference->name + 2 : "<none>",
+                entry.id_hierarchy_root_override);
+
+      ID *child_override_id = data.created_overrides.lookup_default(entry.id_root_reference,
+                                                                    nullptr);
+      if (child_override_id == nullptr) {
+        continue;
+      }
+
+      ID *owner_override_id = nullptr;
+      if (entry.owner_reference != nullptr) {
+        owner_override_id = data.created_overrides.lookup_default(entry.owner_reference, nullptr);
+      }
+      if (owner_override_id == nullptr && entry.id_hierarchy_root_override != nullptr) {
+        owner_override_id = entry.id_hierarchy_root_override;
+      }
+      if (owner_override_id == nullptr && entry.collection_owner_reference != nullptr) {
+        owner_override_id = data.created_overrides.lookup_default(entry.collection_owner_reference,
+                                                                  nullptr);
+      }
+      if (owner_override_id == nullptr && entry.id_root_reference != nullptr) {
+        /* Fallback: find an owner override whose reference points to this ID. */
+        for (auto &&[reference_id, override_id] : data.created_overrides.items()) {
+          if (reference_id == nullptr || override_id == nullptr) {
+            continue;
+          }
+          const short reference_code = GS(reference_id->name);
+          if (reference_code == ID_OB) {
+            Object *object_reference = reinterpret_cast<Object *>(reference_id);
+            if (object_reference->data == entry.id_root_reference) {
+              owner_override_id = override_id;
+        CLOG_INFO(&LOG,
+                  1,
+                  "Fallback owner match: object '%s' now owns entry '%s'",
+                  reference_id->name + 2,
+                  entry.id_root_reference->name + 2);
+              break;
+            }
+          }
+        }
+      }
+      if (owner_override_id == nullptr || !ID_IS_OVERRIDE_LIBRARY(owner_override_id)) {
+        CLOG_INFO(&LOG,
+                  1,
+                  "Skipping post-process for '%s': no owner override found",
+                  entry.id_root_reference->name + 2);
+        continue;
+      }
+
+      lib_override_owner_update(
+          bmain, entry.id_root_reference, child_override_id, owner_override_id);
+    }
   }
 }
 
@@ -1277,6 +1980,7 @@ static void id_override_library_create_hierarchy(
              ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
 
   const bool do_hierarchy = data.do_hierarchy;
+  data.created_overrides.clear();
 
   /* NOTE: This process is not the most efficient, but allows to re-use existing code.
    * If this becomes a bottle-neck at some point, we need to implement a new
@@ -1312,7 +2016,6 @@ static void id_override_library_create_hierarchy(
         BLI_assert(id_root_override != nullptr);
         BLI_assert(!ID_IS_LINKED(id_root_override));
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
-
         ID *id_hierarchy_root_override = id_root_override->override_library->hierarchy_root;
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_override));
         if (ID_IS_LINKED(id_hierarchy_root_reference)) {
@@ -1328,6 +2031,14 @@ static void id_override_library_create_hierarchy(
         }
         data_idroot.id_hierarchy_root_override = id_hierarchy_root_override;
         data.id_hierarchy_roots_uid.add(id_hierarchy_root_override->session_uid);
+        data.created_overrides.add_overwrite(data_idroot.id_root_reference, id_root_override);
+
+        if (GS(data_idroot.id_root_reference->name) == ID_MA) {
+          Material *material_reference = reinterpret_cast<Material *>(data_idroot.id_root_reference);
+          Material *material_override = reinterpret_cast<Material *>(id_root_override);
+          lib_override_ensure_material_nodetree_override(
+              bmain, scene, view_layer, *material_reference, *material_override, data);
+        }
       }
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(data_idroot.id_root_reference)) {
@@ -1338,6 +2049,14 @@ static void id_override_library_create_hierarchy(
       if (success) {
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
         id_root_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+        data.created_overrides.add_overwrite(data_idroot.id_root_reference, id_root_override);
+
+        if (GS(data_idroot.id_root_reference->name) == ID_MA) {
+          Material *material_reference = reinterpret_cast<Material *>(data_idroot.id_root_reference);
+          Material *material_override = reinterpret_cast<Material *>(id_root_override);
+          lib_override_ensure_material_nodetree_override(
+              bmain, scene, view_layer, *material_reference, *material_override, data);
+        }
       }
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(&bmain);
@@ -1355,8 +2074,23 @@ static void id_override_library_create_hierarchy(
           &bmain, scene, reinterpret_cast<Object *>(data_idroot.id_instance_hint));
     }
 
+    if (success && GS(data_idroot.id_root_reference->name) == ID_OB) {
+      BKE_scene_collections_object_remove(
+          &bmain, scene, reinterpret_cast<Object *>(data_idroot.id_root_reference), true);
+    }
+    if (!success) {
+      CLOG_INFO(&LOG,
+                1,
+                "Override creation failed for '%s' (hierarchy=%d)",
+                data_idroot.id_root_reference->name + 2,
+                int(do_hierarchy));
+    }
+
     r_aggregated_success = r_aggregated_success && success;
   }
+
+  id_override_library_post_process_child_links(bmain, data);
+  data.created_overrides.clear();
 }
 
 /* Clear system override flag from newly created overrides which linked reference were previously
@@ -1370,10 +2104,84 @@ static void id_override_library_create_hierarchy_process(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool do_hierarchy = data.do_hierarchy;
 
+  Vector<OutlinerLibOverrideRootProcessItem> process_items;
+  process_items.reserve(data.id_hierarchy_roots.size());
+  for (auto &&item : data.id_hierarchy_roots.items()) {
+    int min_depth = std::numeric_limits<int>::max();
+    for (const OutlinerLiboverrideDataIDRoot &id_root_data : item.value) {
+      min_depth = std::min(min_depth, id_root_data.depth);
+    }
+    if (min_depth == std::numeric_limits<int>::max()) {
+      min_depth = 0;
+    }
+    process_items.append({item.key, &item.value, min_depth});
+  }
+
+  std::sort(process_items.begin(),
+            process_items.end(),
+            [](const OutlinerLibOverrideRootProcessItem &a,
+               const OutlinerLibOverrideRootProcessItem &b) {
+              return a.min_depth < b.min_depth;
+            });
+
   bool success = true;
-  for (auto &&[id_hierarchy_root_reference, data_idroots] : data.id_hierarchy_roots.items()) {
-    id_override_library_create_hierarchy(
-        *bmain, scene, view_layer, data, id_hierarchy_root_reference, data_idroots, success);
+  for (OutlinerLibOverrideRootProcessItem &process_item : process_items) {
+    ID *id_hierarchy_root_reference = process_item.id_hierarchy_root_reference;
+
+    /* If this hierarchy root is still linked (nested library case), we need to find or create
+     * its override before processing its children. This ensures children have a valid local
+     * parent. */
+    if (ID_IS_LINKED(id_hierarchy_root_reference)) {
+      /* First, check if an override already exists for this linked ID.
+       * This is important for nested libraries where a parent collection might already have
+       * been overridden. We want to reuse that existing override instead of creating a new one.
+       * Note: Cannot use 'break' inside FOREACH_MAIN_ID_BEGIN as per BKE_main.hh documentation.
+       */
+      ID *id_override_root = nullptr;
+      ID *id_iter;
+      FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+        if (id_override_root == nullptr && ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) &&
+            id_iter->override_library->reference == id_hierarchy_root_reference) {
+          id_override_root = id_iter;
+        }
+      }
+      FOREACH_MAIN_ID_END;
+
+      /* If no existing override was found, create a new one */
+      if (id_override_root == nullptr) {
+        id_override_root = BKE_lib_override_library_create_from_id(
+            bmain, id_hierarchy_root_reference, false /* do_tagged_remap */);
+
+        if (id_override_root == nullptr) {
+          /* Skip ID type prefix (first 2 characters) for display */
+          const char *display_name = id_hierarchy_root_reference->name;
+          if (display_name[0] != '\0' && display_name[1] != '\0') {
+            display_name += 2;
+          }
+          BKE_reportf(reports,
+                      RPT_ERROR,
+                      "Failed to create library override for nested parent '%s'",
+                      display_name);
+          success = false;
+          continue;
+        }
+      }
+
+      /* Clear LIBOVERRIDE_FLAG_SYSTEM_DEFINED so it's editable */
+      id_override_root->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+
+      /* Now use this override (existing or newly created) as the hierarchy root for processing
+       * children */
+      id_hierarchy_root_reference = id_override_root;
+    }
+
+    id_override_library_create_hierarchy(*bmain,
+                                         scene,
+                                         view_layer,
+                                         data,
+                                         id_hierarchy_root_reference,
+                                         *process_item.data_idroots,
+                                         success);
   }
 
   if (!success) {
