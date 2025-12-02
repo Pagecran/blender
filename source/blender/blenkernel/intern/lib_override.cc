@@ -488,6 +488,69 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   return local_id;
 }
 
+ID *BKE_lib_override_library_create_from_id_with_root(Main *bmain,
+                                                      ID *reference_id,
+                                                      ID *id_hierarchy_root,
+                                                      const bool do_tagged_remap)
+{
+  BLI_assert(reference_id != nullptr);
+  BLI_assert(ID_IS_LINKED(reference_id));
+
+  ID *local_id = lib_override_library_create_from(bmain, nullptr, reference_id, 0);
+  
+  if (id_hierarchy_root == nullptr) {
+    /* We cannot allow automatic hierarchy resync on this ID, it is highly likely to generate a giant
+     * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
+     * Ref #94650. */
+    local_id->override_library->flag |= LIBOVERRIDE_FLAG_NO_HIERARCHY;
+    local_id->override_library->hierarchy_root = local_id;
+  }
+  else {
+    /* If a hierarchy root is explicitly provided, assume the caller knows what they are doing
+     * (e.g. manual construction of hierarchy). */
+    local_id->override_library->flag &= ~LIBOVERRIDE_FLAG_NO_HIERARCHY;
+    local_id->override_library->hierarchy_root = id_hierarchy_root;
+  }
+
+  local_id->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+
+  if (do_tagged_remap) {
+    Key *reference_key = BKE_key_from_id(reference_id);
+    Key *local_key = nullptr;
+    if (reference_key != nullptr) {
+      local_key = BKE_key_from_id(local_id);
+      BLI_assert(local_key != nullptr);
+    }
+
+    ID *other_id;
+    FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
+      if ((other_id->tag & ID_TAG_DOIT) != 0 && !ID_IS_LINKED(other_id)) {
+        /* Note that using ID_REMAP_SKIP_INDIRECT_USAGE below is superfluous, as we only remap
+         * local IDs usages anyway. */
+        BKE_libblock_relink_ex(bmain,
+                               other_id,
+                               reference_id,
+                               local_id,
+                               ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+        if (reference_key != nullptr) {
+          BKE_libblock_relink_ex(bmain,
+                                 other_id,
+                                 &reference_key->id,
+                                 &local_key->id,
+                                 ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  /* Cleanup global namemap, to avoid extra processing with regular ID name management. Better to
+   * re-create the global namemap on demand. */
+  BKE_main_namemap_destroy(&bmain->name_map_global);
+
+  return local_id;
+}
+
 static void lib_override_prefill_newid_from_existing_overrides(Main *bmain, ID *id_hierarchy_root)
 {
   ID *id_iter;
@@ -728,8 +791,10 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
          todo_id_iter = todo_id_iter->next)
     {
       reference_id = static_cast<ID *>(todo_id_iter->data);
-      BKE_id_delete(bmain, reference_id->newid);
-      reference_id->newid = nullptr;
+      if (reference_id->newid != nullptr) {
+        BKE_id_delete(bmain, reference_id->newid);
+        reference_id->newid = nullptr;
+      }
     }
   }
 
@@ -927,9 +992,10 @@ static bool lib_override_hierarchy_dependencies_skip_check(ID *owner_id,
     return true;
   }
   /* Skip any relationships to data from another library. */
-  if (other_id->lib != owner_id->lib) {
+  /* DISABLED for testing: Allow cross-library overrides. */
+  /* if (other_id->lib != owner_id->lib) {
     return true;
-  }
+  } */
   /* Skip relationships to non-override data if requested. */
   if (check_override) {
     BLI_assert_msg(
@@ -1363,10 +1429,10 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
         BKE_lib_override_library_get(bmain, id_owner, nullptr, nullptr)->reference->lib;
     const ID *to_id_reference =
         BKE_lib_override_library_get(bmain, to_id, nullptr, nullptr)->reference;
-    if (to_id_reference->lib != reference_lib) {
-      /* We do not override data-blocks from other libraries, nor do we process them. */
+    /* if (to_id_reference->lib != reference_lib) {
+      // We do not override data-blocks from other libraries, nor do we process them.
       continue;
-    }
+    } */
 
     data->id_tag_set(to_id, bool(to_id_reference->tag & ID_TAG_MISSING));
 
@@ -1896,8 +1962,8 @@ static void lib_override_root_hierarchy_set(
 
       /* Enforce replacing hierarchy root if the current one is invalid. */
       bool do_replace_root = (!id->override_library->hierarchy_root ||
-                              !ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
-                              id->override_library->hierarchy_root->lib != id->lib);
+                              !ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) /* ||
+                              id->override_library->hierarchy_root->lib != id->lib */);
       for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
            from_id_entry = from_id_entry->next)
       {
@@ -1971,8 +2037,8 @@ static void lib_override_library_main_hierarchy_id_root_ensure(Main *bmain,
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
 
   if (id->override_library->hierarchy_root != nullptr) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
-        id->override_library->hierarchy_root->lib != id->lib)
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) /* ||
+        id->override_library->hierarchy_root->lib != id->lib */)
     {
       CLOG_ERROR(
           &LOG,
@@ -2333,7 +2399,7 @@ static bool lib_override_library_resync(
     lib_override_hierarchy_dependencies_recursive_tag(&data);
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      if ((id->lib != id_root->lib) || !ID_IS_OVERRIDE_LIBRARY(id)) {
+      if (/* (id->lib != id_root->lib) || */ !ID_IS_OVERRIDE_LIBRARY(id)) {
         continue;
       }
 
@@ -2456,8 +2522,8 @@ static bool lib_override_library_resync(
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_reference_iter;
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
-      if ((id_reference_iter->tag & ID_TAG_DOIT) == 0 || id_reference_iter->newid == nullptr ||
-          !ELEM(id_reference_iter->lib, id_root_reference->lib, id_root_reference_lib_old))
+      if ((id_reference_iter->tag & ID_TAG_DOIT) == 0 || id_reference_iter->newid == nullptr /* ||
+          !ELEM(id_reference_iter->lib, id_root_reference->lib, id_root_reference_lib_old) */)
       {
         continue;
       }
@@ -3109,7 +3175,29 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
 
     /* Non-matching hierarchy root IDs mean this is not the same liboverride hierarchy anymore. */
     if (id_to->override_library->hierarchy_root != id_root->override_library->hierarchy_root) {
-      continue;
+      /* Exception for materials: Materials can have their hierarchy_root set to their parent object
+       * (for cross-library L2 materials), while being processed from a mesh that has the collection
+       * as hierarchy_root. Allow this if both the material's hierarchy_root and id_root share the
+       * same top-level hierarchy_root (the collection). */
+      bool is_material_in_same_hierarchy =
+        (GS(id_to->name) == ID_MA &&
+         id_to->override_library->hierarchy_root != nullptr &&
+         id_to->override_library->hierarchy_root->override_library != nullptr &&
+         id_to->override_library->hierarchy_root->override_library->hierarchy_root ==
+           id_root->override_library->hierarchy_root);
+
+      if (!is_material_in_same_hierarchy) {
+        CLOG_INFO(&LOG_RESYNC,
+                  "lib_override_resync_tagging_finalize_recurse: Mismatch detected for '%s'."
+                  " id_to->root: '%s' (lib: %s), id_root->root: '%s' (lib: %s)",
+                  id_to->name,
+                  id_to->override_library->hierarchy_root ? id_to->override_library->hierarchy_root->name : "None",
+                  id_to->override_library->hierarchy_root ? (id_to->override_library->hierarchy_root->lib ? "Linked" : "Local") : "N/A",
+                  id_root->override_library->hierarchy_root ? id_root->override_library->hierarchy_root->name : "None",
+                  id_root->override_library->hierarchy_root ? (id_root->override_library->hierarchy_root->lib ? "Linked" : "Local") : "N/A");
+        continue;
+      }
+      /* else: Material is in the same hierarchy, allow traversal to continue. */
     }
 
     lib_override_resync_tagging_finalize_recurse(

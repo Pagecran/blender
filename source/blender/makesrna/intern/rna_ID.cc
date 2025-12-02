@@ -7,12 +7,16 @@
  */
 
 #include <cstdlib>
+#include "CLG_log.h" // ADDED for CLOG_INFO
 
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
+#include "BKE_material.hh"
+#include "BKE_object.hh"
 
 #include "BLT_translation.hh"
 
@@ -796,11 +800,94 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   }
 
   ID *local_id = nullptr;
+
 #  ifdef WITH_PYTHON
   BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-  local_id = BKE_lib_override_library_create_from_id(bmain, id, remap_local_usages);
+  const short id_code = GS(id->name);
+  Object *owner_object_ref = nullptr;
+  Object *owner_object_override = nullptr;
+
+  if (id_code == ID_MA && id->lib != nullptr) {
+    Material *material = reinterpret_cast<Material *>(id);
+
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      if (!ID_IS_LINKED(&object->id)) {
+        continue;
+      }
+
+      bool matched = false;
+
+      if (Material ***materials_ptr = BKE_object_material_array_p(object)) {
+        if (short *materials_len_ptr = BKE_object_material_len_p(object)) {
+          Material **materials = *materials_ptr;
+          const int materials_len = *materials_len_ptr;
+          for (int slot = 0; slot < materials_len; slot++) {
+            if (materials[slot] == material) {
+              matched = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!matched && object->data != nullptr) {
+        ID *data_id = static_cast<ID *>(object->data);
+        if (Material ***data_mat_ptr = BKE_id_material_array_p(data_id)) {
+          if (short *data_mat_len_ptr = BKE_id_material_len_p(data_id)) {
+            Material **data_materials = *data_mat_ptr;
+            const int data_materials_len = *data_mat_len_ptr;
+            for (int slot = 0; slot < data_materials_len; slot++) {
+              if (data_materials[slot] == material) {
+                matched = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (matched) {
+        owner_object_ref = object;
+        break;
+      }
+    }
+
+    if (owner_object_ref != nullptr) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+        if (!ID_IS_OVERRIDE_LIBRARY_REAL(&object->id)) {
+          continue;
+        }
+        if (object->id.override_library->reference == &owner_object_ref->id) {
+          owner_object_override = object;
+          break;
+        }
+      }
+
+      if (owner_object_override == nullptr) {
+        ID *owner_override_id = BKE_lib_override_library_create_from_id(
+            bmain, &owner_object_ref->id, false);
+        owner_object_override = owner_override_id ?
+                                     reinterpret_cast<Object *>(owner_override_id) :
+                                     nullptr;
+      }
+
+      if (owner_object_override != nullptr) {
+        local_id = BKE_lib_override_library_create_from_id_with_root(
+            bmain, id, &owner_object_override->id, remap_local_usages);
+        // CLOG_INFO(nullptr,
+        //           "rna_ID_override_create: Material override '%s' created. Actual hierarchy_root: '%s' (lib: %s).",
+        //           local_id->name,
+        //           local_id->override_library->hierarchy_root ? local_id->override_library->hierarchy_root->name : "None",
+        //           local_id->override_library->hierarchy_root ? (local_id->override_library->hierarchy_root->lib ? "Linked" : "Local") : "N/A");
+      }
+    }
+  }
+
+  if (local_id == nullptr) {
+    local_id = BKE_lib_override_library_create_from_id(bmain, id, remap_local_usages);
+  }
 
 #  ifdef WITH_PYTHON
   BPy_END_ALLOW_THREADS;
@@ -2127,12 +2214,14 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
 
-  RNA_def_pointer(
+  prop = RNA_def_pointer(
       srna,
       "hierarchy_root",
       "ID",
       "Hierarchy Root ID",
       "Library override ID used as root of the override hierarchy this ID is a member of");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
 
   prop = RNA_def_boolean(srna,
                          "is_in_hierarchy",
