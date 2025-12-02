@@ -377,6 +377,9 @@ class OUTLINER_MT_liboverride(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("outliner.smart_material_override", icon='MOD_DATA_TRANSFER')
+        layout.separator()
+
         layout.operator_menu_enum(
             "outliner.liboverride_operation", "selection_set",
             text="Make",
