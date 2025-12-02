@@ -21,7 +21,6 @@
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_key_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -45,8 +44,6 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_material.hh"
-#include "BKE_object.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -452,50 +449,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
    * Ref #94650. */
   local_id->override_library->flag |= LIBOVERRIDE_FLAG_NO_HIERARCHY;
   local_id->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
-
-  /* Special handling for cross-library materials: Set hierarchy_root to parent object instead of self. */
-  if (GS(local_id->name) == ID_MA) {
-    /* Find the object that uses this material */
-    ID *parent_object_override = nullptr;
-
-    printf("DEBUG: Looking for parent object of material '%s'\n", local_id->name + 2);
-    int obj_count = 0;
-    int override_obj_count = 0;
-
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      obj_count++;
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(&ob->id)) {
-        override_obj_count++;
-        /* Check if this object uses the material */
-        for (int i = 0; i < ob->totcol; i++) {
-          if (ob->mat[i] && &ob->mat[i]->id == reference_id) {
-            parent_object_override = &ob->id;
-            printf("DEBUG: Found parent object: %s\n", ob->id.name + 2);
-            break;
-          }
-        }
-        if (parent_object_override) {
-          break;
-        }
-      }
-    }
-
-    printf("DEBUG: Total objects: %d, Override objects: %d, Parent found: %s\n",
-           obj_count, override_obj_count, parent_object_override ? "YES" : "NO");
-
-    if (parent_object_override) {
-      local_id->override_library->hierarchy_root = parent_object_override;
-      printf("DEBUG: Set hierarchy_root to %s\n", parent_object_override->name + 2);
-    }
-    else {
-      /* Fallback: set to self if no parent object found */
-      local_id->override_library->hierarchy_root = local_id;
-      printf("DEBUG: WARNING - No parent found, set hierarchy_root to self\n");
-    }
-  }
-  else {
-    local_id->override_library->hierarchy_root = local_id;
-  }
+  local_id->override_library->hierarchy_root = local_id;
 
   if (do_tagged_remap) {
     Key *reference_key = BKE_key_from_id(reference_id);
@@ -745,22 +699,6 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     }
     FOREACH_MAIN_ID_END;
 
-    printf("DEBUG: === Starting hierarchy_root assignment loop ===\n");
-    printf("DEBUG: id_hierarchy_root = '%s' (type %d)\n",
-           id_hierarchy_root ? id_hierarchy_root->name + 2 : "NULL",
-           id_hierarchy_root ? GS(id_hierarchy_root->name) : 0);
-
-    int total_todos = 0;
-    for (LinkData *count_iter = static_cast<LinkData *>(todo_ids.first); count_iter != nullptr;
-         count_iter = count_iter->next)
-    {
-      total_todos++;
-      ID *count_id = static_cast<ID *>(count_iter->data);
-      printf("DEBUG: todo_ids[%d] = '%s' (type %d)\n", total_todos - 1, count_id->name + 2,
-             GS(count_id->name));
-    }
-    printf("DEBUG: Total IDs in todo_ids: %d\n", total_todos);
-
     for (todo_id_iter = static_cast<LinkData *>(todo_ids.first); todo_id_iter != nullptr;
          todo_id_iter = todo_id_iter->next)
     {
@@ -771,25 +709,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
         continue;
       }
 
-      /* Check that override_library is properly initialized before accessing it */
-      if (local_id->override_library == nullptr) {
-        printf("WARNING: local_id->override_library is nullptr for '%s'\n", local_id->name + 2);
-        continue;
-      }
-
-      /* Special handling for cross-library materials: Set hierarchy_root to parent object instead of
-       * collection. For materials from a different library than their parent object, using the
-       * object as hierarchy_root ensures proper validation and persistence. */
-      if (GS(local_id->name) == ID_MA) {
-        printf("DEBUG MAT: Material override being created: '%s'\n", local_id->name + 2);
-
-        /* For now, use default behavior - we'll fix hierarchy_root in a post-processing step */
-        local_id->override_library->hierarchy_root = id_hierarchy_root;
-        printf("DEBUG MAT: Set to id_hierarchy_root (will be corrected later)\n");
-      }
-      else {
-        local_id->override_library->hierarchy_root = id_hierarchy_root;
-      }
+      local_id->override_library->hierarchy_root = id_hierarchy_root;
 
       lib_override_remapper_overrides_add(id_remapper, reference_id, local_id);
     }
@@ -801,152 +721,6 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                  ID_REMAP_SKIP_OVERRIDE_LIBRARY | ID_REMAP_FORCE_USER_REFCOUNT);
 
     relinked_ids.clear();
-
-    /* Post-processing: Fix hierarchy_root for cross-library materials.
-     * Now that all overrides are created, we can safely search bmain for the parent object. */
-    printf("DEBUG: === Post-processing material hierarchy_root (NEW APPROACH) ===\n");
-    for (todo_id_iter = static_cast<LinkData *>(todo_ids.first); todo_id_iter != nullptr;
-         todo_id_iter = todo_id_iter->next)
-    {
-      ID *reference_id = static_cast<ID *>(todo_id_iter->data);
-      ID *local_id = reference_id->newid;
-
-      if (local_id == nullptr || GS(local_id->name) != ID_MA) {
-        continue;
-      }
-
-      if (local_id->override_library == nullptr) {
-        continue;
-      }
-
-      /* Check if this material's hierarchy_root points to itself (the bug) */
-      ID *current_root = local_id->override_library->hierarchy_root;
-      if (current_root == local_id) {
-        printf("DEBUG MAT POST: Material '%s' has self as hierarchy_root - fixing...\n",
-               local_id->name + 2);
-        printf("DEBUG MAT POST:   reference_material = '%s' (%p)\n",
-               reference_id->name + 2,
-               (void *)reference_id);
-
-        Material *reference_material = reinterpret_cast<Material *>(reference_id);
-        bool found_parent = false;
-
-        /* NEW APPROACH: Search through ALL objects (both linked and override) and look for
-         * any object whose materials reference our target material. */
-        LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-          /* We're looking for override objects that might be parents */
-          if (!ID_IS_OVERRIDE_LIBRARY_REAL(&ob->id)) {
-            continue;
-          }
-
-          printf("DEBUG MAT POST:   Checking override object '%s'\n", ob->id.name + 2);
-
-          /* Check object material slots */
-          if (Material ***materials_ptr = BKE_object_material_array_p(ob)) {
-            if (short *materials_len_ptr = BKE_object_material_len_p(ob)) {
-              Material **materials = *materials_ptr;
-              const int materials_len = *materials_len_ptr;
-
-              for (int slot = 0; slot < materials_len; slot++) {
-                Material *mat = materials[slot];
-                if (!mat) continue;
-
-                printf("DEBUG MAT POST:     slot[%d] = '%s' (%p)\n",
-                       slot, mat->id.name + 2, (void *)mat);
-
-                /* Check if this material's REFERENCE points to our target L2 material */
-                if (mat->id.override_library && mat->id.override_library->reference) {
-                  ID *mat_ref = mat->id.override_library->reference;
-                  printf("DEBUG MAT POST:       -> has reference: '%s' (%p)\n",
-                         mat_ref->name + 2, (void *)mat_ref);
-
-                  if (mat_ref == &reference_material->id) {
-                    printf("DEBUG MAT POST:       *** MATCHED! This object uses a material that references our L2 material ***\n");
-                    found_parent = true;
-                    /* Set hierarchy_root to the parent object (not the object's hierarchy_root).
-                     * This matches what the Python API does in rna_ID_override_create. */
-                    local_id->override_library->hierarchy_root = &ob->id;
-                    /* Clear the NO_HIERARCHY flag to indicate this override is part of a hierarchy.
-                     * This is required for validation to pass - without it, the override will be
-                     * deleted as "isolated from its hierarchy root". */
-                    local_id->override_library->flag &= ~LIBOVERRIDE_FLAG_NO_HIERARCHY;
-
-                    /* CRITICAL: Update the object's material slot to use our new override.
-                     * This is essential - without it, the override is not actually "used" by the
-                     * hierarchy and will be deleted as isolated during resync validation. */
-                    materials[slot] = reinterpret_cast<Material *>(local_id);
-                    printf("DEBUG MAT POST:       -> Remapped slot to use new override\n");
-
-                    printf("DEBUG MAT POST: ✓✓✓ Fixed! Set hierarchy_root to '%s' and cleared NO_HIERARCHY flag ✓✓✓\n",
-                           ob->id.name + 2);
-                    break;
-                  }
-                }
-              }
-
-              if (found_parent) break;
-            }
-          }
-
-          /* Also check mesh data materials if not found yet */
-          if (!found_parent && ob->data != nullptr) {
-            ID *data_id = static_cast<ID *>(ob->data);
-            if (Material ***data_mat_ptr = BKE_id_material_array_p(data_id)) {
-              if (short *data_mat_len_ptr = BKE_id_material_len_p(data_id)) {
-                Material **data_materials = *data_mat_ptr;
-                const int data_materials_len = *data_mat_len_ptr;
-
-                for (int slot = 0; slot < data_materials_len; slot++) {
-                  Material *mat = data_materials[slot];
-                  if (!mat) continue;
-
-                  printf("DEBUG MAT POST:       mesh_slot[%d] = '%s' (%p)\n",
-                         slot, mat->id.name + 2, (void *)mat);
-
-                  /* Check if this material's REFERENCE points to our target L2 material */
-                  if (mat->id.override_library && mat->id.override_library->reference) {
-                    ID *mat_ref = mat->id.override_library->reference;
-                    printf("DEBUG MAT POST:         -> has reference: '%s' (%p)\n",
-                           mat_ref->name + 2, (void *)mat_ref);
-
-                    if (mat_ref == &reference_material->id) {
-                      printf("DEBUG MAT POST:         *** MATCHED! (via mesh data) ***\n");
-                      found_parent = true;
-                      /* Set hierarchy_root to the parent object (not the object's hierarchy_root).
-                       * This matches what the Python API does in rna_ID_override_create. */
-                      local_id->override_library->hierarchy_root = &ob->id;
-                      /* Clear the NO_HIERARCHY flag to indicate this override is part of a hierarchy.
-                       * This is required for validation to pass - without it, the override will be
-                       * deleted as "isolated from its hierarchy root". */
-                      local_id->override_library->flag &= ~LIBOVERRIDE_FLAG_NO_HIERARCHY;
-
-                      /* CRITICAL: Update the mesh data's material slot to use our new override.
-                       * This is essential - without it, the override is not actually "used" by the
-                       * hierarchy and will be deleted as isolated during resync validation. */
-                      data_materials[slot] = reinterpret_cast<Material *>(local_id);
-                      printf("DEBUG MAT POST:         -> Remapped mesh data slot to use new override\n");
-
-                      printf("DEBUG MAT POST: ✓✓✓ Fixed! Set hierarchy_root to '%s' and cleared NO_HIERARCHY flag ✓✓✓\n",
-                             ob->id.name + 2);
-                      break;
-                    }
-                  }
-                }
-
-                if (found_parent) break;
-              }
-            }
-          }
-
-          if (found_parent) break;
-        }
-
-        if (!found_parent) {
-          printf("DEBUG MAT POST:   ✗✗✗ Could not find parent object for material '%s' ✗✗✗\n",
-                 local_id->name + 2);
-        }
-      }
-    }
   }
   else {
     /* We need to cleanup potentially already created data. */
