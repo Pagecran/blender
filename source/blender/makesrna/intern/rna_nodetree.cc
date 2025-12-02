@@ -2629,12 +2629,24 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
 }
 
 void rna_Node_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+
 {
+
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+
   bNode *node = ptr->data_as<bNode>();
-  BKE_ntree_update_tag_node_property(ntree, node);
-  BKE_main_ensure_invariants(*bmain, ntree->id);
-}
+
+
+
+        BKE_ntree_update_tag_node_property(ntree, node);
+
+
+
+        BKE_main_ensure_invariants(*bmain, ntree->id);
+
+
+
+      }
 
 void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -4607,6 +4619,7 @@ static void def_clamp(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_node_clamp_items);
   RNA_def_property_ui_text(prop, "Clamp Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_map_range(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4654,11 +4667,13 @@ static void def_math(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", SHD_MATH_CLAMP);
   RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_sh_mix(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4679,28 +4694,33 @@ static void def_sh_mix(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_default(prop, SOCK_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "factor_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_mix_mode_items);
   RNA_def_property_enum_default(prop, NODE_MIX_MODE_UNIFORM);
   RNA_def_property_ui_text(prop, "Factor Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "blend_type");
   RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
   RNA_def_property_ui_text(prop, "Blending Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "clamp_factor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "clamp_factor", 1);
   RNA_def_property_ui_text(prop, "Clamp Factor", "Clamp the factor to [0,1] range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "clamp_result", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "clamp_result", 1);
   RNA_def_property_ui_text(prop, "Clamp Result", "Clamp the result to [0,1] range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_float_to_int(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4714,6 +4734,7 @@ static void def_float_to_int(BlenderRNA * /*brna*/, StructRNA *srna)
       prop, "Rounding Mode", "Method used to convert the float to an integer");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_vector_math(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4727,6 +4748,7 @@ static void def_vector_math(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_rgb_curve(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4782,6 +4804,7 @@ static void def_colorramp(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_struct_type(prop, "ColorRamp");
   RNA_def_property_ui_text(prop, "Color Ramp", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_mix_rgb(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4793,16 +4816,19 @@ static void def_mix_rgb(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
   RNA_def_property_ui_text(prop, "Blending Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", SHD_MIXRGB_USE_ALPHA);
   RNA_def_property_ui_text(prop, "Alpha", "Include alpha of second input in this operation");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", SHD_MIXRGB_CLAMP);
   RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_texture(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4934,6 +4960,7 @@ static void def_sh_mapping(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_mapping_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of vector that the mapping transforms");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_sh_vector_rotate(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -4945,11 +4972,13 @@ static void def_sh_vector_rotate(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_vector_rotate_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of angle input");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", 0);
   RNA_def_property_ui_text(prop, "Invert", "Invert the rotation angle");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_sh_attribute(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5166,11 +5195,13 @@ static void def_sh_tex_environment(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_projection_items);
   RNA_def_property_ui_text(prop, "Projection", "Projection of the input image");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, sh_tex_prop_interpolation_items);
   RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -5253,11 +5284,13 @@ static void def_sh_tex_image(BlenderRNA *brna, StructRNA *srna)
       prop, "Projection", "Method to project 2D image on object with a 3D texture vector");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, sh_tex_prop_interpolation_items);
   RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "projection_blend", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(
@@ -5270,6 +5303,7 @@ static void def_sh_tex_image(BlenderRNA *brna, StructRNA *srna)
       prop, "Extension", "How the image is extrapolated past its original bounds");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -5682,6 +5716,7 @@ static void def_sh_tex_coord(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "From Instancer", "Use the parent of the instance object if possible");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_sh_vect_transform(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5762,6 +5797,7 @@ static void def_glossy(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_glossy_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_glass(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5773,6 +5809,7 @@ static void def_glass(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_glass_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_sheen(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5784,6 +5821,7 @@ static void def_sheen(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_sheen_items);
   RNA_def_property_ui_text(prop, "Distribution", "Sheen shading model");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_principled(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5795,6 +5833,7 @@ static void def_principled(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_principled_distribution_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "subsurface_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom2");
@@ -5802,6 +5841,7 @@ static void def_principled(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Subsurface Method", "Method for rendering subsurface scattering");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_refraction(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5813,6 +5853,7 @@ static void def_refraction(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_refraction_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_scatter(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5857,6 +5898,7 @@ static void def_sh_bump(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Invert", "Invert the bump mapping direction to push into the surface instead of out");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 static void def_hair(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -5979,10 +6021,12 @@ static void def_sh_normal_map(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_space_items);
   RNA_def_property_ui_text(prop, "Space", "Space of the input normal");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent space maps");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "convention", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_convention_items);
@@ -6065,6 +6109,7 @@ static void def_sh_displacement(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_space_items);
   RNA_def_property_ui_text(prop, "Space", "Space of the input height");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   RNA_def_struct_sdna_from(srna, "bNode", nullptr);
 }
@@ -6089,6 +6134,7 @@ static void def_sh_vector_displacement(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_space_items);
   RNA_def_property_ui_text(prop, "Space", "Space of the input height");
   RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   RNA_def_struct_sdna_from(srna, "bNode", nullptr);
 }
