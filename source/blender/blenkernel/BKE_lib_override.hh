@@ -127,6 +127,14 @@ void BKE_lib_override_id_tag_on_deg_tag_from_user(ID *id);
  * and also prevents any automatic re-sync of this local override.
  */
 ID *BKE_lib_override_library_create_from_id(Main *bmain, ID *reference_id, bool do_tagged_remap);
+
+/**
+ * Create an overridden local copy of linked reference, with explicit hierarchy root.
+ */
+ID *BKE_lib_override_library_create_from_id_with_root(Main *bmain,
+                                                      ID *reference_id,
+                                                      ID *id_hierarchy_root,
+                                                      bool do_tagged_remap);
 /**
  * Create overridden local copies of all tagged data-blocks in given Main.
  *
