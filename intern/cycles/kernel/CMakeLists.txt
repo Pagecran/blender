@@ -560,6 +560,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -m ${CUDA_BITS}
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
+      --allow-unsupported-compiler
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
 
     cuda_add_common_flags(${cuda_version} ${arch} "${cuda_flags}" cuda_flags)
@@ -848,6 +849,7 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
       -I "${OPTIX_INCLUDE_DIR}"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
       -I "${CMAKE_CURRENT_SOURCE_DIR}/device/cuda"
+      --allow-unsupported-compiler
       -o ${output})
 
     if(WITH_CYCLES_OSL)
