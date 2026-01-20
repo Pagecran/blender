@@ -893,6 +893,10 @@ function(get_blender_version)
     _out_version_patch "${_contents}"
   )
   string(
+    REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_BUILD[ \t]+([0-9]+).*" "\\1"
+    _out_version_build "${_contents}"
+  )
+  string(
     REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_CYCLE[ \t]+([a-z]+).*" "\\1"
     _out_version_cycle "${_contents}"
   )
@@ -903,6 +907,10 @@ function(get_blender_version)
 
   if(NOT ${_out_version_patch} MATCHES "[0-9]+")
     message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_PATCH")
+  endif()
+
+  if(NOT ${_out_version_build} MATCHES "[0-9]+")
+    message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_BUILD")
   endif()
 
   if(NOT ${_out_version_cycle} MATCHES "[a-z]+")
@@ -917,6 +925,7 @@ function(get_blender_version)
   set(BLENDER_VERSION_MAJOR "${_out_version_major}" PARENT_SCOPE)
   set(BLENDER_VERSION_MINOR "${_out_version_minor}" PARENT_SCOPE)
   set(BLENDER_VERSION_PATCH "${_out_version_patch}" PARENT_SCOPE)
+  set(BLENDER_VERSION_BUILD "${_out_version_build}" PARENT_SCOPE)
   set(BLENDER_VERSION_CYCLE "${_out_version_cycle}" PARENT_SCOPE)
 
 endfunction()
