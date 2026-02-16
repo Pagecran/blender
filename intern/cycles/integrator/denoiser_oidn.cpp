@@ -63,6 +63,22 @@ class OIDNPass {
     use_denoising_albedo = pass_info.use_denoising_albedo;
   }
 
+  OIDNPass(const BufferPass &buffer_pass, const char *name)
+      : name(name),
+        type(buffer_pass.type),
+        mode(buffer_pass.mode),
+        include_albedo(buffer_pass.include_albedo),
+        is_lightgroup(!buffer_pass.lightgroup.empty()),
+        offset(buffer_pass.offset)
+  {
+    need_scale = (type == PASS_DENOISING_ALBEDO || type == PASS_DENOISING_NORMAL);
+
+    const PassInfo pass_info = buffer_pass.get_info();
+    num_components = pass_info.num_components;
+    use_compositing = pass_info.use_compositing;
+    use_denoising_albedo = pass_info.use_denoising_albedo;
+  }
+
   operator bool() const
   {
     return name[0] != '\0';
@@ -75,6 +91,8 @@ class OIDNPass {
 
   PassType type = PASS_NONE;
   PassMode mode = PassMode::NOISY;
+  bool include_albedo = false;
+  bool is_lightgroup = false;
   int num_components = -1;
   bool use_compositing = false;
   bool use_denoising_albedo = true;
@@ -143,10 +161,35 @@ class OIDNDenoiseContext {
 
   bool denoise_pass(const PassType pass_type)
   {
-    OIDNPass oidn_color_pass(buffer_params_, "color", pass_type);
-    if (oidn_color_pass.offset == PASS_UNUSED) {
+    const BufferPass *noisy_buffer_pass = buffer_params_.find_pass(pass_type, PassMode::NOISY);
+    if (noisy_buffer_pass == nullptr || noisy_buffer_pass->offset == PASS_UNUSED) {
       return true;
     }
+
+    const BufferPass *denoised_buffer_pass = buffer_params_.find_pass(pass_type,
+                                                                      PassMode::DENOISED);
+    if (denoised_buffer_pass == nullptr || denoised_buffer_pass->offset == PASS_UNUSED) {
+      LOG_DFATAL << "Missing denoised pass " << pass_type_as_string(pass_type);
+      return false;
+    }
+
+    return denoise_pass(*noisy_buffer_pass, *denoised_buffer_pass);
+  }
+
+  bool denoise_pass(const BufferPass &denoised_buffer_pass)
+  {
+    const BufferPass *noisy_buffer_pass = buffer_params_.find_pass(
+        denoised_buffer_pass.type, PassMode::NOISY, denoised_buffer_pass.lightgroup);
+    if (noisy_buffer_pass == nullptr || noisy_buffer_pass->offset == PASS_UNUSED) {
+      return true;
+    }
+
+    return denoise_pass(*noisy_buffer_pass, denoised_buffer_pass);
+  }
+
+  bool denoise_pass(const BufferPass &noisy_buffer_pass, const BufferPass &denoised_buffer_pass)
+  {
+    OIDNPass oidn_color_pass(noisy_buffer_pass, "color");
 
     if (oidn_color_pass.use_denoising_albedo) {
       if (albedo_replaced_with_fake_) {
@@ -155,9 +198,9 @@ class OIDNDenoiseContext {
       }
     }
 
-    OIDNPass oidn_output_pass(buffer_params_, "output", pass_type, PassMode::DENOISED);
+    OIDNPass oidn_output_pass(denoised_buffer_pass, "output");
     if (oidn_output_pass.offset == PASS_UNUSED) {
-      LOG_DFATAL << "Missing denoised pass " << pass_type_as_string(pass_type);
+      LOG_DFATAL << "Missing denoised pass " << pass_type_as_string(denoised_buffer_pass.type);
       return false;
     }
 
@@ -276,6 +319,8 @@ class OIDNDenoiseContext {
     PassAccessor::PassAccessInfo pass_access_info;
     pass_access_info.type = oidn_pass.type;
     pass_access_info.mode = oidn_pass.mode;
+    pass_access_info.include_albedo = oidn_pass.include_albedo;
+    pass_access_info.is_lightgroup = oidn_pass.is_lightgroup;
     pass_access_info.offset = oidn_pass.offset;
 
     /* Denoiser operates on passes which are used to calculate the approximation, and is never used
@@ -709,22 +754,61 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
       return false;
     }
 
-    const std::array<PassType, 3> passes = {
-        {/* Passes which will use real albedo when it is available. */
-         PASS_COMBINED,
-         PASS_SHADOW_CATCHER_MATTE,
+    /* Standard passes which will use real albedo when it is available. */
+    const std::array<PassType, 2> real_albedo_standard_passes = {
+        {PASS_COMBINED, PASS_SHADOW_CATCHER_MATTE}};
 
-         /* Passes which do not need albedo and hence if real is present it needs to become fake.
-          */
-         PASS_SHADOW_CATCHER}};
-
-    for (const PassType pass_type : passes) {
+    for (const PassType pass_type : real_albedo_standard_passes) {
       if (!denoise_run(context, pass_type)) {
         return false;
       }
       if (is_cancelled()) {
         return false;
       }
+    }
+
+    /* Denoise additional passes flagged for denoising before shadow catcher, which replaces the
+     * real albedo guiding pass with fake albedo. Run albedo-dependent additional passes first so a
+     * non-albedo additional pass can not replace albedo before a later pass still needs it. */
+    for (int pass_group = 0; pass_group < 2; ++pass_group) {
+      const bool use_denoising_albedo = (pass_group == 0);
+      for (const BufferPass &pass : buffer_params.passes) {
+        if (!pass.use_denoising || pass.mode != PassMode::DENOISED) {
+          continue;
+        }
+
+        /* Skip standard non-Light Group passes already handled separately. */
+        bool is_standard = (pass.type == PASS_SHADOW_CATCHER);
+        for (const PassType type : real_albedo_standard_passes) {
+          if (pass.type == type && pass.lightgroup.empty()) {
+            is_standard = true;
+            break;
+          }
+        }
+        if (is_standard) {
+          continue;
+        }
+
+        if (pass.get_info().use_denoising_albedo != use_denoising_albedo) {
+          continue;
+        }
+
+        if (!context.denoise_pass(pass)) {
+          return false;
+        }
+        if (is_cancelled()) {
+          return false;
+        }
+      }
+    }
+
+    /* Shadow catcher does not need albedo and hence if real albedo is present it needs to become
+     * fake. Keep it after all real-albedo-dependent passes. */
+    if (!denoise_run(context, PASS_SHADOW_CATCHER)) {
+      return false;
+    }
+    if (is_cancelled()) {
+      return false;
     }
 
     /* TODO: It may be possible to avoid this copy, but we have to ensure that when other code

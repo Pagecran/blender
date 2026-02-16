@@ -30,6 +30,7 @@ class BufferPass : public Node {
   ustring name;
   bool include_albedo = false;
   ustring lightgroup;
+  bool use_denoising = false;
 
   int offset = -1;
 
@@ -50,6 +51,7 @@ class BufferPass : public Node {
   {
     return type == other.type && mode == other.mode && name == other.name &&
            include_albedo == other.include_albedo && lightgroup == other.lightgroup &&
+           use_denoising == other.use_denoising &&
            offset == other.offset;
   }
   bool operator!=(const BufferPass &other) const
@@ -121,10 +123,13 @@ class BufferParams : public Node {
 
   /* Returns PASS_UNUSED if there is no such pass in the buffer. */
   int get_pass_offset(PassType type, PassMode mode = PassMode::NOISY) const;
+  int get_pass_offset(PassType type, PassMode mode, const ustring &lightgroup) const;
 
   /* Returns nullptr if pass with given name does not exist. */
   const BufferPass *find_pass(string_view name) const;
-  const BufferPass *find_pass(PassType type, PassMode mode = PassMode::NOISY) const;
+  const BufferPass *find_pass(PassType type,
+                              PassMode mode = PassMode::NOISY,
+                              const ustring &lightgroup = ustring()) const;
 
   /* Get display pass from its name.
    * Will do special logic to replace combined pass with shadow catcher matte. */

@@ -1090,6 +1090,15 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
         col.prop(cycles_view_layer, "use_pass_shadow_catcher")
 
+        col = layout.column()
+        col.separator()
+        col.active = context.scene.cycles.use_denoising
+        sub = col.column(heading="Denoise Light Passes")
+        sub.use_property_split = True
+        sub.prop(cycles_view_layer, "use_denoising_all_light_passes", text="")
+
+
+
 
 class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePanelHelper, Panel):
     bl_label = "Cryptomatte"

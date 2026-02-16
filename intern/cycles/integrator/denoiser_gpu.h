@@ -78,7 +78,9 @@ class DenoiserGPU : public Denoiser {
    * preprocess them for every pass which is being denoised. */
   bool denoise_filter_guiding_preprocess(const DenoiseContext &context);
 
-  void denoise_pass(DenoiseContext &context, PassType pass_type);
+  bool denoise_pass(DenoiseContext &context, PassType pass_type);
+  bool denoise_pass(DenoiseContext &context, const BufferPass &buffer_pass);
+  bool denoise_pass(DenoiseContext &context, const DenoisePass &pass);
 
   /* Returns true if task is fully handled. */
   virtual bool denoise_buffer(const DenoiseTask &task);
@@ -90,23 +92,51 @@ class DenoiserGPU : public Denoiser {
    public:
     DenoisePass(const PassType type, const BufferParams &buffer_params) : type(type)
     {
-      noisy_offset = buffer_params.get_pass_offset(type, PassMode::NOISY);
-      denoised_offset = buffer_params.get_pass_offset(type, PassMode::DENOISED);
+      const BufferPass *noisy_pass = buffer_params.find_pass(type, PassMode::NOISY);
+      const BufferPass *denoised_pass = buffer_params.find_pass(type, PassMode::DENOISED);
+      init_from_passes(noisy_pass, denoised_pass);
+    }
 
-      const PassInfo pass_info = Pass::get_info(type);
+    DenoisePass(const BufferPass &denoised_pass, const BufferParams &buffer_params)
+        : type(denoised_pass.type),
+          include_albedo(denoised_pass.include_albedo),
+          lightgroup(denoised_pass.lightgroup)
+    {
+      const BufferPass *noisy_pass = buffer_params.find_pass(
+          type, PassMode::NOISY, lightgroup);
+      init_from_passes(noisy_pass, &denoised_pass);
+    }
+
+    void init_from_passes(const BufferPass *noisy_pass, const BufferPass *denoised_pass)
+    {
+      if (noisy_pass) {
+        noisy_offset = noisy_pass->offset;
+        include_albedo = noisy_pass->include_albedo;
+        lightgroup = noisy_pass->lightgroup;
+      }
+      if (denoised_pass) {
+        denoised_offset = denoised_pass->offset;
+        include_albedo = denoised_pass->include_albedo;
+        lightgroup = denoised_pass->lightgroup;
+      }
+
+      const PassInfo pass_info = denoised_pass ? denoised_pass->get_info() :
+                                               Pass::get_info(type);
       num_components = pass_info.num_components;
       use_compositing = pass_info.use_compositing;
       use_denoising_albedo = pass_info.use_denoising_albedo;
     }
 
     PassType type;
+    bool include_albedo = false;
+    ustring lightgroup;
 
-    int noisy_offset;
-    int denoised_offset;
+    int noisy_offset = PASS_UNUSED;
+    int denoised_offset = PASS_UNUSED;
 
-    int num_components;
-    int use_compositing;
-    bool use_denoising_albedo;
+    int num_components = -1;
+    int use_compositing = false;
+    bool use_denoising_albedo = true;
   };
 
   class DenoiseContext {

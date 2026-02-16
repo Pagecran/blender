@@ -773,6 +773,29 @@ static Pass *pass_add(Scene *scene,
   return pass;
 }
 
+static bool is_denoisable_light_pass(PassType type)
+{
+  switch (type) {
+    case PASS_DIFFUSE_DIRECT:
+    case PASS_DIFFUSE_INDIRECT:
+    case PASS_DIFFUSE_COLOR:
+    case PASS_GLOSSY_DIRECT:
+    case PASS_GLOSSY_INDIRECT:
+    case PASS_GLOSSY_COLOR:
+    case PASS_TRANSMISSION_DIRECT:
+    case PASS_TRANSMISSION_INDIRECT:
+    case PASS_TRANSMISSION_COLOR:
+    case PASS_VOLUME_DIRECT:
+    case PASS_VOLUME_INDIRECT:
+    case PASS_EMISSION:
+    case PASS_BACKGROUND:
+    case PASS_AO:
+      return true;
+    default:
+      return false;
+  }
+}
+
 void BlenderSync::sync_render_passes(blender::RenderLayer &b_rlay,
                                      blender::ViewLayer &b_view_layer)
 {
@@ -815,13 +838,29 @@ void BlenderSync::sync_render_passes(blender::RenderLayer &b_rlay,
     expected_passes.insert(name);
   }
 
+  blender::PointerRNA view_layer_rna_ptr = RNA_pointer_create_id_subdata(
+      b_scene->id, blender::RNA_ViewLayer, &b_view_layer);
+  blender::PointerRNA crl = RNA_pointer_get(&view_layer_rna_ptr, "cycles");
+  const bool use_denoising_all_light_passes = get_boolean(crl, "use_denoising_all_light_passes");
+
   /* Light Group passes. */
   for (blender::ViewLayerLightgroup &b_lightgroup : b_view_layer.lightgroups) {
     const string name = string_printf("Combined_%s", b_lightgroup.name);
+    const string noisy_name = use_denoising_all_light_passes ? (name + " Noisy") : name;
 
-    Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
+    Pass *pass = pass_add(scene, PASS_COMBINED, noisy_name.c_str(), PassMode::NOISY);
     pass->set_lightgroup(ustring(b_lightgroup.name));
     expected_passes.insert(name);
+  }
+
+  if (use_denoising_all_light_passes) {
+    for (blender::ViewLayerLightgroup &b_lightgroup : b_view_layer.lightgroups) {
+      const string name = string_printf("Combined_%s", b_lightgroup.name);
+
+      Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::DENOISED);
+      pass->set_lightgroup(ustring(b_lightgroup.name));
+      pass->set_use_denoising(true);
+    }
   }
 
   /* Sync the passes that were defined in engine.py. */
@@ -842,7 +881,32 @@ void BlenderSync::sync_render_passes(blender::RenderLayer &b_rlay,
       continue;
     }
 
-    pass_add(scene, pass_type, b_pass.name, pass_mode);
+    const string pass_name = b_pass.name;
+
+    /* Combined pass is handled separately or by Blender. */
+    if (pass_type == PASS_COMBINED && pass_name == "Combined") {
+      pass_add(scene, pass_type, pass_name.c_str(), pass_mode);
+      continue;
+    }
+
+    /* Determine if we need to enable denoising for this pass. */
+    bool use_denoising = false;
+    if (use_denoising_all_light_passes) {
+      if (is_denoisable_light_pass(pass_type)) {
+        use_denoising = true;
+      }
+    }
+
+    if (use_denoising) {
+      /* Add the main denoised pass. */
+      Pass *pass = pass_add(scene, pass_type, pass_name.c_str(), PassMode::DENOISED);
+      pass->set_use_denoising(true);
+
+      pass_add(scene, pass_type, (pass_name + " Noisy").c_str(), PassMode::NOISY);
+    }
+    else {
+      pass_add(scene, pass_type, pass_name.c_str(), pass_mode);
+    }
   }
 
   scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold);
