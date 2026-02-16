@@ -48,6 +48,7 @@ NODE_DEFINE(BufferPass)
   SOCKET_STRING(name, "Name", ustring());
   SOCKET_BOOLEAN(include_albedo, "Include Albedo", false);
   SOCKET_STRING(lightgroup, "Light Group", ustring());
+  SOCKET_BOOLEAN(use_denoising, "Use Denoising", false);
 
   SOCKET_INT(offset, "Offset", -1);
 
@@ -62,7 +63,8 @@ BufferPass::BufferPass(const Pass *scene_pass)
       mode(scene_pass->get_mode()),
       name(scene_pass->get_name()),
       include_albedo(scene_pass->get_include_albedo()),
-      lightgroup(scene_pass->get_lightgroup())
+      lightgroup(scene_pass->get_lightgroup()),
+      use_denoising(scene_pass->get_use_denoising())
 {
 }
 

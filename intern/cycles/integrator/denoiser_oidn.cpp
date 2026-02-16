@@ -709,6 +709,7 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
       return false;
     }
 
+    /* Standard passes to denoise. */
     const std::array<PassType, 3> passes = {
         {/* Passes which will use real albedo when it is available. */
          PASS_COMBINED,
@@ -722,6 +723,30 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
       if (!denoise_run(context, pass_type)) {
         return false;
       }
+      if (is_cancelled()) {
+        return false;
+      }
+    }
+
+    /* Denoise additional passes flagged for denoising. */
+    for (const BufferPass &pass : buffer_params.passes) {
+      if (!pass.use_denoising || pass.mode != PassMode::DENOISED) {
+        continue;
+      }
+
+      /* Skip standard passes already handled above. */
+      bool is_standard = false;
+      for (const PassType type : passes) {
+        if (pass.type == type) {
+          is_standard = true;
+          break;
+        }
+      }
+      if (is_standard) {
+        continue;
+      }
+
+      context.denoise_pass(pass.type);
       if (is_cancelled()) {
         return false;
       }

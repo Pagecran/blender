@@ -30,6 +30,7 @@ class BufferPass : public Node {
   ustring name;
   bool include_albedo = false;
   ustring lightgroup;
+  bool use_denoising = false;
 
   int offset = -1;
 
@@ -50,6 +51,7 @@ class BufferPass : public Node {
   {
     return type == other.type && mode == other.mode && name == other.name &&
            include_albedo == other.include_albedo && lightgroup == other.lightgroup &&
+           use_denoising == other.use_denoising &&
            offset == other.offset;
   }
   bool operator!=(const BufferPass &other) const
