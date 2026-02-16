@@ -116,8 +116,41 @@ bool DenoiserGPU::denoise_buffer(const BufferParams &buffer_params,
     render_buffers->copy_to_device();
   }
 
+  /* Denoise additional passes flagged for denoising before shadow catcher, which replaces the
+   * real albedo guiding pass with fake albedo. Run albedo-dependent additional passes first so a
+   * non-albedo additional pass can not replace albedo before a later pass still needs it. */
+  for (int pass_group = 0; pass_group < 2; ++pass_group) {
+    const bool use_denoising_albedo = (pass_group == 0);
+    for (const BufferPass &pass : task.buffer_params.passes) {
+      if (!pass.use_denoising || pass.mode != PassMode::DENOISED) {
+        continue;
+      }
+
+      /* Skip standard non-Light Group passes already handled separately. */
+      if ((pass.type == PASS_COMBINED && pass.lightgroup.empty()) ||
+          pass.type == PASS_SHADOW_CATCHER ||
+          pass.type == PASS_SHADOW_CATCHER_MATTE)
+      {
+        continue;
+      }
+
+      if (pass.get_info().use_denoising_albedo != use_denoising_albedo) {
+        continue;
+      }
+
+      if (!denoise_pass(context, pass)) {
+        return false;
+      }
+    }
+  }
+
+  /* Passes which do not need albedo and hence if real is present it needs to become fake. */
+  if (!denoise_pass(context, PASS_SHADOW_CATCHER)) {
+    return false;
+  }
   return true;
 }
+
 
 bool DenoiserGPU::denoise_ensure(DenoiseContext &context)
 {
@@ -381,6 +414,8 @@ void DenoiserGPU::denoise_color_read(const DenoiseContext &context, const Denois
   PassAccessor::PassAccessInfo pass_access_info;
   pass_access_info.type = pass.type;
   pass_access_info.mode = PassMode::NOISY;
+  pass_access_info.include_albedo = pass.include_albedo;
+  pass_access_info.is_lightgroup = !pass.lightgroup.empty();
   pass_access_info.offset = pass.noisy_offset;
 
   /* Denoiser operates on passes which are used to calculate the approximation, and is never used
@@ -415,6 +450,20 @@ bool DenoiserGPU::denoise_pass(DenoiseContext &context, PassType pass_type)
   const BufferParams &buffer_params = context.buffer_params;
 
   const DenoisePass pass(pass_type, buffer_params);
+  return denoise_pass(context, pass);
+}
+
+bool DenoiserGPU::denoise_pass(DenoiseContext &context, const BufferPass &buffer_pass)
+{
+  const BufferParams &buffer_params = context.buffer_params;
+
+  const DenoisePass pass(buffer_pass, buffer_params);
+  return denoise_pass(context, pass);
+}
+
+bool DenoiserGPU::denoise_pass(DenoiseContext &context, const DenoisePass &pass)
+{
+  const PassType pass_type = pass.type;
 
   if (pass.noisy_offset == PASS_UNUSED) {
     return true;
