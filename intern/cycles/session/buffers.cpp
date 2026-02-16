@@ -48,6 +48,7 @@ NODE_DEFINE(BufferPass)
   SOCKET_STRING(name, "Name", ustring());
   SOCKET_BOOLEAN(include_albedo, "Include Albedo", false);
   SOCKET_STRING(lightgroup, "Light Group", ustring());
+  SOCKET_BOOLEAN(use_denoising, "Use Denoising", false);
 
   SOCKET_INT(offset, "Offset", -1);
 
@@ -62,7 +63,8 @@ BufferPass::BufferPass(const Pass *scene_pass)
       mode(scene_pass->get_mode()),
       name(scene_pass->get_name()),
       include_albedo(scene_pass->get_include_albedo()),
-      lightgroup(scene_pass->get_lightgroup())
+      lightgroup(scene_pass->get_lightgroup()),
+      use_denoising(scene_pass->get_use_denoising())
 {
 }
 
@@ -171,6 +173,14 @@ int BufferParams::get_pass_offset(PassType pass_type, PassMode mode) const
   return pass_offset_[index];
 }
 
+int BufferParams::get_pass_offset(PassType pass_type,
+                                  PassMode mode,
+                                  const ustring &lightgroup) const
+{
+  const BufferPass *pass = find_pass(pass_type, mode, lightgroup);
+  return pass ? pass->offset : PASS_UNUSED;
+}
+
 const BufferPass *BufferParams::find_pass(string_view name) const
 {
   for (const BufferPass &pass : passes) {
@@ -182,10 +192,12 @@ const BufferPass *BufferParams::find_pass(string_view name) const
   return nullptr;
 }
 
-const BufferPass *BufferParams::find_pass(PassType type, PassMode mode) const
+const BufferPass *BufferParams::find_pass(PassType type,
+                                          PassMode mode,
+                                          const ustring &lightgroup) const
 {
   for (const BufferPass &pass : passes) {
-    if (pass.type == type && pass.mode == mode) {
+    if (pass.type == type && pass.mode == mode && pass.lightgroup == lightgroup) {
       return &pass;
     }
   }
@@ -314,29 +326,27 @@ void render_buffers_host_copy_denoised(RenderBuffers *dst,
    * Assume offsets are different to allow copying passes between buffers with different set of
    * passes. */
 
-  struct {
+  struct PassCopyInfo {
     int dst_offset;
     int src_offset;
-  } pass_offsets[PASS_NUM];
+    int num_components;
+  };
 
-  int num_passes = 0;
-
-  for (int i = 0; i < PASS_NUM; ++i) {
-    const PassType pass_type = static_cast<PassType>(i);
-
-    const int dst_pass_offset = dst_params.get_pass_offset(pass_type, PassMode::DENOISED);
-    if (dst_pass_offset == PASS_UNUSED) {
+  vector<PassCopyInfo> pass_offsets;
+  for (const BufferPass &dst_pass : dst_params.passes) {
+    if (dst_pass.mode != PassMode::DENOISED || dst_pass.offset == PASS_UNUSED) {
       continue;
     }
 
-    const int src_pass_offset = src_params.get_pass_offset(pass_type, PassMode::DENOISED);
-    if (src_pass_offset == PASS_UNUSED) {
+    const BufferPass *src_pass = src_params.find_pass(
+        dst_pass.type, dst_pass.mode, dst_pass.lightgroup);
+    if (src_pass == nullptr || src_pass->offset == PASS_UNUSED) {
       continue;
     }
 
-    pass_offsets[num_passes].dst_offset = dst_pass_offset;
-    pass_offsets[num_passes].src_offset = src_pass_offset;
-    ++num_passes;
+    const int num_components = dst_pass.get_info().num_components;
+    DCHECK_EQ(num_components, src_pass->get_info().num_components);
+    pass_offsets.push_back({dst_pass.offset, src_pass->offset, num_components});
   }
 
   /* Copy passes. */
@@ -356,15 +366,13 @@ void render_buffers_host_copy_denoised(RenderBuffers *dst,
   for (int i = 0; i < dst_num_pixels;
        ++i, src_pixel += src_pass_stride, dst_pixel += dst_pass_stride)
   {
-    for (int pass_offset_idx = 0; pass_offset_idx < num_passes; ++pass_offset_idx) {
-      const int dst_pass_offset = pass_offsets[pass_offset_idx].dst_offset;
-      const int src_pass_offset = pass_offsets[pass_offset_idx].src_offset;
+    for (const PassCopyInfo &pass_offset : pass_offsets) {
+      const int dst_pass_offset = pass_offset.dst_offset;
+      const int src_pass_offset = pass_offset.src_offset;
 
-      /* TODO(sergey): Support non-RGBA passes. */
-      dst_pixel[dst_pass_offset + 0] = src_pixel[src_pass_offset + 0];
-      dst_pixel[dst_pass_offset + 1] = src_pixel[src_pass_offset + 1];
-      dst_pixel[dst_pass_offset + 2] = src_pixel[src_pass_offset + 2];
-      dst_pixel[dst_pass_offset + 3] = src_pixel[src_pass_offset + 3];
+      for (int component = 0; component < pass_offset.num_components; ++component) {
+        dst_pixel[dst_pass_offset + component] = src_pixel[src_pass_offset + component];
+      }
     }
   }
 }
