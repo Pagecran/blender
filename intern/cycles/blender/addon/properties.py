@@ -1542,6 +1542,14 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         update=update_render_passes,
     )
 
+    use_denoising_all_light_passes: BoolProperty(
+        name="Denoise All Light Passes",
+        description="Denoise all enabled light passes (Diffuse, Glossy, etc.)",
+        default=False,
+        update=update_render_passes,
+    )
+
+
     @classmethod
     def register(cls):
         bpy.types.ViewLayer.cycles = PointerProperty(
