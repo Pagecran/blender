@@ -56,6 +56,7 @@ class Pass : public Node {
   NODE_SOCKET_API(ustring, name)
   NODE_SOCKET_API(bool, include_albedo)
   NODE_SOCKET_API(ustring, lightgroup)
+  NODE_SOCKET_API(bool, use_denoising)
 
   Pass();
 
