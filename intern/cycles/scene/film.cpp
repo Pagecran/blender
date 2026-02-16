@@ -710,8 +710,10 @@ void Film::finalize_passes(Scene *scene, const bool use_denoise)
 
     /* Disable denoising on passes if denoising is disabled, or if the
      * pass does not support it. */
-    const bool need_denoise = pass->get_info().support_denoise &&
-                              (use_denoise || is_volume_guiding_pass(pass->get_type()));
+    const bool need_denoise = (pass->get_info().support_denoise &&
+                               (use_denoise || is_volume_guiding_pass(pass->get_type()))) ||
+                              pass->get_use_denoising();
+
     pass->set_mode(need_denoise ? pass->get_mode() : PassMode::NOISY);
 
     /* Merge duplicate passes. */

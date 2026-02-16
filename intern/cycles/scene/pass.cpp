@@ -137,6 +137,7 @@ NODE_DEFINE(Pass)
   SOCKET_STRING(name, "Name", ustring());
   SOCKET_BOOLEAN(include_albedo, "Include Albedo", false);
   SOCKET_STRING(lightgroup, "Light Group", ustring());
+  SOCKET_BOOLEAN(use_denoising, "Use Denoising", false);
 
   return type;
 }
@@ -222,7 +223,9 @@ PassInfo Pass::get_info(const PassType type,
     case PASS_TRANSMISSION_COLOR:
       pass_info.num_components = 3;
       break;
+
     case PASS_DIFFUSE:
+
       pass_info.num_components = 3;
       pass_info.use_exposure = true;
       pass_info.direct_type = PASS_DIFFUSE_DIRECT;
