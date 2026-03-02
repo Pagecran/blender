@@ -573,28 +573,162 @@ static void do_lasso_tag_pose(const ViewContext *vc, const Span<int2> mcoords)
                          V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
 }
 
+static bool object_bounds_projected_rect(const ViewContext *vc,
+                                         const Object *ob,
+                                         rctf *r_rect)
+{
+  const std::optional<blender::Bounds<blender::float3>> bounds =
+      BKE_object_boundbox_get(ob);
+  if (!bounds.has_value()) {
+    return false;
+  }
+
+  const blender::float3 min = bounds->min;
+  const blender::float3 max = bounds->max;
+  const blender::float3 corners[8] = {
+      {min.x, min.y, min.z},
+      {min.x, min.y, max.z},
+      {min.x, max.y, min.z},
+      {min.x, max.y, max.z},
+      {max.x, min.y, min.z},
+      {max.x, min.y, max.z},
+      {max.x, max.y, min.z},
+      {max.x, max.y, max.z},
+  };
+
+  bool any_ok = false;
+  float min_ss[2] = {FLT_MAX, FLT_MAX};
+  float max_ss[2] = {-FLT_MAX, -FLT_MAX};
+
+  for (const blender::float3 &corner : corners) {
+    const blender::float3 world = blender::math::transform_point(ob->object_to_world(), corner);
+    float screen_co[2];
+    if (ED_view3d_project_float_global(vc->region, world, screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+        V3D_PROJ_RET_OK)
+    {
+      any_ok = true;
+      min_ss[0] = min_ff(min_ss[0], screen_co[0]);
+      min_ss[1] = min_ff(min_ss[1], screen_co[1]);
+      max_ss[0] = max_ff(max_ss[0], screen_co[0]);
+      max_ss[1] = max_ff(max_ss[1], screen_co[1]);
+    }
+  }
+
+  if (!any_ok) {
+    return false;
+  }
+
+  r_rect->xmin = min_ss[0];
+  r_rect->ymin = min_ss[1];
+  r_rect->xmax = max_ss[0];
+  r_rect->ymax = max_ss[1];
+  return true;
+}
+
+static blender::Vector<Base *> object_mode_selectable_bases_get(const ViewContext *vc)
+{
+  blender::Vector<Base *> bases;
+  BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+    if (BASE_SELECTABLE(vc->v3d, base)) {
+      bases.append(base);
+    }
+  }
+  return bases;
+}
+
 static bool do_lasso_select_objects(const ViewContext *vc,
                                     const Span<int2> mcoords,
                                     const eSelectOp sel_op)
 {
   View3D *v3d = vc->v3d;
-
+  ToolSettings *ts = vc->scene->toolsettings;
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
+
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-    if (BASE_SELECTABLE(v3d, base)) { /* Use this to avoid unnecessary lasso look-ups. */
-      float region_co[2];
+
+  rcti rect;
+  BLI_lasso_boundbox(&rect, mcoords);
+  uint select_bitmap_len = 0;
+
+  if (!ts->select_through) {
+    blender::Vector<Base *> selectable_bases = object_mode_selectable_bases_get(vc);
+    if (!selectable_bases.is_empty()) {
+      DRW_select_buffer_context_create(vc->depsgraph, selectable_bases, -1);
+    }
+  }
+
+  BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_poly(
+      vc->depsgraph, vc->region, vc->v3d, mcoords, &rect, &select_bitmap_len);
+
+  if (!ts->select_through && select_bitmap) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+      if (!BASE_SELECTABLE(v3d, base)) {
+        continue;
+      }
+
+      const uint32_t select_id = base->object->runtime->select_id;
+      if (select_id == 0) {
+        continue;
+      }
+      const uint index = select_id - 1;
+      const bool is_inside = (index < select_bitmap_len) &&
+                             BLI_BITMAP_TEST_BOOL(select_bitmap, index);
       const bool is_select = base->flag & BASE_SELECTED;
-      const bool is_inside = (ED_view3d_project_base(vc->region, base, region_co) ==
-                              V3D_PROJ_RET_OK) &&
-                             BLI_lasso_is_point_inside(mcoords,
-                                                       int(region_co[0]),
-                                                       int(region_co[1]),
-                                                       /* Dummy value. */
-                                                       INT_MAX);
+      const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+      if (sel_op_result != -1) {
+        blender::ed::object::base_select(base,
+                                         sel_op_result ? blender::ed::object::BA_SELECT :
+                                                         blender::ed::object::BA_DESELECT);
+        changed = true;
+      }
+    }
+    MEM_freeN(select_bitmap);
+  }
+  else {
+    if (select_bitmap) {
+      MEM_freeN(select_bitmap);
+    }
+
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+      if (!BASE_SELECTABLE(v3d, base)) {
+        continue;
+      }
+
+      bool is_inside = false;
+      rctf bounds_rect;
+      if (object_bounds_projected_rect(vc, base->object, &bounds_rect)) {
+        const float corners[4][2] = {
+            {bounds_rect.xmin, bounds_rect.ymin},
+            {bounds_rect.xmin, bounds_rect.ymax},
+            {bounds_rect.xmax, bounds_rect.ymin},
+            {bounds_rect.xmax, bounds_rect.ymax},
+        };
+
+        for (int i = 0; i < 4; i++) {
+          if (BLI_lasso_is_point_inside(
+                  mcoords, int(corners[i][0]), int(corners[i][1]), INT_MAX))
+          {
+            is_inside = true;
+            break;
+          }
+        }
+
+        if (!is_inside) {
+          for (const int2 &pt : mcoords) {
+            const float pt_fl[2] = {float(pt.x), float(pt.y)};
+            if (BLI_rctf_isect_pt_v(&bounds_rect, pt_fl)) {
+              is_inside = true;
+              break;
+            }
+          }
+        }
+      }
+
+      const bool is_select = base->flag & BASE_SELECTED;
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
         blender::ed::object::base_select(base,
@@ -2230,20 +2364,15 @@ static int mixed_bones_object_selectbuffer_extended(const ViewContext *vc,
                                                     bool *r_do_nearest)
 {
   bool do_nearest = false;
-  View3D *v3d = vc->v3d;
+  ToolSettings *ts = vc->scene->toolsettings;
 
-  /* define if we use solid nearest select or not */
-  if (use_cycle) {
-    /* Update the coordinates (even if the return value isn't used). */
-    const bool has_motion = WM_cursor_test_motion_and_update(mval);
-    if (!XRAY_ACTIVE(v3d)) {
-      do_nearest = has_motion;
-    }
+  /* Select Through determines behavior, X-Ray is visual only. */
+  if (!ts->select_through) {
+    do_nearest = true;
   }
-  else {
-    if (!XRAY_ACTIVE(v3d)) {
-      do_nearest = true;
-    }
+  else if (use_cycle) {
+    const bool has_motion = WM_cursor_test_motion_and_update(mval);
+    do_nearest = has_motion;
   }
 
   if (r_do_nearest) {
@@ -4333,12 +4462,9 @@ static bool do_object_box_select(bContext *C,
                                  const rcti *rect,
                                  const eSelectOp sel_op)
 {
+  ToolSettings *ts = vc->scene->toolsettings;
   View3D *v3d = vc->v3d;
 
-  GPUSelectBuffer buffer;
-  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
-                                                                                 vc->obact);
-  const int hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
     base->object->id.tag &= ~ID_TAG_DOIT;
@@ -4349,7 +4475,55 @@ static bool do_object_box_select(bContext *C,
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
 
+  if (!ts->select_through) {
+    blender::Vector<Base *> selectable_bases = object_mode_selectable_bases_get(vc);
+    if (!selectable_bases.is_empty()) {
+      DRW_select_buffer_context_create(vc->depsgraph, selectable_bases, -1);
+    }
+
+    uint select_bitmap_len = 0;
+    BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_rect(
+        vc->depsgraph, vc->region, vc->v3d, rect, &select_bitmap_len);
+
+    if (select_bitmap != nullptr) {
+      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+        if (!BASE_SELECTABLE(v3d, base)) {
+          continue;
+        }
+
+        bool is_inside = false;
+        const uint32_t select_id = base->object->runtime->select_id;
+        if (select_id > 0) {
+          const uint index = select_id - 1;
+          is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
+        }
+
+        const bool is_select = base->flag & BASE_SELECTED;
+        const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+        if (sel_op_result != -1) {
+          blender::ed::object::base_select(base,
+                                           sel_op_result ? blender::ed::object::BA_SELECT :
+                                                           blender::ed::object::BA_DESELECT);
+          changed = true;
+        }
+      }
+
+      MEM_freeN(select_bitmap);
+
+      if (changed) {
+        object_select_tag_updates(*C, *vc->scene);
+      }
+      return changed;
+    }
+  }
+
   ListBase *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
+  GPUSelectBuffer buffer;
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene, vc->obact);
+  const eV3DSelectMode select_mode = ts->select_through ? VIEW3D_SELECT_ALL :
+                                                          VIEW3D_SELECT_PICK_ALL;
+  const int hits = view3d_gpu_select(vc, &buffer, rect, select_mode, select_filter);
+
   if ((hits == -1) && !SEL_OP_USE_OUTSIDE(sel_op)) {
     if (changed) {
       object_select_tag_updates(*C, *vc->scene);
@@ -4377,6 +4551,9 @@ static bool do_object_box_select(bContext *C,
        buf_iter++)
   {
     const uint32_t select_id = buf_iter->id;
+    if (select_id == uint(-1)) {
+      continue;
+    }
     const uint32_t hit_object = select_id & 0xFFFF;
     if (Base *base = base_by_object_select_id.lookup_default(hit_object, nullptr)) {
       bases_inside.add(base);
@@ -4400,6 +4577,7 @@ static bool do_object_box_select(bContext *C,
   if (changed) {
     object_select_tag_updates(*C, *vc->scene);
   }
+
   return changed;
 }
 
@@ -5547,32 +5725,92 @@ static bool object_circle_select(const ViewContext *vc,
   Scene *scene = vc->scene;
   ViewLayer *view_layer = vc->view_layer;
   View3D *v3d = vc->v3d;
+  ToolSettings *ts = vc->scene->toolsettings;
 
-  const float radius_squared = rad * rad;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+
+  uint select_bitmap_len = 0;
+
+  if (!ts->select_through) {
+    blender::Vector<Base *> selectable_bases = object_mode_selectable_bases_get(vc);
+    if (!selectable_bases.is_empty()) {
+      DRW_select_buffer_context_create(vc->depsgraph, selectable_bases, -1);
+    }
+  }
+
+  BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_circle(
+      vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), &select_bitmap_len);
+
   const bool select = (sel_op != SEL_OP_SUB);
   const int select_flag = select ? BASE_SELECTED : 0;
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
-      float screen_co[2];
-      if (ED_view3d_project_float_global(vc->region,
-                                         base->object->object_to_world().location(),
-                                         screen_co,
-                                         V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
-      {
-        if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
-          blender::ed::object::base_select(
-              base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
-          changed = true;
-        }
+
+  if (!ts->select_through) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+      if (!BASE_SELECTABLE(v3d, base) || ((base->flag & BASE_SELECTED) == select_flag)) {
+        continue;
+      }
+
+    bool is_inside = false;
+    if (select_bitmap) {
+      const uint32_t select_id = base->object->runtime->select_id;
+      if (select_id > 0) {
+        const uint index = select_id - 1;
+        is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
       }
     }
+
+      if (is_inside) {
+        blender::ed::object::base_select(
+            base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
+        changed = true;
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+      if (!BASE_SELECTABLE(v3d, base) || ((base->flag & BASE_SELECTED) == select_flag)) {
+        continue;
+      }
+
+      bool is_inside = false;
+      rctf bounds_rect;
+      if (object_bounds_projected_rect(vc, base->object, &bounds_rect)) {
+        const float corners[4][2] = {
+            {bounds_rect.xmin, bounds_rect.ymin},
+            {bounds_rect.xmin, bounds_rect.ymax},
+            {bounds_rect.xmax, bounds_rect.ymin},
+            {bounds_rect.xmax, bounds_rect.ymax},
+        };
+
+        for (int i = 0; i < 4; i++) {
+          if (len_squared_v2v2(mval_fl, corners[i]) <= (rad * rad)) {
+            is_inside = true;
+            break;
+          }
+        }
+
+        if (!is_inside && BLI_rctf_isect_pt_v(&bounds_rect, mval_fl)) {
+          is_inside = true;
+        }
+      }
+
+      if (is_inside) {
+        blender::ed::object::base_select(
+            base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
+        changed = true;
+      }
+    }
+  }
+
+  if (select_bitmap) {
+    MEM_freeN(select_bitmap);
   }
 
   return changed;
