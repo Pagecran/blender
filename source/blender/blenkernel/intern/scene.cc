@@ -177,6 +177,10 @@ static void scene_init_data(ID *id)
 
   scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
 
+  /* Set default values for select_through (both ON by default). */
+  scene->toolsettings->select_through = 1;
+  scene->toolsettings->mesh_select_through = 1;
+
   scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
 
   scene->toolsettings->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
