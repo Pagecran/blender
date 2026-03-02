@@ -664,7 +664,15 @@ static bool do_lasso_select_objects(const ViewContext *vc,
   BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_poly(
       vc->depsgraph, vc->region, vc->v3d, mcoords, &rect, &select_bitmap_len);
 
-  if (!ts->select_through && select_bitmap) {
+  if (!ts->select_through) {
+    if (select_bitmap == nullptr) {
+      if (changed) {
+        DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
+        WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, vc->scene);
+      }
+      return changed;
+    }
+
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
       if (!BASE_SELECTABLE(v3d, base)) {
         continue;
@@ -4485,36 +4493,41 @@ static bool do_object_box_select(bContext *C,
     BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_rect(
         vc->depsgraph, vc->region, vc->v3d, rect, &select_bitmap_len);
 
-    if (select_bitmap != nullptr) {
-      LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-        if (!BASE_SELECTABLE(v3d, base)) {
-          continue;
-        }
-
-        bool is_inside = false;
-        const uint32_t select_id = base->object->runtime->select_id;
-        if (select_id > 0) {
-          const uint index = select_id - 1;
-          is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
-        }
-
-        const bool is_select = base->flag & BASE_SELECTED;
-        const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-        if (sel_op_result != -1) {
-          blender::ed::object::base_select(base,
-                                           sel_op_result ? blender::ed::object::BA_SELECT :
-                                                           blender::ed::object::BA_DESELECT);
-          changed = true;
-        }
-      }
-
-      MEM_freeN(select_bitmap);
-
+    if (select_bitmap == nullptr) {
       if (changed) {
         object_select_tag_updates(*C, *vc->scene);
       }
       return changed;
     }
+
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+      if (!BASE_SELECTABLE(v3d, base)) {
+        continue;
+      }
+
+      bool is_inside = false;
+      const uint32_t select_id = base->object->runtime->select_id;
+      if (select_id > 0) {
+        const uint index = select_id - 1;
+        is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
+      }
+
+      const bool is_select = base->flag & BASE_SELECTED;
+      const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+      if (sel_op_result != -1) {
+        blender::ed::object::base_select(base,
+                                         sel_op_result ? blender::ed::object::BA_SELECT :
+                                                         blender::ed::object::BA_DESELECT);
+        changed = true;
+      }
+    }
+
+    MEM_freeN(select_bitmap);
+
+    if (changed) {
+      object_select_tag_updates(*C, *vc->scene);
+    }
+    return changed;
   }
 
   ListBase *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
@@ -5752,19 +5765,21 @@ static bool object_circle_select(const ViewContext *vc,
   const int select_flag = select ? BASE_SELECTED : 0;
 
   if (!ts->select_through) {
+    if (select_bitmap == nullptr) {
+      return changed;
+    }
+
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (!BASE_SELECTABLE(v3d, base) || ((base->flag & BASE_SELECTED) == select_flag)) {
         continue;
       }
 
-    bool is_inside = false;
-    if (select_bitmap) {
+      bool is_inside = false;
       const uint32_t select_id = base->object->runtime->select_id;
       if (select_id > 0) {
         const uint index = select_id - 1;
         is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
       }
-    }
 
       if (is_inside) {
         blender::ed::object::base_select(
