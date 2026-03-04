@@ -4530,60 +4530,29 @@ static bool do_object_box_select(bContext *C,
     return changed;
   }
 
-  ListBase *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
-  GPUSelectBuffer buffer;
-  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene, vc->obact);
-  const eV3DSelectMode select_mode = ts->select_through ? VIEW3D_SELECT_ALL :
-                                                          VIEW3D_SELECT_PICK_ALL;
-  const int hits = view3d_gpu_select(vc, &buffer, rect, select_mode, select_filter);
-
-  if ((hits == -1) && !SEL_OP_USE_OUTSIDE(sel_op)) {
-    if (changed) {
-      object_select_tag_updates(*C, *vc->scene);
-      return true;
-    }
-  }
-
-  blender::Map<uint32_t, Base *> base_by_object_select_id;
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    if (BASE_SELECTABLE(v3d, base)) {
-      const uint32_t select_id = base->object->runtime->select_id;
-      if ((select_id & 0x0000FFFF) != 0) {
-        const uint hit_object = select_id & 0xFFFF;
-        base_by_object_select_id.add(hit_object, base);
-      }
-    }
-  }
-
-  /* The draw order doesn't always match the order we populate the engine, see: #51695. */
-  qsort(buffer.storage.data(), hits, sizeof(GPUSelectResult), gpu_bone_select_buffer_cmp);
-
-  blender::Set<Base *> bases_inside;
-  for (const GPUSelectResult *buf_iter = buffer.storage.data(), *buf_end = buf_iter + hits;
-       buf_iter < buf_end;
-       buf_iter++)
-  {
-    const uint32_t select_id = buf_iter->id;
-    if (select_id == uint(-1)) {
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+    if (!BASE_SELECTABLE(v3d, base)) {
       continue;
     }
-    const uint32_t hit_object = select_id & 0xFFFF;
-    if (Base *base = base_by_object_select_id.lookup_default(hit_object, nullptr)) {
-      bases_inside.add(base);
-    }
-  }
 
-  for (Base *base = static_cast<Base *>(object_bases->first); base && hits; base = base->next) {
-    if (BASE_SELECTABLE(v3d, base)) {
-      const bool is_select = base->flag & BASE_SELECTED;
-      const bool is_inside = bases_inside.contains(base);
-      const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-      if (sel_op_result != -1) {
-        blender::ed::object::base_select(base,
-                                         sel_op_result ? blender::ed::object::BA_SELECT :
-                                                         blender::ed::object::BA_DESELECT);
-        changed = true;
-      }
+    bool is_inside = false;
+    rctf bounds_rect;
+    if (object_bounds_projected_rect(vc, base->object, &bounds_rect)) {
+      rctf rect_fl;
+      rect_fl.xmin = rect->xmin;
+      rect_fl.ymin = rect->ymin;
+      rect_fl.xmax = rect->xmax;
+      rect_fl.ymax = rect->ymax;
+      is_inside = BLI_rctf_isect(&bounds_rect, &rect_fl, nullptr);
+    }
+
+    const bool is_select = base->flag & BASE_SELECTED;
+    const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+    if (sel_op_result != -1) {
+      blender::ed::object::base_select(base,
+                                       sel_op_result ? blender::ed::object::BA_SELECT :
+                                                       blender::ed::object::BA_DESELECT);
+      changed = true;
     }
   }
 
