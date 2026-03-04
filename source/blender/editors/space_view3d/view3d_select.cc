@@ -27,9 +27,11 @@
 #include "BLI_function_ref.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
@@ -104,6 +106,8 @@
 
 using blender::Array;
 using blender::int2;
+using blender::Map;
+using blender::Set;
 using blender::Span;
 using blender::Vector;
 using blender::ed::uv::UVSyncSelectFromMesh;
@@ -4483,51 +4487,33 @@ static bool do_object_box_select(bContext *C,
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
   }
 
-  if (!ts->select_through) {
-    blender::Vector<Base *> selectable_bases = object_mode_selectable_bases_get(vc);
-    if (!selectable_bases.is_empty()) {
-      DRW_select_buffer_context_create(vc->depsgraph, selectable_bases, -1);
+  GPUSelectBuffer buffer;
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
+                                                                                  vc->obact);
+  const eV3DSelectMode select_mode = ts->select_through ? VIEW3D_SELECT_ALL :
+                                                         VIEW3D_SELECT_PICK_ALL;
+  const int hits = view3d_gpu_select(vc, &buffer, rect, select_mode, select_filter);
+
+  Map<uint, Base *> id_to_base;
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
+    if (!BASE_SELECTABLE(v3d, base)) {
+      continue;
     }
+    const uint obj_id = base->object->runtime->select_id & 0x0000FFFF;
+    id_to_base.add(obj_id, base);
+  }
 
-    uint select_bitmap_len = 0;
-    BLI_bitmap *select_bitmap = (BLI_bitmap *)DRW_select_buffer_bitmap_from_rect(
-        vc->depsgraph, vc->region, vc->v3d, rect, &select_bitmap_len);
-
-    if (select_bitmap == nullptr) {
-      if (changed) {
-        object_select_tag_updates(*C, *vc->scene);
-      }
-      return changed;
+  Set<Base *> bases_inside;
+  for (int i = 0; i < hits; i++) {
+    const uint hit_id = buffer.storage[i].id;
+    if (hit_id == uint(-1)) {
+      continue;
     }
-
-    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-      if (!BASE_SELECTABLE(v3d, base)) {
-        continue;
-      }
-
-      bool is_inside = false;
-      const uint32_t select_id = base->object->runtime->select_id;
-      if (select_id > 0) {
-        const uint index = select_id - 1;
-        is_inside = (index < select_bitmap_len) && BLI_BITMAP_TEST_BOOL(select_bitmap, index);
-      }
-
-      const bool is_select = base->flag & BASE_SELECTED;
-      const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-      if (sel_op_result != -1) {
-        blender::ed::object::base_select(base,
-                                         sel_op_result ? blender::ed::object::BA_SELECT :
-                                                         blender::ed::object::BA_DESELECT);
-        changed = true;
-      }
+    const uint obj_id = hit_id & 0x0000FFFF;
+    Base **base_ptr = id_to_base.lookup_ptr(obj_id);
+    if (base_ptr) {
+      bases_inside.add(*base_ptr);
     }
-
-    MEM_freeN(select_bitmap);
-
-    if (changed) {
-      object_select_tag_updates(*C, *vc->scene);
-    }
-    return changed;
   }
 
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
@@ -4535,17 +4521,7 @@ static bool do_object_box_select(bContext *C,
       continue;
     }
 
-    bool is_inside = false;
-    rctf bounds_rect;
-    if (object_bounds_projected_rect(vc, base->object, &bounds_rect)) {
-      rctf rect_fl;
-      rect_fl.xmin = rect->xmin;
-      rect_fl.ymin = rect->ymin;
-      rect_fl.xmax = rect->xmax;
-      rect_fl.ymax = rect->ymax;
-      is_inside = BLI_rctf_isect(&bounds_rect, &rect_fl, nullptr);
-    }
-
+    const bool is_inside = bases_inside.contains(base);
     const bool is_select = base->flag & BASE_SELECTED;
     const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
