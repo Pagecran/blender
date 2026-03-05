@@ -2000,7 +2000,21 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   /* Setup frame-buffer. */
   draw_select_framebuffer_depth_only_setup(viewport_size);
   GPU_framebuffer_bind(g_select_buffer.framebuffer_depth_only);
-  GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
+
+  /* If a viewport depth texture is available, copy it so that we get proper
+   * depth-aware selection. Otherwise, fallback to clearing the depth to 1.0f. */
+  blender::gpu::Texture *viewport_depth = nullptr;
+  if (draw_ctx.viewport) {
+    viewport_depth = GPU_viewport_depth_texture(draw_ctx.viewport);
+  }
+
+  if (viewport_depth && GPU_texture_width(viewport_depth) == viewport_size[0] &&
+      GPU_texture_height(viewport_depth) == viewport_size[1]) {
+    GPU_texture_copy(g_select_buffer.texture_depth, viewport_depth);
+  }
+  else {
+    GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
+  }
 
   /* WORKAROUND: Needed for Select-Next for keeping the same code-flow as Overlay-Next. */
   /* TODO(pragma37): Some engines retrieve the depth texture before this point (See #132922).
