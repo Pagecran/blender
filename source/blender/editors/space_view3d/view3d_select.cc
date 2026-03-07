@@ -1750,6 +1750,31 @@ static bool view3d_lasso_select(bContext *C,
   return changed_multi;
 }
 
+struct SelectThroughOverride {
+  ToolSettings *tool_settings;
+  char select_through;
+  char mesh_select_through;
+
+  SelectThroughOverride(const ViewContext &vc, PointerRNA *op_ptr)
+      : tool_settings(vc.scene->toolsettings),
+        select_through(tool_settings->select_through),
+        mesh_select_through(tool_settings->mesh_select_through)
+  {
+    if (vc.obedit && vc.obedit->type == OB_MESH) {
+      tool_settings->mesh_select_through = RNA_boolean_get(op_ptr, "mesh_select_through");
+    }
+    else if (vc.obedit == nullptr) {
+      tool_settings->select_through = RNA_boolean_get(op_ptr, "select_through");
+    }
+  }
+
+  ~SelectThroughOverride()
+  {
+    tool_settings->select_through = select_through;
+    tool_settings->mesh_select_through = mesh_select_through;
+  }
+};
+
 /* lasso operator gives properties, but since old code works
  * with short array we convert */
 static wmOperatorStatus view3d_lasso_select_exec(bContext *C, wmOperator *op)
@@ -1765,6 +1790,7 @@ static wmOperatorStatus view3d_lasso_select_exec(bContext *C, wmOperator *op)
 
   /* setup view context for argument to callbacks */
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  const SelectThroughOverride select_through_override(vc, op->ptr);
 
   eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
   bool changed_multi = view3d_lasso_select(C, &vc, mcoords, sel_op);
@@ -1777,6 +1803,8 @@ static wmOperatorStatus view3d_lasso_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Lasso Select";
   ot->description = "Select items using lasso selection";
   ot->idname = "VIEW3D_OT_select_lasso";
@@ -1793,6 +1821,16 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_lasso(ot);
   WM_operator_properties_select_operation(ot);
+  prop = RNA_def_boolean(ot->srna,
+                         "select_through",
+                         true,
+                         "Select Through",
+                         "Select all objects in the lasso, including occluded ones");
+  prop = RNA_def_boolean(ot->srna,
+                         "mesh_select_through",
+                         false,
+                         "Select Through",
+                         "Select all mesh elements in the lasso, including occluded ones");
 }
 
 /** \} */
@@ -3818,6 +3856,8 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
     }
   }
 
+  const SelectThroughOverride select_through_override(vc, op->ptr);
+
   RNA_int_get_array(op->ptr, "location", mval);
 
   view3d_operator_needs_gpu(C);
@@ -3947,6 +3987,16 @@ void VIEW3D_OT_select(wmOperatorType *ot)
                             INT_MIN,
                             INT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_boolean(ot->srna,
+                         "select_through",
+                         true,
+                         "Select Through",
+                         "Select all objects under the cursor, including occluded ones");
+  prop = RNA_def_boolean(ot->srna,
+                         "mesh_select_through",
+                         false,
+                         "Select Through",
+                         "Select all mesh elements under the cursor, including occluded ones");
 }
 
 /** \} */
@@ -4809,6 +4859,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
 
   /* setup view context for argument to callbacks */
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  const SelectThroughOverride select_through_override(vc, op->ptr);
 
   eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -4948,6 +4999,8 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_box(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Box Select";
   ot->description = "Select items using box selection";
@@ -4966,6 +5019,16 @@ void VIEW3D_OT_select_box(wmOperatorType *ot)
   /* rna */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation(ot);
+  prop = RNA_def_boolean(ot->srna,
+                         "select_through",
+                         true,
+                         "Select Through",
+                         "Select all objects in the box, including occluded ones");
+  prop = RNA_def_boolean(ot->srna,
+                         "mesh_select_through",
+                         false,
+                         "Select Through",
+                         "Select all mesh elements in the box, including occluded ones");
 }
 
 /** \} */
@@ -5986,6 +6049,7 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
       static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode")), WM_gesture_is_modal_first(gesture));
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  const SelectThroughOverride select_through_override(vc, op->ptr);
 
   Object *obact = vc.obact;
   Object *obedit = vc.obedit;
@@ -6074,6 +6138,8 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Circle Select";
   ot->description = "Select items using circle selection";
   ot->idname = "VIEW3D_OT_select_circle";
@@ -6091,6 +6157,16 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_circle(ot);
   WM_operator_properties_select_operation_simple(ot);
+  prop = RNA_def_boolean(ot->srna,
+                         "select_through",
+                         true,
+                         "Select Through",
+                         "Select all objects in the circle, including occluded ones");
+  prop = RNA_def_boolean(ot->srna,
+                         "mesh_select_through",
+                         false,
+                         "Select Through",
+                         "Select all mesh elements in the circle, including occluded ones");
 }
 
 /** \} */
