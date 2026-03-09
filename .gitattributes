@@ -46,6 +46,7 @@
 *.usdz filter=lfs diff=lfs merge=lfs -text
 *.voc filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
+Mesh_Selection.mp4 -filter -diff -merge -text
 *.3ds filter=lfs diff=lfs merge=lfs -text
 *.abc filter=lfs diff=lfs merge=lfs -text
 *.avi filter=lfs diff=lfs merge=lfs -text
