@@ -1844,7 +1844,11 @@ typedef struct ToolSettings {
 
   char workspace_tool_type;
 
-  char _pad5[7];
+  /* Select Through (Object Mode + Edit Mesh). */
+  char select_through;
+  char mesh_select_through;
+
+  char _pad5[5];
 
   /**
    * XXX: these `sculpt_paint_*` fields are deprecated, use the
