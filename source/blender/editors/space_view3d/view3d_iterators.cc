@@ -20,9 +20,11 @@
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
@@ -242,7 +244,7 @@ struct foreachScreenEdge_userData {
   int content_planes_len;
 };
 
-struct foreachScreenFace_userData {
+struct foreachScreenFaceCenter_userData {
   void (*func)(void *user_data, BMFace *efa, const float screen_co_b[2], int index);
   void *user_data;
   ViewContext vc;
@@ -543,12 +545,13 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
 /** \name Edit-Mesh: For Each Screen Face Center
  * \{ */
 
-static void mesh_foreachScreenFace__mapFunc(void *user_data,
-                                            int index,
-                                            const float cent[3],
-                                            const float /*no*/[3])
+static void mesh_foreachScreenFaceCenter__mapFunc(void *user_data,
+                                                  int index,
+                                                  const float cent[3],
+                                                  const float /*no*/[3])
 {
-  foreachScreenFace_userData *data = static_cast<foreachScreenFace_userData *>(user_data);
+  foreachScreenFaceCenter_userData *data = static_cast<foreachScreenFaceCenter_userData *>(
+      user_data);
   BMFace *efa = BM_face_at_index(data->vc.em->bm, index);
   if (UNLIKELY(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
     return;
@@ -564,14 +567,14 @@ static void mesh_foreachScreenFace__mapFunc(void *user_data,
   data->func(data->user_data, efa, screen_co, index);
 }
 
-void mesh_foreachScreenFace(
+void mesh_foreachScreenFaceCenter(
     const ViewContext *vc,
     void (*func)(void *user_data, BMFace *efa, const float screen_co_b[2], int index),
     void *user_data,
     const eV3DProjTest clip_flag)
 {
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
-  foreachScreenFace_userData data;
+  foreachScreenFaceCenter_userData data;
 
   Mesh *mesh = bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
@@ -588,11 +591,159 @@ void mesh_foreachScreenFace(
   const int face_dot_tags_num = mesh->runtime->subsurf_face_dot_tags.size();
   if (face_dot_tags_num && (face_dot_tags_num != mesh->verts_num)) {
     BKE_mesh_foreach_mapped_subdiv_face_center(
-        mesh, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
+        mesh, mesh_foreachScreenFaceCenter__mapFunc, &data, MESH_FOREACH_NOP);
   }
   else {
     BKE_mesh_foreach_mapped_face_center(
-        mesh, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
+        mesh, mesh_foreachScreenFaceCenter__mapFunc, &data, MESH_FOREACH_NOP);
+  }
+}
+
+void mesh_foreachScreenFaceVerts(
+    const ViewContext *vc,
+    void (*func)(void *user_data,
+                 BMFace *efa,
+                 const float screen_co[][2],
+                 int total_count,
+                 rctf *screen_rect,
+                 bool *face_hit),
+    void *user_data,
+    const eV3DProjTest clip_flag)
+{
+  using namespace blender;
+
+  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
+      vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+  mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
+  ED_view3d_check_mats_rv3d(vc->rv3d);
+
+  if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
+    ED_view3d_clipping_local(vc->rv3d, vc->obedit->object_to_world().ptr());
+  }
+
+  BM_mesh_elem_table_ensure(vc->em->bm, BM_FACE);
+
+  const bool cage_display = BKE_modifiers_get_cage_index(vc->scene, vc->obedit, nullptr, true) !=
+                            -1;
+  Array<bool> faces_visited(cage_display ? vc->em->bm->totface : 0, false);
+
+  const Span<float3> positions = mesh->vert_positions();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const int *face_orig_indices = static_cast<const int *>(
+      CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
+
+  Array<float2> screen_coords(positions.size(), float2(0.0f, 0.0f));
+  Array<bool> vert_valid(positions.size(), false);
+  for (const int i : positions.index_range()) {
+    float screen_co[2];
+    if (ED_view3d_project_float_object(vc->region, positions[i], screen_co, clip_flag) ==
+        V3D_PROJ_RET_OK)
+    {
+      screen_coords[i] = float2(screen_co[0], screen_co[1]);
+      vert_valid[i] = true;
+    }
+  }
+
+  Vector<float2, 16> face_screen_verts;
+  bool any_face_processed = false;
+  for (const int face_i : faces.index_range()) {
+    int orig_face_i = face_i;
+    if (face_orig_indices != nullptr) {
+      orig_face_i = face_orig_indices[face_i];
+      if (orig_face_i == ORIGINDEX_NONE) {
+        continue;
+      }
+    }
+
+    if (orig_face_i >= vc->em->bm->totface) {
+      continue;
+    }
+    if (cage_display && faces_visited[orig_face_i]) {
+      continue;
+    }
+
+    BMFace *efa = BM_face_at_index(vc->em->bm, orig_face_i);
+    if (UNLIKELY(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
+      continue;
+    }
+
+    face_screen_verts.clear();
+    face_screen_verts.reserve(faces[face_i].size());
+
+    rctf screen_rect;
+    BLI_rctf_init_minmax(&screen_rect);
+    bool skip = false;
+    for (const int corner : faces[face_i]) {
+      const int vert_i = corner_verts[corner];
+      if (!vert_valid[vert_i]) {
+        skip = true;
+        break;
+      }
+      face_screen_verts.append(screen_coords[vert_i]);
+      BLI_rctf_do_minmax_v(&screen_rect, screen_coords[vert_i]);
+    }
+
+    if (skip || face_screen_verts.size() < 3) {
+      continue;
+    }
+
+    any_face_processed = true;
+    bool face_hit = false;
+    func(user_data,
+         efa,
+         reinterpret_cast<const float(*)[2]>(face_screen_verts.data()),
+         face_screen_verts.size(),
+         &screen_rect,
+         &face_hit);
+
+    if (cage_display && face_hit) {
+      faces_visited[orig_face_i] = true;
+    }
+  }
+
+  if (!any_face_processed) {
+    BMIter iter;
+    BMFace *efa;
+
+    BM_ITER_MESH (efa, &iter, vc->em->bm, BM_FACES_OF_MESH) {
+      if (UNLIKELY(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
+        continue;
+      }
+
+      face_screen_verts.clear();
+      face_screen_verts.reserve(efa->len);
+
+      rctf screen_rect;
+      BLI_rctf_init_minmax(&screen_rect);
+      bool skip = false;
+
+      BMLoop *l_iter = BM_FACE_FIRST_LOOP(efa);
+      BMLoop *l_first = l_iter;
+      do {
+        float screen_co[2];
+        if (ED_view3d_project_float_object(vc->region, l_iter->v->co, screen_co, clip_flag) !=
+            V3D_PROJ_RET_OK)
+        {
+          skip = true;
+          break;
+        }
+        face_screen_verts.append(float2(screen_co[0], screen_co[1]));
+        BLI_rctf_do_minmax_v(&screen_rect, screen_co);
+      } while ((l_iter = l_iter->next) != l_first);
+
+      if (skip || face_screen_verts.size() < 3) {
+        continue;
+      }
+
+      bool face_hit = false;
+      func(user_data,
+           efa,
+           reinterpret_cast<const float(*)[2]>(face_screen_verts.data()),
+           face_screen_verts.size(),
+           &screen_rect,
+           &face_hit);
+    }
   }
 }
 
