@@ -26,7 +26,7 @@ StaticShader ShaderModule::shader_selectable(const char *create_info_name)
   std::string name = create_info_name;
 
   if (selection_type_ != SelectionType::DISABLED) {
-    name += "_selectable";
+    name += depthaware_ ? "_selectable_depthaware" : "_selectable";
   }
 
   if (clipping_enabled_) {
@@ -41,7 +41,7 @@ StaticShader ShaderModule::shader_selectable_no_clip(const char *create_info_nam
   std::string name = create_info_name;
 
   if (selection_type_ != SelectionType::DISABLED) {
-    name += "_selectable";
+    name += depthaware_ ? "_selectable_depthaware" : "_selectable";
   }
 
   return StaticShader(name);
@@ -49,18 +49,22 @@ StaticShader ShaderModule::shader_selectable_no_clip(const char *create_info_nam
 
 using namespace blender::gpu::shader;
 
-ShaderModule &ShaderModule::module_get(SelectionType selection_type, bool clipping_enabled)
+ShaderModule &ShaderModule::module_get(SelectionType selection_type,
+                                       bool clipping_enabled,
+                                       bool depthaware)
 {
   int selection_index = selection_type == SelectionType::DISABLED ? 0 : 1;
-  return get_static_cache()[selection_index][clipping_enabled].get(selection_type,
-                                                                   clipping_enabled);
+  return get_static_cache()[selection_index][clipping_enabled][depthaware].get(
+      selection_type, clipping_enabled, depthaware);
 }
 
 void ShaderModule::module_free()
 {
   for (int i : IndexRange(2)) {
     for (int j : IndexRange(2)) {
-      get_static_cache()[i][j].release();
+      for (int k : IndexRange(2)) {
+        get_static_cache()[i][j][k].release();
+      }
     }
   }
 }
