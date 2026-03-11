@@ -572,6 +572,9 @@ int view3d_gpu_select_ex(const ViewContext *vc,
   const bool use_obedit_skip = (BKE_view_layer_edit_object_get(vc->view_layer) != nullptr) &&
                                (vc->obedit == nullptr);
   const bool use_nearest = select_mode == VIEW3D_SELECT_PICK_NEAREST;
+  const bool force_surface_selection = (vc->obedit == nullptr) &&
+                                       (scene->toolsettings != nullptr) &&
+                                       !scene->toolsettings->select_through;
   bool draw_surface = true;
 
   GPUSelectMode gpu_select_mode = GPU_SELECT_INVALID;
@@ -673,7 +676,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
   }
 
   /* If in X-ray mode, we select the wires in priority. */
-  if (XRAY_ACTIVE(v3d) && use_nearest) {
+  if (XRAY_ACTIVE(v3d) && use_nearest && !force_surface_selection) {
     /* We need to call "GPU_select_*" API's inside DRW_draw_select_loop
      * because the GPU context created & destroyed inside this function. */
     DrawSelectLoopUserData drw_select_loop_user_data = {};
@@ -715,7 +718,8 @@ int view3d_gpu_select_ex(const ViewContext *vc,
     drw_select_loop_user_data.gpu_select_mode = gpu_select_mode;
 
     /* If are not in wireframe mode, we need to use the mesh surfaces to check for hits */
-    draw_surface = (v3d->shading.type > OB_WIRE) || !XRAY_ENABLED(v3d);
+    draw_surface = force_surface_selection || (v3d->shading.type > OB_WIRE) ||
+                   !XRAY_ENABLED(v3d);
     DRW_draw_select_loop(depsgraph,
                          region,
                          v3d,

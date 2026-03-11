@@ -57,6 +57,14 @@ class ImagePrepass : Overlay {
 /**
  * A depth pass that write surface depth when it is needed.
  * It is also used for selecting non overlay-only objects.
+ *
+ * When depth-aware selection is active (Select Through OFF in Object Mode),
+ * this class uses a two-pass approach:
+ *   Pass 1 (depth_fill_ps_): Draws all mesh surfaces with non-selectable depth-only shaders
+ *     to populate the depth buffer with the nearest surfaces.
+ *   Pass 2 (ps_): Draws all mesh surfaces again with selectable depth-aware shaders
+ *     (EARLY_FRAGMENT_TEST). Fragments behind closer surfaces fail the depth test
+ *     and never write selection IDs, achieving occlusion-based selection filtering.
  */
 class Prepass : Overlay {
  private:
@@ -68,7 +76,13 @@ class Prepass : Overlay {
   PassMain::Sub *pointcloud_ps_ = nullptr;
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
+  /** Depth-fill pass for two-pass depth-aware selection. */
+  PassMain depth_fill_ps_ = {"prepass_depth_fill"};
+  PassMain::Sub *depth_fill_mesh_ps_ = nullptr;
+
   bool use_material_slot_selection_ = false;
+  /** True when two-pass depth-aware selection is active. */
+  bool depthaware_selection_ = false;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -78,16 +92,36 @@ class Prepass : Overlay {
     if (!enabled_) {
       /* Not used. But release the data. */
       ps_.init();
+      depth_fill_ps_.init();
       mesh_ps_ = nullptr;
       curves_ps_ = nullptr;
       pointcloud_ps_ = nullptr;
+      depth_fill_mesh_ps_ = nullptr;
       return;
     }
 
     use_material_slot_selection_ = state.is_material_select;
+    depthaware_selection_ = res.is_selection() && res.depthaware_selection;
 
     bool use_cull = res.globals_buf.backface_culling;
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
+
+    /* Set up the depth-fill pass (Pass 1) for two-pass depth-aware selection. */
+    depth_fill_ps_.init();
+    depth_fill_mesh_ps_ = nullptr;
+    if (depthaware_selection_) {
+      depth_fill_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      depth_fill_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
+      depth_fill_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
+                                   backface_cull_state,
+                               state.clipping_plane_count);
+      /* No res.select_bind() here — this pass does NOT write selection output. */
+      {
+        auto &sub = depth_fill_ps_.sub("DepthFillMesh");
+        sub.shader_set(res.shaders->depth_mesh_conservative_depthfill.get());
+        depth_fill_mesh_ps_ = &sub;
+      }
+    }
 
     ps_.init();
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
@@ -95,6 +129,14 @@ class Prepass : Overlay {
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | backface_cull_state,
                   state.clipping_plane_count);
     res.select_bind(ps_);
+    if (res.is_selection()) {
+      /* `select_bind()` adds the selection SSBO bindings but also injects its own draw state.
+       * Restore the depth test/write flags here so object-mode surface selection still uses the
+       * depth buffer populated by the prepass. */
+      ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
+                        backface_cull_state,
+                    state.clipping_plane_count);
+    }
     {
       auto &sub = ps_.sub("Mesh");
       sub.shader_set(res.is_selection() ? res.shaders->depth_mesh_conservative.get() :
@@ -176,12 +218,16 @@ class Prepass : Overlay {
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
       select::ID select_id = use_material_slot_selection_ ?
-                                 res.select_id(ob_ref, (batch.material_slot + 1) << 16) :
-                                 res.select_id(ob_ref);
+                                  res.select_id(ob_ref, (batch.material_slot + 1) << 16) :
+                                  res.select_id(ob_ref);
 
       if (res.is_selection()) {
         /* Conservative shader needs expanded draw-call. */
         mesh_ps_->draw_expand(batch.batch, GPU_PRIM_TRIS, 1, 1, handle, select_id.get());
+        /* Also register in depth-fill pass for two-pass depth-aware selection. */
+        if (depth_fill_mesh_ps_) {
+          depth_fill_mesh_ps_->draw_expand(batch.batch, GPU_PRIM_TRIS, 1, 1, handle);
+        }
       }
       else {
         mesh_ps_->draw(batch.batch, handle, select_id.get());
@@ -295,12 +341,17 @@ class Prepass : Overlay {
       }
 
       select::ID select_id = use_material_slot_selection_ ?
-                                 res.select_id(ob_ref, (material_id + 1) << 16) :
-                                 res.select_id(ob_ref);
+                                  res.select_id(ob_ref, (material_id + 1) << 16) :
+                                  res.select_id(ob_ref);
       if (res.is_selection() && (pass == mesh_ps_)) {
         /* Conservative shader needs expanded draw-call. */
         pass->draw_expand(
             geom_list[material_id], GPU_PRIM_TRIS, 1, 1, res_handle, select_id.get());
+        /* Also register in depth-fill pass for two-pass depth-aware selection. */
+        if (depth_fill_mesh_ps_) {
+          depth_fill_mesh_ps_->draw_expand(
+              geom_list[material_id], GPU_PRIM_TRIS, 1, 1, res_handle);
+        }
       }
       else {
         pass->draw(geom_list[material_id], res_handle, select_id.get());
@@ -314,6 +365,9 @@ class Prepass : Overlay {
       return;
     }
 
+    if (depthaware_selection_) {
+      manager.generate_commands(depth_fill_ps_, view);
+    }
     manager.generate_commands(ps_, view);
   }
 
@@ -324,6 +378,14 @@ class Prepass : Overlay {
     }
     /* Should be fine to use the line buffer since the prepass only writes to the depth buffer. */
     GPU_framebuffer_bind(framebuffer);
+
+    if (depthaware_selection_) {
+      /* Two-pass depth-aware selection:
+       * Pass 1: Fill depth buffer with nearest surfaces (no selection output). */
+      manager.submit_only(depth_fill_ps_, view);
+      /* Pass 2: Selection pass with EARLY_FRAGMENT_TEST.
+       * Fragments behind closer surfaces fail the depth test and never write selection IDs. */
+    }
     manager.submit_only(ps_, view);
   }
 };
