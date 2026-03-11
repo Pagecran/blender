@@ -432,12 +432,21 @@ class _defs_view3d_select:
 
     @ToolDef.from_fn
     def select():
+        def draw_settings(_context, layout, _tool):
+            if _context.mode == 'OBJECT':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "select_through", text="Select Through")
+            elif _context.mode == 'EDIT_MESH':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "mesh_select_through", text="Select Through")
+
         return dict(
             idname="builtin.select",
             label="Tweak",
             icon="ops.generic.select",
             widget=None,
             keymap="3D View Tool: Tweak",
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -447,6 +456,12 @@ class _defs_view3d_select:
             row = layout.row()
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
+            if _context.mode == 'OBJECT':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "select_through", text="Select Through")
+            elif _context.mode == 'EDIT_MESH':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "mesh_select_through", text="Select Through")
         return dict(
             idname="builtin.select_box",
             label="Select Box",
@@ -463,6 +478,12 @@ class _defs_view3d_select:
             row = layout.row()
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
+            if _context.mode == 'OBJECT':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "select_through", text="Select Through")
+            elif _context.mode == 'EDIT_MESH':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "mesh_select_through", text="Select Through")
         return dict(
             idname="builtin.select_lasso",
             label="Select Lasso",
@@ -480,6 +501,12 @@ class _defs_view3d_select:
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
+            if _context.mode == 'OBJECT':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "select_through", text="Select Through")
+            elif _context.mode == 'EDIT_MESH':
+                tool_settings = _context.tool_settings
+                layout.prop(tool_settings, "mesh_select_through", text="Select Through")
 
         def draw_cursor(_context, tool, xy):
             from gpu_extras.presets import draw_circle_2d
