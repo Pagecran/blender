@@ -44,6 +44,20 @@ DEFINE("SELECT_ENABLE")
 ADDITIONAL_INFO(select_id_patch)
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(select_id_patch_depthaware)
+TYPEDEF_SOURCE("select_shader_shared.hh")
+VERTEX_OUT(select_id_patch_iface)
+EARLY_FRAGMENT_TEST(true)
+UNIFORM_BUF(SELECT_DATA, SelectInfoData, select_info_buf)
+STORAGE_BUF(SELECT_ID_IN, read, uint, in_select_buf[])
+STORAGE_BUF(SELECT_ID_OUT, read_write, uint, out_select_buf[])
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(overlay_select_depthaware)
+DEFINE("SELECT_ENABLE")
+ADDITIONAL_INFO(select_id_patch_depthaware)
+GPU_SHADER_CREATE_END()
+
 #define OVERLAY_INFO_CLIP_VARIATION(name) \
   GPU_SHADER_CREATE_INFO(name##_clipped) \
   DO_STATIC_COMPILATION() \
@@ -56,12 +70,19 @@ GPU_SHADER_CREATE_END()
   DO_STATIC_COMPILATION() \
   ADDITIONAL_INFO(name) \
   ADDITIONAL_INFO(overlay_select) \
+  GPU_SHADER_CREATE_END() \
+ \
+  GPU_SHADER_CREATE_INFO(name##_selectable_depthaware) \
+  DO_STATIC_COMPILATION() \
+  ADDITIONAL_INFO(name) \
+  ADDITIONAL_INFO(overlay_select_depthaware) \
   GPU_SHADER_CREATE_END()
 
 #define OVERLAY_INFO_VARIATIONS(name) \
   OVERLAY_INFO_SELECT_VARIATION(name) \
   OVERLAY_INFO_CLIP_VARIATION(name) \
-  OVERLAY_INFO_CLIP_VARIATION(name##_selectable)
+  OVERLAY_INFO_CLIP_VARIATION(name##_selectable) \
+  OVERLAY_INFO_CLIP_VARIATION(name##_selectable_depthaware)
 
 #define OVERLAY_INFO_VARIATIONS_MODELMAT(name, base_info) \
   GPU_SHADER_CREATE_INFO(name) \
@@ -77,5 +98,13 @@ GPU_SHADER_CREATE_END()
   ADDITIONAL_INFO(overlay_select) \
   GPU_SHADER_CREATE_END() \
 \
+  GPU_SHADER_CREATE_INFO(name##_selectable_depthaware) \
+  DO_STATIC_COMPILATION() \
+  ADDITIONAL_INFO(base_info) \
+  ADDITIONAL_INFO(draw_modelmat_with_custom_id) \
+  ADDITIONAL_INFO(overlay_select_depthaware) \
+  GPU_SHADER_CREATE_END() \
+\
   OVERLAY_INFO_CLIP_VARIATION(name) \
-  OVERLAY_INFO_CLIP_VARIATION(name##_selectable)
+  OVERLAY_INFO_CLIP_VARIATION(name##_selectable) \
+  OVERLAY_INFO_CLIP_VARIATION(name##_selectable_depthaware)

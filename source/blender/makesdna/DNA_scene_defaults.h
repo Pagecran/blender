@@ -376,6 +376,8 @@
     .uvcalc_weight_factor = 1.0, \
  \
     .select_thresh = 0.01f, \
+    .select_through = true, \
+    .mesh_select_through = false, \
  \
     .selectmode = SCE_SELECT_VERTEX, \
     .uv_flag = UV_FLAG_SELECT_SYNC, \

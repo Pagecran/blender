@@ -42,6 +42,20 @@ ADDITIONAL_INFO(draw_view)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+/* Depth-aware variants: use early fragment test so meshes correctly occlude each other
+ * during Object Mode selection when Select Through is OFF. */
+GPU_SHADER_CREATE_INFO(select_id_flat_depthaware)
+ADDITIONAL_INFO(select_id_flat)
+EARLY_FRAGMENT_TEST(true)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(select_id_uniform_depthaware)
+ADDITIONAL_INFO(select_id_uniform)
+EARLY_FRAGMENT_TEST(true)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 GPU_SHADER_CREATE_INFO(select_id_flat_clipped)
 ADDITIONAL_INFO(select_id_flat)
 ADDITIONAL_INFO(draw_globals)
@@ -52,6 +66,22 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(select_id_uniform_clipped)
 ADDITIONAL_INFO(select_id_uniform)
+ADDITIONAL_INFO(draw_globals)
+ADDITIONAL_INFO(drw_clipped)
+DEFINE("USE_WORLD_CLIP_PLANES")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(select_id_flat_depthaware_clipped)
+ADDITIONAL_INFO(select_id_flat_depthaware)
+ADDITIONAL_INFO(draw_globals)
+ADDITIONAL_INFO(drw_clipped)
+DEFINE("USE_WORLD_CLIP_PLANES")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(select_id_uniform_depthaware_clipped)
+ADDITIONAL_INFO(select_id_uniform_depthaware)
 ADDITIONAL_INFO(draw_globals)
 ADDITIONAL_INFO(drw_clipped)
 DEFINE("USE_WORLD_CLIP_PLANES")
