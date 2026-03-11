@@ -255,7 +255,7 @@ struct Instance : public DrawEngine {
       }
     }
     else {
-      if (ob->dt >= OB_SOLID) {
+      if ((ob->dt >= OB_SOLID) && !draw_ctx->scene->toolsettings->mesh_select_through) {
 #ifdef USE_CAGE_OCCLUSION
         gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
 #else
@@ -327,6 +327,20 @@ struct Instance : public DrawEngine {
     return ranges;
   }
 
+  bool check_ob_drawface_dot(
+      short select_mode, const View3D *v3d, const ToolSettings *tsettings, eDrawType dt)
+  {
+    if (select_mode & SCE_SELECT_FACE) {
+      if ((dt < OB_SOLID) && !tsettings->mesh_select_through) {
+        return true;
+      }
+      if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   ElemIndexRanges object_sync(
       View3D *v3d, Object *ob, ResourceHandleRange res_handle, short select_mode, uint index_start)
   {
@@ -342,7 +356,8 @@ struct Instance : public DrawEngine {
         BMEditMesh *em = (orig_edit_mesh) ? orig_edit_mesh->runtime->edit_mesh.get() : nullptr;
 
         if (em) {
-          bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
+          bool draw_facedot = check_ob_drawface_dot(
+              select_mode, v3d, draw_ctx->scene->toolsettings, eDrawType(ob->dt));
           return edit_mesh_sync(ob, em, res_handle, select_mode, draw_facedot, index_start);
         }
         return mesh_sync(ob, res_handle, select_mode, index_start);
@@ -479,19 +494,6 @@ struct Instance : public DrawEngine {
     }
 
     return select_mode;
-  }
-
-  bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawType dt)
-  {
-    if (select_mode & SCE_SELECT_FACE) {
-      if ((dt < OB_SOLID) || XRAY_FLAG_ENABLED(v3d)) {
-        return true;
-      }
-      if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /* Return a new range if size `n` after `total_range` and grow `total_range` by the same amount.
