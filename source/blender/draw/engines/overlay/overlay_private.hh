@@ -433,7 +433,9 @@ class ShaderModule {
   friend gpu::StaticShaderCache<ShaderModule>;
 
   using StaticCache =
-      gpu::StaticShaderCache<ShaderModule>[2 /* Selection Instance. */][2 /* Clipping Enabled. */];
+      gpu::StaticShaderCache<ShaderModule>[2 /* Selection Instance. */]
+                                          [2 /* Clipping Enabled. */]
+                                          [2 /* Depth-aware Selection. */];
 
   static StaticCache &get_static_cache()
   {
@@ -446,6 +448,9 @@ class ShaderModule {
   /** TODO: Support clipping. This global state should be set by the overlay::Instance and switch
    * to the shader variations that use clipping. */
   const bool clipping_enabled_;
+  /** When true, selectable shaders use depth-aware variants (EARLY_FRAGMENT_TEST)
+   * for Object Mode "Select Through OFF" behavior. */
+  const bool depthaware_;
 
  public:
   /** Shaders */
@@ -536,6 +541,13 @@ class ShaderModule {
   StaticShader depth_mesh = shader_selectable("overlay_depth_mesh");
   StaticShader depth_mesh_conservative = shader_selectable("overlay_depth_mesh_conservative");
   StaticShader depth_pointcloud = shader_selectable("overlay_depth_pointcloud");
+
+  /** Depth-fill only shaders for two-pass depth-aware selection.
+   * These are non-selectable (no selection output) and only write to the depth buffer.
+   * Used in Pass 1 to populate the depth buffer before the selection pass (Pass 2). */
+  StaticShader depth_mesh_conservative_depthfill = shader_clippable(
+      "overlay_depth_mesh_conservative");
+  StaticShader depth_mesh_depthfill = shader_clippable("overlay_depth_mesh");
   StaticShader extra_shape = shader_selectable("overlay_extra");
   StaticShader extra_point = shader_selectable("overlay_extra_point");
   StaticShader extra_wire = shader_selectable("overlay_extra_wire");
@@ -567,12 +579,18 @@ class ShaderModule {
 
   /** Module */
   /** Only to be used by Instance constructor. */
-  static ShaderModule &module_get(SelectionType selection_type, bool clipping_enabled);
+  static ShaderModule &module_get(SelectionType selection_type,
+                                  bool clipping_enabled,
+                                  bool depthaware = false);
   static void module_free();
 
  private:
-  ShaderModule(const SelectionType selection_type, const bool clipping_enabled)
-      : selection_type_(selection_type), clipping_enabled_(clipping_enabled) {};
+  ShaderModule(const SelectionType selection_type,
+               const bool clipping_enabled,
+               const bool depthaware)
+      : selection_type_(selection_type),
+        clipping_enabled_(clipping_enabled),
+        depthaware_(depthaware) {};
 
   StaticShader shader_clippable(const char *create_info_name);
   StaticShader shader_selectable(const char *create_info_name);
@@ -591,6 +609,8 @@ struct GreasePencilDepthPlane {
 
 struct Resources : public select::SelectMap {
   ShaderModule *shaders = nullptr;
+  /** True when using depth-aware selection (Object Mode Select Through OFF). */
+  bool depthaware_selection = false;
 
   /* Overlay Color. */
   Framebuffer overlay_color_only_fb = {"overlay_color_only_fb"};
@@ -685,9 +705,10 @@ struct Resources : public select::SelectMap {
   void update_theme_settings(const DRWContext *ctx, const State &state);
   void update_clip_planes(const State &state);
 
-  void init(bool clipping_enabled)
+  void init(bool clipping_enabled, bool depthaware = false)
   {
-    shaders = &overlay::ShaderModule::module_get(selection_type, clipping_enabled);
+    depthaware_selection = depthaware;
+    shaders = &overlay::ShaderModule::module_get(selection_type, clipping_enabled, depthaware);
     shaders->anti_aliasing.ensure_compile_async();
     shaders->armature_degrees_of_freedom.ensure_compile_async();
     shaders->armature_envelope_fill.ensure_compile_async();

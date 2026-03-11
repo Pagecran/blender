@@ -2378,7 +2378,11 @@ struct ToolSettings {
 
   char workspace_tool_type = 0;
 
-  char _pad5[7] = {};
+  /* Select Through (Object Mode + Edit Mesh). */
+  char select_through = true;
+  char mesh_select_through = false;
+
+  char _pad5[5] = {};
 
   /**
    * XXX: these `sculpt_paint_*` fields are deprecated, use the

@@ -783,8 +783,10 @@ GPU_SHADER_CREATE_END()
 /* clang-format off */
 CREATE_INFO_VARIANT(overlay_depth_mesh, overlay_depth_mesh_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_depth_mesh_selectable, overlay_depth_mesh_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_depth_mesh_selectable_depthaware, overlay_depth_mesh_base, draw_modelmat_with_custom_id, overlay_select_depthaware)
 CREATE_INFO_VARIANT(overlay_depth_mesh_clipped, overlay_depth_mesh, drw_clipped)
 CREATE_INFO_VARIANT(overlay_depth_mesh_selectable_clipped, overlay_depth_mesh_selectable, drw_clipped)
+CREATE_INFO_VARIANT(overlay_depth_mesh_selectable_depthaware_clipped, overlay_depth_mesh_selectable_depthaware, drw_clipped)
 /* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_depth_mesh_conservative_base)
@@ -800,8 +802,10 @@ GPU_SHADER_CREATE_END()
 /* clang-format off */
 CREATE_INFO_VARIANT(overlay_depth_mesh_conservative, overlay_depth_mesh_conservative_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_depth_mesh_conservative_selectable, overlay_depth_mesh_conservative_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_depth_mesh_conservative_selectable_depthaware, overlay_depth_mesh_conservative_base, draw_modelmat_with_custom_id, overlay_select_depthaware)
 CREATE_INFO_VARIANT(overlay_depth_mesh_conservative_clipped, overlay_depth_mesh_conservative, drw_clipped)
 CREATE_INFO_VARIANT(overlay_depth_mesh_conservative_selectable_clipped, overlay_depth_mesh_conservative_selectable, drw_clipped)
+CREATE_INFO_VARIANT(overlay_depth_mesh_conservative_selectable_depthaware_clipped, overlay_depth_mesh_conservative_selectable_depthaware, drw_clipped)
 /* clang-format on */
 
 GPU_SHADER_NAMED_INTERFACE_INFO(overlay_depth_only_gpencil_flat_iface, gp_interp_flat)
@@ -836,8 +840,10 @@ GPU_SHADER_CREATE_END()
 /* clang-format off */
 CREATE_INFO_VARIANT(overlay_depth_gpencil, overlay_depth_gpencil_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_depth_gpencil_selectable, overlay_depth_gpencil_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_depth_gpencil_selectable_depthaware, overlay_depth_gpencil_base, draw_modelmat_with_custom_id, overlay_select_depthaware)
 CREATE_INFO_VARIANT(overlay_depth_gpencil_clipped, overlay_depth_gpencil, drw_clipped)
 CREATE_INFO_VARIANT(overlay_depth_gpencil_selectable_clipped, overlay_depth_gpencil_selectable, drw_clipped)
+CREATE_INFO_VARIANT(overlay_depth_gpencil_selectable_depthaware_clipped, overlay_depth_gpencil_selectable_depthaware, drw_clipped)
 /* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_depth_pointcloud_base)
@@ -851,8 +857,10 @@ GPU_SHADER_CREATE_END()
 /* clang-format off */
 CREATE_INFO_VARIANT(overlay_depth_pointcloud, overlay_depth_pointcloud_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_depth_pointcloud_selectable, overlay_depth_pointcloud_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_depth_pointcloud_selectable_depthaware, overlay_depth_pointcloud_base, draw_modelmat_with_custom_id, overlay_select_depthaware)
 CREATE_INFO_VARIANT(overlay_depth_pointcloud_clipped, overlay_depth_pointcloud, drw_clipped)
 CREATE_INFO_VARIANT(overlay_depth_pointcloud_selectable_clipped, overlay_depth_pointcloud_selectable, drw_clipped)
+CREATE_INFO_VARIANT(overlay_depth_pointcloud_selectable_depthaware_clipped, overlay_depth_pointcloud_selectable_depthaware, drw_clipped)
 /* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_depth_curves_base)
@@ -867,8 +875,10 @@ GPU_SHADER_CREATE_END()
 /* clang-format off */
 CREATE_INFO_VARIANT(overlay_depth_curves, overlay_depth_curves_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_depth_curves_selectable, overlay_depth_curves_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_depth_curves_selectable_depthaware, overlay_depth_curves_base, draw_modelmat_with_custom_id, overlay_select_depthaware)
 CREATE_INFO_VARIANT(overlay_depth_curves_clipped, overlay_depth_curves, drw_clipped)
 CREATE_INFO_VARIANT(overlay_depth_curves_selectable_clipped, overlay_depth_curves_selectable, drw_clipped)
+CREATE_INFO_VARIANT(overlay_depth_curves_selectable_depthaware_clipped, overlay_depth_curves_selectable_depthaware, drw_clipped)
 /* clang-format on */
 
 /** \} */

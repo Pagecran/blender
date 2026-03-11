@@ -427,9 +427,19 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
                                             void *user_data,
                                             eV3DProjTest clip_flag);
 
-void mesh_foreachScreenFace(
+void mesh_foreachScreenFaceCenter(
     const ViewContext *vc,
     void (*func)(void *user_data, BMFace *efa, const float screen_co[2], int index),
+    void *user_data,
+    eV3DProjTest clip_flag);
+void mesh_foreachScreenFaceVerts(
+    const ViewContext *vc,
+    void (*func)(void *user_data,
+                 BMFace *efa,
+                 const float screen_co[][2],
+                 int total_count,
+                 rctf *screen_rect,
+                 bool *face_hit),
     void *user_data,
     eV3DProjTest clip_flag);
 void nurbs_foreachScreenVert(const ViewContext *vc,
