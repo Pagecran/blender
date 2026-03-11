@@ -3339,6 +3339,18 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!DNA_struct_member_exists(fd->filesdna, "ToolSettings", "char", "mesh_select_through")) {
+    for (Scene &scene : bmain->scenes) {
+      scene.toolsettings->mesh_select_through = false;
+    }
+  }
+
+  if (!DNA_struct_member_exists(fd->filesdna, "ToolSettings", "char", "select_through")) {
+    for (Scene &scene : bmain->scenes) {
+      scene.toolsettings->select_through = true;
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 10)) {
     for (Scene &scene : bmain->scenes) {
       for (ViewLayer &view_layer : scene.view_layers) {

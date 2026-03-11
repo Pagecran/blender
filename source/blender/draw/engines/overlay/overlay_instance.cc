@@ -27,7 +27,11 @@ void Instance::init()
 
   clipping_enabled_ = RV3D_CLIPPING_ENABLED(ctx->v3d, ctx->rv3d);
 
-  resources.init(clipping_enabled_);
+  /* Use depth-aware selection shaders when in Object Mode selection with Select Through OFF. */
+  bool depthaware = (ctx->mode == DRWContext::SELECT_OBJECT) && (ctx->scene != nullptr) &&
+                    !ctx->scene->toolsettings->select_through;
+
+  resources.init(clipping_enabled_, depthaware);
 
   state.depsgraph = ctx->depsgraph;
   state.view_layer = ctx->view_layer;
