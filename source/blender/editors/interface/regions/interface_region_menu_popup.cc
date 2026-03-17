@@ -170,6 +170,7 @@ struct uiPopupMenu {
 
   int mx, my;
   bool popup, slideout;
+  bool keep_open = false;
 
   std::function<void(bContext *C, uiLayout *layout)> menu_func;
 };
@@ -296,7 +297,13 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
   blender::ui::block_layout_resolve(block);
 
-  UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_NUMSELECT);
+  UI_block_flag_enable(block, UI_BLOCK_NUMSELECT);
+  if (pup->keep_open) {
+    UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_OUTSIDE_CLICK_CLOSE);
+  }
+  else {
+    UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
+  }
 
   if (pup->popup) {
     int offset[2] = {0, 0};
@@ -399,12 +406,14 @@ static uiPopupBlockHandle *ui_popup_menu_create_impl(
     uiBut *but,
     const char *title,
     std::function<void(bContext *, uiLayout *)> menu_func,
-    const bool can_refresh)
+    const bool can_refresh,
+    const bool keep_open)
 {
   wmWindow *window = CTX_wm_window(C);
 
   uiPopupMenu *pup = MEM_new<uiPopupMenu>(__func__);
   pup->title = title;
+  pup->keep_open = keep_open;
   /* menu is created from a callback */
   pup->menu_func = menu_func;
   if (but) {
@@ -445,6 +454,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
       but,
       nullptr,
       [menu_func, arg](bContext *C, uiLayout *layout) { menu_func(C, layout, arg); },
+      false,
       false);
 }
 
@@ -454,19 +464,31 @@ uiPopupBlockHandle *ui_popup_menu_create(
 /** \name Popup Menu API with begin & end
  * \{ */
 
-static void create_title_button(uiLayout *layout, const char *title, int icon)
+static void create_title_button(uiLayout *layout,
+                                const char *title,
+                                int icon,
+                                const bool show_close_button)
 {
-  uiBlock *block = layout->block();
-  char titlestr[256];
-
-  if (icon) {
-    SNPRINTF_UTF8(titlestr, " %s", title);
-    uiDefIconTextBut(block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, "");
+  if (show_close_button) {
+    uiLayout *row = &layout->row(true);
+    uiLayout *title_row = &row->row(false);
+    title_row->label(title, icon);
+    row->op("WM_OT_popup_close", "", ICON_X);
   }
   else {
-    uiBut *but = uiDefBut(
-        block, ButType::Label, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
-    but->drawflag = UI_BUT_TEXT_LEFT;
+    uiBlock *block = layout->block();
+    char titlestr[256];
+
+    if (icon) {
+      SNPRINTF_UTF8(titlestr, " %s", title);
+      uiDefIconTextBut(
+          block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, "");
+    }
+    else {
+      uiBut *but = uiDefBut(
+          block, ButType::Label, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+      but->drawflag = UI_BUT_TEXT_LEFT;
+    }
   }
 
   layout->separator();
@@ -487,7 +509,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
   pup->block->handle = MEM_new<uiPopupBlockHandle>(__func__);
 
   if (title[0]) {
-    create_title_button(pup->layout, title, icon);
+    create_title_button(pup->layout, title, icon, false);
   }
 
   return pup;
@@ -609,20 +631,22 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 static void ui_popup_menu_create_from_menutype(bContext *C,
                                                MenuType *mt,
                                                const char *title,
-                                               const int icon)
+                                               const int icon,
+                                               const bool keep_open)
 {
   uiPopupBlockHandle *handle = ui_popup_menu_create_impl(
       C,
       nullptr,
       nullptr,
       title,
-      [mt, title, icon](bContext *C, uiLayout *layout) -> void {
+      [mt, title, icon, keep_open](bContext *C, uiLayout *layout) -> void {
         if (title && title[0]) {
-          create_title_button(layout, title, icon);
+          create_title_button(layout, title, icon, keep_open);
         }
         ui_item_menutype_func(C, layout, mt);
       },
-      true);
+      true,
+      keep_open);
 
   STRNCPY_UTF8(handle->menu_idname, mt->idname);
 
@@ -636,6 +660,12 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
 }
 
 wmOperatorStatus UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
+{
+  return UI_popup_menu_invoke(C, idname, reports, false);
+}
+
+wmOperatorStatus UI_popup_menu_invoke(
+    bContext *C, const char *idname, ReportList *reports, const bool keep_open)
 {
   MenuType *mt = WM_menutype_find(idname, true);
 
@@ -654,7 +684,7 @@ wmOperatorStatus UI_popup_menu_invoke(bContext *C, const char *idname, ReportLis
 
   const char *title = CTX_IFACE_(mt->translation_context, mt->label);
   if (allow_refresh) {
-    ui_popup_menu_create_from_menutype(C, mt, title, ICON_NONE);
+    ui_popup_menu_create_from_menutype(C, mt, title, ICON_NONE, keep_open);
   }
   else {
     /* If no refresh is needed, create the block directly. */
