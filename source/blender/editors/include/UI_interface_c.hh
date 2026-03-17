@@ -191,6 +191,8 @@ enum {
   UI_BLOCK_QUICK_SETUP = 1 << 26,
   /** Don't accelerator keys for the items in the block. */
   UI_BLOCK_NO_ACCELERATOR_KEYS = 1 << 27,
+  /** Don't close the popup when clicking outside of it. */
+  UI_BLOCK_NO_OUTSIDE_CLICK_CLOSE = 1 << 28,
 };
 
 /** #uiPopupBlockHandle.menuretval */
@@ -768,6 +770,8 @@ uiLayout *UI_popup_menu_layout(uiPopupMenu *pup);
 void UI_popup_menu_reports(bContext *C, ReportList *reports) ATTR_NONNULL();
 wmOperatorStatus UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
     ATTR_NONNULL(1, 2);
+wmOperatorStatus UI_popup_menu_invoke(
+    bContext *C, const char *idname, ReportList *reports, bool keep_open) ATTR_NONNULL(1, 2);
 
 /**
  * If \a block is displayed in a popup menu, tag it for closing.

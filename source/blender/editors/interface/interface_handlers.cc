@@ -11229,7 +11229,8 @@ static int ui_handle_menu_event(bContext *C,
        * Events handled above may have already set the return value,
        * don't overwrite them, see: #61015.
        */
-      if ((inside == false) && (menu->menuretval == 0)) {
+      if ((inside == false) && (menu->menuretval == 0) &&
+          ((block->flag & UI_BLOCK_NO_OUTSIDE_CLICK_CLOSE) == 0)) {
         uiSafetyRct *saferct = static_cast<uiSafetyRct *>(block->saferct.first);
 
         if (event->type == MOUSEMOVE) {

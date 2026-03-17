@@ -2193,8 +2193,31 @@ static wmOperatorStatus wm_call_menu_exec(bContext *C, wmOperator *op)
 {
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
+  const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
 
-  return UI_popup_menu_invoke(C, idname, op->reports);
+  return UI_popup_menu_invoke(C, idname, op->reports, keep_open);
+}
+
+static bool wm_popup_close_poll(bContext *C)
+{
+  return CTX_wm_region_popup(C) != nullptr;
+}
+
+static wmOperatorStatus wm_popup_close_exec(bContext *C, wmOperator * /*op*/)
+{
+  ARegion *region_popup = CTX_wm_region_popup(C);
+  if (region_popup == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  uiBlock *block = static_cast<uiBlock *>(region_popup->runtime->uiblocks.first);
+  if (block == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  UI_popup_menu_retval_set(block, UI_RETURN_CANCEL, true);
+  UI_popup_block_close(C, CTX_wm_window(C), block);
+  return OPERATOR_FINISHED;
 }
 
 static std::string wm_call_menu_get_name(wmOperatorType *ot, PointerRNA *ptr)
@@ -2226,6 +2249,21 @@ static void WM_OT_call_menu(wmOperatorType *ot)
       WM_menutype_idname_visit_for_search,
       /* Only a suggestion as menu items may be referenced from add-ons that have been disabled. */
       (PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "keep_open", false, "Keep Open", "Keep the menu open until it is explicitly closed");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+static void WM_OT_popup_close(wmOperatorType *ot)
+{
+  ot->name = "Close Popup";
+  ot->idname = "WM_OT_popup_close";
+  ot->description = "Close the active popup";
+
+  ot->exec = wm_popup_close_exec;
+  ot->poll = wm_popup_close_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 static wmOperatorStatus wm_call_pie_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -4252,6 +4290,7 @@ void wm_operatortypes_register()
   WM_operatortype_append(WM_OT_search_menu);
   WM_operatortype_append(WM_OT_search_operator);
   WM_operatortype_append(WM_OT_search_single_menu);
+  WM_operatortype_append(WM_OT_popup_close);
   WM_operatortype_append(WM_OT_call_menu);
   WM_operatortype_append(WM_OT_call_menu_pie);
   WM_operatortype_append(WM_OT_call_panel);
