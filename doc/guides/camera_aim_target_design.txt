@@ -1,0 +1,186 @@
+Camera Aim/Target Design (Maya/XSI Style)
+=========================================
+
+Problem
+-------
+
+Artists want a camera workflow closer to Maya/XSI:
+
+- a camera has an explicit target/aim point,
+- orbit rotates around that target,
+- pan moves the camera and target together,
+- framing selected (F) in locked camera view moves the target to the selected object center,
+- all of this works while the viewport is locked to the camera.
+
+
+Current Blender Behavior
+------------------------
+
+The current locked-camera navigation is not target based.
+
+- `ED_view3d_camera_view_pan()` in `source/blender/editors/space_view3d/view3d_utils.cc`
+  only modifies `rv3d->camdx/camdy`.
+- `viewmove_apply()` in `source/blender/editors/space_view3d/view3d_navigate.cc`
+  uses that 2D frame offset path in camera view.
+- This is useful for screen composition, but it is not a Maya/XSI track/pan.
+
+
+Recommended Direction
+---------------------
+
+Do not create a new camera class.
+
+Do not fake the target by reusing the camera origin.
+
+Recommended approach:
+
+- keep the existing Blender camera object,
+- add an optional camera target/aim mode,
+- store an explicit target reference,
+- override camera navigation behavior only when:
+  - the viewport is in camera view,
+  - the view is locked to the camera,
+  - the camera aim/target mode is enabled.
+
+
+Data Model
+----------
+
+Preferred long-term model:
+
+- Add an optional `Object *target` reference to camera settings.
+- Expose it in camera UI as "Aim Target" or similar.
+
+Why this is better than a rig-only solution:
+
+- easier to use in normal camera workflows,
+- easier to keep consistent with camera lock navigation,
+- easier to support framing selected and pan/orbit behavior directly,
+- more predictable than trying to infer a target from constraints.
+
+Optional later addition:
+
+- a toggle to use the same target for DOF focus (`focus_object`).
+
+
+Navigation Behavior
+-------------------
+
+When camera aim mode is enabled and the viewport is locked to camera:
+
+1. Orbit / Tumble
+
+- Rotate camera around the target point.
+- Preserve camera-target distance.
+- Update camera orientation so it keeps looking at the target.
+
+2. Pan / Track
+
+- Translate both camera and target together in camera plane.
+- This replaces the current `camdx/camdy` screen-space offset path.
+
+3. Dolly
+
+- Move camera along its view vector.
+- Default behavior should preserve the target position.
+- Optional later behavior: dolly toward target with stop/clamp.
+
+4. Frame Selected (F)
+
+- Compute selection center.
+- Move target to that center.
+- Reposition camera smoothly so the current framing logic still makes sense.
+- Preserve aim behavior after the recenter.
+
+
+Code Touch Points
+-----------------
+
+Likely integration points:
+
+- `source/blender/editors/space_view3d/view3d_utils.cc`
+  - `ED_view3d_camera_view_pan()`
+  - camera lock helpers
+
+- `source/blender/editors/space_view3d/view3d_navigate.cc`
+  - `viewmove_apply()`
+
+- `source/blender/editors/space_view3d/view3d_navigate_view_all.cc`
+  - `viewselected_exec()` for F / frame selected behavior
+
+- camera rotation/orbit operators in `space_view3d`
+  - to replace orbit center when aim mode is active
+
+- camera RNA/UI
+  - target reference and enable toggle
+
+
+Implementation Plan
+-------------------
+
+Phase 1: Data + UI
+
+- Add camera property: aim mode enabled.
+- Add camera property: target object reference.
+- Add minimal UI in camera properties.
+
+Phase 2: Locked Camera Pan
+
+- In locked camera mode, if aim mode is active:
+  - bypass `camdx/camdy`,
+  - compute world-space pan delta,
+  - move camera and target together.
+
+Phase 3: Orbit Around Target
+
+- When rotating in locked camera mode with aim mode active:
+  - orbit around target,
+  - recompute camera transform from target and distance.
+
+Phase 4: Frame Selected
+
+- In locked camera mode with aim mode active:
+  - F moves target to selection center,
+  - keeps camera aligned to target,
+  - preserves a usable framing distance.
+
+Phase 5: Polish
+
+- Optional DOF integration.
+- Optional creation helper: create target empty automatically.
+- Optional operator to convert existing camera + Track To setup into aim mode.
+
+
+Non-Goals for First Pass
+------------------------
+
+- No new camera object type.
+- No full rig generator in core for the first implementation.
+- No attempt to retrofit every existing constraint setup automatically.
+- No change to normal unlocked viewport navigation.
+
+
+Open Questions
+--------------
+
+- Should target live on `Camera` data or `Object` camera instance?
+  - Prefer `Camera` data first, unless per-object camera instances become necessary.
+
+- Should aim mode automatically create a target empty when enabled?
+  - Probably yes for usability, but optional.
+
+- Should framing selected in camera mode be smooth or immediate?
+  - Smooth is better for usability.
+
+- Should pan continue to support composition-only offset as a separate mode?
+  - Probably yes; aim mode should be opt-in, not replace existing behavior.
+
+
+Summary
+-------
+
+The clean implementation is not a new camera class.
+
+It is an optional aim/target mode for existing cameras that replaces locked-camera
+navigation behavior with target-based orbit/pan/dolly, and makes frame-selected move
+the target to the selected object.
