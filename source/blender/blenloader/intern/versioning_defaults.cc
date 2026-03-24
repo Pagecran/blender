@@ -852,6 +852,34 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space_link : area.spacedata) {
+          if (space_link.spacetype != SPACE_OUTLINER) {
+            continue;
+          }
+
+          SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space_link);
+          space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_SELECT |
+                                                SO_RESTRICT_HIDE | SO_RESTRICT_VIEWPORT |
+                                                SO_RESTRICT_RENDER | SO_RESTRICT_HOLDOUT |
+                                                SO_RESTRICT_INDIRECT_ONLY;
+          space_outliner->flag &= ~SO_SKIP_SORT_ALPHA;
+          space_outliner->flag |= SO_SYNC_SELECT | SO_MODE_COLUMN;
+          space_outliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
+          space_outliner->filter &= ~SO_FILTER_NO_VIEW_LAYERS;
+          space_outliner->filter &= ~SO_FILTER_NO_COLLECTION;
+          space_outliner->filter &= ~SO_FILTER_NO_OBJECT;
+          space_outliner->filter &= ~SO_FILTER_NO_OB_CONTENT;
+          space_outliner->filter &= ~SO_FILTER_NO_CHILDREN;
+          space_outliner->filter &= ~SO_FILTER_OB_TYPE;
+          space_outliner->filter_state = SO_FILTER_OB_ALL;
+        }
+      }
+    }
+  }
+
+  {
     for (Light &light : bmain->lights) {
       light.shadow_maximum_resolution = 0.001f;
       light.transmission_fac = 1.0f;
