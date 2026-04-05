@@ -94,6 +94,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_grease_pencil_add);
   WM_operatortype_append(OBJECT_OT_light_add);
   WM_operatortype_append(OBJECT_OT_camera_add);
+  WM_operatortype_append(OBJECT_OT_camera_rig_add);
   WM_operatortype_append(OBJECT_OT_speaker_add);
   WM_operatortype_append(OBJECT_OT_curves_random_add);
   WM_operatortype_append(OBJECT_OT_curves_empty_hair_add);

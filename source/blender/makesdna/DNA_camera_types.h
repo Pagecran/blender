@@ -139,6 +139,11 @@ enum {
   CAM_DOF_ENABLED = (1 << 0),
 };
 
+/* Camera->aim_flag */
+enum {
+  CAM_AIM_TARGET_ENABLED = (1 << 0),
+};
+
 /* ------------------------------------------- */
 /* Stereo Settings */
 struct CameraStereoSettings {
@@ -249,6 +254,11 @@ struct Camera {
   DNA_DEPRECATED struct Object *dof_ob = nullptr;
   DNA_DEPRECATED struct GPUDOFSettings gpu_dof;
   struct CameraDOFSettings dof;
+
+  struct Object *aim_target = nullptr;
+  float aim_roll = 0.0f;
+  short aim_flag = 0;
+  char _pad4[2] = {};
 
   /* CameraBGImage reference images */
   ListBaseT<CameraBGImage> bg_images = {nullptr, nullptr};
