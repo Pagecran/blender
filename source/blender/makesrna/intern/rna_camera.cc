@@ -9,6 +9,7 @@
 #include <cstdlib>
 
 #include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_text_types.h"
 
 #include "BLI_math_rotation.h"
@@ -30,6 +31,7 @@
 #  include "BLI_string.h"
 
 #  include "BKE_camera.h"
+#  include "BKE_constraint.h"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_object.hh"
@@ -93,6 +95,63 @@ static void rna_Camera_dependency_update(Main *bmain, Scene * /*scene*/, Pointer
 {
   Camera *camera = id_cast<Camera *>(ptr->owner_id);
   DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&camera->id, 0);
+}
+
+static void rna_Camera_aim_target_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  static constexpr const char *constraint_name = "__camera_aim_target__";
+
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
+  bool relations_changed = false;
+
+  for (Object &object : bmain->objects) {
+    if ((object.type != OB_CAMERA) || (object.data != reinterpret_cast<ID *>(camera))) {
+      continue;
+    }
+
+    bConstraint *constraint = BKE_constraints_find_name(&object.constraints, constraint_name);
+    const bool use_aim_target = ((camera->aim_flag & CAM_AIM_TARGET_ENABLED) != 0) &&
+                                (camera->aim_target != nullptr) &&
+                                (camera->aim_target != &object) &&
+                                (camera->aim_target->id.lib == nullptr);
+
+    if (!use_aim_target) {
+      if (constraint != nullptr) {
+        BKE_constraint_remove_ex(&object.constraints, &object, constraint);
+        relations_changed = true;
+      }
+    }
+    else {
+      if ((constraint != nullptr) && (constraint->type != CONSTRAINT_TYPE_DAMPTRACK)) {
+        BKE_constraint_remove_ex(&object.constraints, &object, constraint);
+        constraint = nullptr;
+        relations_changed = true;
+      }
+
+      if (constraint == nullptr) {
+        constraint = BKE_constraint_add_for_object(
+            &object, constraint_name, CONSTRAINT_TYPE_DAMPTRACK);
+        relations_changed = true;
+      }
+
+      bDampTrackConstraint *data = static_cast<bDampTrackConstraint *>(constraint->data);
+      data->tar = camera->aim_target;
+      data->trackflag = TRACK_nZ;
+      constraint->flag &= ~CONSTRAINT_DISABLE;
+      constraint->enforce = 1.0f;
+
+      object.rot[2] = camera->aim_roll;
+    }
+
+    DEG_id_tag_update(&object.id, ID_RECALC_TRANSFORM | ID_RECALC_ANIMATION);
+    WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, &object);
+    WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, &object);
+  }
+
+  if (relations_changed) {
+    DEG_relations_tag_update(bmain);
+  }
   DEG_id_tag_update(&camera->id, 0);
 }
 
@@ -1103,6 +1162,25 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CameraDOFSettings");
   RNA_def_property_ui_text(prop, "Depth Of Field", "");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
+  prop = RNA_def_property(srna, "use_aim_target", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "aim_flag", CAM_AIM_TARGET_ENABLED);
+  RNA_def_property_ui_text(prop, "Use Aim Target", "Use a target object for locked camera navigation");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_target_update");
+
+  prop = RNA_def_property(srna, "aim_target", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_pointer_sdna(prop, nullptr, "aim_target");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Aim Target", "Object used as the aim/orbit target in locked camera view");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_target_update");
+
+  prop = RNA_def_property(srna, "aim_roll", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "aim_roll");
+  RNA_def_property_range(prop, -M_PI * 4.0f, M_PI * 4.0f);
+  RNA_def_property_ui_text(prop, "Aim Roll", "Twist the camera around its aim axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_target_update");
 
   prop = RNA_def_property(srna, "background_images", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "bg_images", nullptr);

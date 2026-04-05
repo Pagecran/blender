@@ -608,6 +608,89 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
           (rv3d->persp == RV3D_CAMOB));
 }
 
+bool ED_view3d_camera_aim_check(const View3D *v3d, const RegionView3D *rv3d)
+{
+  if (!ED_view3d_camera_lock_check(v3d, rv3d) || (v3d->camera == nullptr) ||
+      (v3d->camera->type != OB_CAMERA) || (v3d->camera->data == nullptr))
+  {
+    return false;
+  }
+
+  const Camera *camera = reinterpret_cast<const Camera *>(v3d->camera->data);
+  return ((camera->aim_flag & CAM_AIM_TARGET_ENABLED) != 0) && (camera->aim_target != nullptr) &&
+         (camera->aim_target != v3d->camera) && ID_IS_EDITABLE(camera->aim_target);
+}
+
+bool ED_view3d_camera_aim_target_get(const Depsgraph *depsgraph,
+                                     const View3D *v3d,
+                                     float r_target[3])
+{
+  if ((v3d->camera == nullptr) || (v3d->camera->type != OB_CAMERA) || (v3d->camera->data == nullptr)) {
+    return false;
+  }
+
+  const Camera *camera = reinterpret_cast<const Camera *>(v3d->camera->data);
+  if (((camera->aim_flag & CAM_AIM_TARGET_ENABLED) == 0) || (camera->aim_target == nullptr) ||
+      (camera->aim_target == v3d->camera))
+  {
+    return false;
+  }
+
+  const Object *target_eval = DEG_get_evaluated(depsgraph, camera->aim_target);
+  if (target_eval == nullptr) {
+    return false;
+  }
+
+  copy_v3_v3(r_target, target_eval->object_to_world().location());
+  return true;
+}
+
+bool ED_view3d_camera_aim_target_set(const Depsgraph *depsgraph,
+                                     View3D *v3d,
+                                     const float target_co[3])
+{
+  if ((v3d->camera == nullptr) || (v3d->camera->type != OB_CAMERA) || (v3d->camera->data == nullptr)) {
+    return false;
+  }
+
+  Camera *camera = reinterpret_cast<Camera *>(v3d->camera->data);
+  Object *target = camera->aim_target;
+  if (((camera->aim_flag & CAM_AIM_TARGET_ENABLED) == 0) || (target == nullptr) ||
+      !ID_IS_EDITABLE(target))
+  {
+    return false;
+  }
+
+  Object *target_eval = DEG_get_evaluated(depsgraph, target);
+  if (target_eval == nullptr) {
+    return false;
+  }
+
+  ObjectTfmProtectedChannels obtfm;
+  float target_mat[4][4];
+  copy_m4_m4(target_mat, target_eval->object_to_world().ptr());
+  copy_v3_v3(target_mat[3], target_co);
+
+  BKE_object_tfm_protected_backup(target, &obtfm);
+  BKE_object_apply_mat4(target, target_mat, true, true);
+  BKE_object_tfm_protected_restore(target, &obtfm, target->protectflag);
+
+  DEG_id_tag_update(&target->id, ID_RECALC_TRANSFORM);
+  WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, target);
+  return true;
+}
+
+bool ED_view3d_camera_aim_target_sync(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d)
+{
+  if (!ED_view3d_camera_aim_check(v3d, rv3d)) {
+    return false;
+  }
+
+  float target_co[3];
+  negate_v3_v3(target_co, rv3d->ofs);
+  return ED_view3d_camera_aim_target_set(depsgraph, v3d, target_co);
+}
+
 void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
                                    View3D *v3d,
                                    RegionView3D *rv3d,
@@ -615,6 +698,19 @@ void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
 {
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
     Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
+    if (ED_view3d_camera_aim_check(v3d, rv3d)) {
+      float target_co[3];
+      if (ED_view3d_camera_aim_target_get(depsgraph, v3d, target_co)) {
+        rv3d->dist = len_v3v3(ob_camera_eval->object_to_world().location(), target_co);
+        if (rv3d->dist <= 0.0f) {
+          rv3d->dist = VIEW3D_DIST_FALLBACK;
+        }
+        ED_view3d_from_object(ob_camera_eval, nullptr, rv3d->viewquat, nullptr, nullptr);
+        negate_v3_v3(rv3d->ofs, target_co);
+        return;
+      }
+    }
+
     if (calc_dist) {
       /* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
       rv3d->dist = ED_view3d_offset_distance(
@@ -735,6 +831,7 @@ bool ED_view3d_camera_lock_autokey(
     Scene *scene = CTX_data_scene(C);
     ID *id_key;
     Object *root_parent;
+    Object *aim_target = nullptr;
     if (v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK &&
         (root_parent = v3d->camera->parent))
     {
@@ -747,7 +844,17 @@ bool ED_view3d_camera_lock_autokey(
       id_key = &v3d->camera->id;
     }
 
-    return ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
+    bool changed = ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
+
+    if (do_translate && ED_view3d_camera_aim_check(v3d, rv3d)) {
+      Camera *camera = reinterpret_cast<Camera *>(v3d->camera->data);
+      aim_target = camera->aim_target;
+      if (aim_target != nullptr) {
+        changed |= ED_view3d_camera_autokey(scene, &aim_target->id, C, false, true);
+      }
+    }
+
+    return changed;
   }
   return false;
 }

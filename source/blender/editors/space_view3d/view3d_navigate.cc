@@ -1043,6 +1043,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
       float(vod->prev.event_xy[0] - x),
       float(vod->prev.event_xy[1] - y),
   };
+  const bool use_camera_aim = ED_view3d_camera_aim_check(vod->v3d, vod->rv3d);
 
   if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
     ED_view3d_camera_view_pan(vod->region, event_ofs);
@@ -1067,6 +1068,9 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
   vod->prev.event_xy[1] = y;
 
   ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+  if (use_camera_aim) {
+    ED_view3d_camera_aim_target_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+  }
 
   ED_region_tag_redraw(vod->region);
 }
