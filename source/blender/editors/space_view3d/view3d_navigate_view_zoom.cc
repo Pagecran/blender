@@ -331,7 +331,8 @@ static void viewzoom_apply(ViewOpsData *vod,
                            const eViewZoom_Style viewzoom,
                            const bool zoom_invert)
 {
-  const bool zoom_to_pos = (vod->viewops_flag & VIEWOPS_FLAG_ZOOM_TO_MOUSE) != 0;
+  const bool zoom_to_pos = ((vod->viewops_flag & VIEWOPS_FLAG_ZOOM_TO_MOUSE) != 0) &&
+                           !ED_view3d_camera_aim_check(vod->v3d, vod->rv3d);
 
   if ((vod->rv3d->persp == RV3D_CAMOB) &&
       (vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) == 0)
@@ -391,6 +392,8 @@ static void view_zoom_apply_step(bContext *C,
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   bool use_cam_zoom;
+  const bool use_camera_aim = ED_view3d_camera_aim_check(v3d, rv3d);
+  const int *zoom_xy_use = use_camera_aim ? nullptr : zoom_xy;
 
   use_cam_zoom = (rv3d->persp == RV3D_CAMOB) &&
                  !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
@@ -400,22 +403,22 @@ static void view_zoom_apply_step(bContext *C,
   if (delta < 0) {
     const float step = 1.2f;
     if (use_cam_zoom) {
-      view_zoom_to_window_xy_camera(scene, depsgraph, v3d, region, step, zoom_xy);
+      view_zoom_to_window_xy_camera(scene, depsgraph, v3d, region, step, zoom_xy_use);
     }
     else {
       if (rv3d->dist < dist_range.max) {
-        view_zoom_to_window_xy_3d(region, step, zoom_xy);
+        view_zoom_to_window_xy_3d(region, step, zoom_xy_use);
       }
     }
   }
   else {
     const float step = 1.0f / 1.2f;
     if (use_cam_zoom) {
-      view_zoom_to_window_xy_camera(scene, depsgraph, v3d, region, step, zoom_xy);
+      view_zoom_to_window_xy_camera(scene, depsgraph, v3d, region, step, zoom_xy_use);
     }
     else {
       if (rv3d->dist > dist_range.min) {
-        view_zoom_to_window_xy_3d(region, step, zoom_xy);
+        view_zoom_to_window_xy_3d(region, step, zoom_xy_use);
       }
     }
   }

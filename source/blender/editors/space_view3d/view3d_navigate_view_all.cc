@@ -537,13 +537,28 @@ static wmOperatorStatus viewselected_exec(bContext *C, wmOperator *op)
 
   const float3 &min = bounds.value().min;
   const float3 &max = bounds.value().max;
+  float center[3];
+  mid_v3_v3v3(center, min, max);
 
   ED_view3d_smooth_view_undo_begin(C, area);
   if (use_all_regions) {
     view3d_from_minmax_multi(C, v3d, min, max, do_zoom, smooth_viewtx);
+    for (ARegion &area_region : area->regionbase) {
+      if (area_region.regiontype != RGN_TYPE_WINDOW) {
+        continue;
+      }
+      RegionView3D *area_rv3d = static_cast<RegionView3D *>(area_region.regiondata);
+      if (ED_view3d_camera_aim_check(v3d, area_rv3d)) {
+        ED_view3d_camera_aim_target_set(depsgraph, v3d, center);
+        break;
+      }
+    }
   }
   else {
     view3d_from_minmax(C, v3d, region, min, max, do_zoom, smooth_viewtx);
+    if (ED_view3d_camera_aim_check(v3d, static_cast<RegionView3D *>(region->regiondata))) {
+      ED_view3d_camera_aim_target_set(depsgraph, v3d, center);
+    }
   }
 
   ED_view3d_smooth_view_undo_end(C, area, op->type->name, false);

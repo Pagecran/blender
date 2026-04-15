@@ -132,6 +132,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot);
 void OBJECT_OT_light_add(wmOperatorType *ot);
 void OBJECT_OT_effector_add(wmOperatorType *ot);
 void OBJECT_OT_camera_add(wmOperatorType *ot);
+void OBJECT_OT_camera_rig_add(wmOperatorType *ot);
 void OBJECT_OT_speaker_add(wmOperatorType *ot);
 void OBJECT_OT_curves_random_add(wmOperatorType *ot);
 void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot);
