@@ -2589,6 +2589,7 @@ class VIEW3D_MT_camera_add(Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
+        layout.operator("object.camera_rig_add", text="Camera Rig", icon='OUTLINER_OB_CAMERA')
 
 
 class VIEW3D_MT_volume_add(Menu):
