@@ -69,6 +69,21 @@ static const short g_base_collection_flags = (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_
                                               BASE_ENABLED_RENDER | BASE_HOLDOUT |
                                               BASE_INDIRECT_ONLY);
 
+static void base_nla_track_overrides_free(Base *base)
+{
+  BLI_freelistN(&base->nla_track_overrides);
+}
+
+static NlaTrackOverride *base_nla_track_override_find(Base *base, const char *track_name)
+{
+  for (NlaTrackOverride &override_entry : base->nla_track_overrides) {
+    if (STREQ(override_entry.track_name, track_name)) {
+      return &override_entry;
+    }
+  }
+  return nullptr;
+}
+
 /* prototype */
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
@@ -279,6 +294,11 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
 {
   view_layer->basact = nullptr;
 
+  /* Free nested NLA track override lists before freeing bases. */
+  for (Base &base : view_layer->object_bases) {
+    base_nla_track_overrides_free(&base);
+  }
+
   BLI_freelistN(&view_layer->object_bases);
 
   MEM_delete(view_layer->object_bases_hash);
@@ -365,6 +385,7 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
               if (view_layer->basact == &base) {
                 view_layer->basact = nullptr;
               }
+              base_nla_track_overrides_free(&base);
               BLI_freelinkN(&view_layer->object_bases, &base);
             }
             else {
@@ -411,6 +432,52 @@ void BKE_view_layer_base_select_and_set_active(ViewLayer *view_layer, Base *selb
   if ((selbase->flag & BASE_SELECTABLE) != 0) {
     selbase->flag |= BASE_SELECTED;
   }
+}
+
+bool BKE_view_layer_nla_track_mute_get(ViewLayer *view_layer,
+                                       Object *object,
+                                       const char *track_name)
+{
+  if (ELEM(nullptr, view_layer, object, track_name)) {
+    return false;
+  }
+
+  Base *base = BKE_view_layer_base_find(view_layer, object);
+  return base != nullptr && base_nla_track_override_find(base, track_name) != nullptr;
+}
+
+bool BKE_view_layer_nla_track_mute_set(ViewLayer *view_layer,
+                                       Object *object,
+                                       const char *track_name,
+                                       bool mute)
+{
+  if (ELEM(nullptr, view_layer, object, track_name)) {
+    return false;
+  }
+
+  Base *base = BKE_view_layer_base_find(view_layer, object);
+  if (base == nullptr) {
+    return false;
+  }
+
+  NlaTrackOverride *override_entry = base_nla_track_override_find(base, track_name);
+  if (mute) {
+    if (override_entry != nullptr) {
+      return false;
+    }
+
+    override_entry = MEM_new<NlaTrackOverride>(__func__);
+    STRNCPY_UTF8(override_entry->track_name, track_name);
+    BLI_addtail(&base->nla_track_overrides, override_entry);
+    return true;
+  }
+
+  if (override_entry == nullptr) {
+    return false;
+  }
+
+  BLI_freelinkN(&base->nla_track_overrides, override_entry);
+  return true;
 }
 
 /** \} */
@@ -523,6 +590,12 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
     BLI_addtail(&view_layer_dst->object_bases, base_dst);
     if (view_layer_src->basact == &base_src) {
       view_layer_dst->basact = base_dst;
+    }
+    /* Deep copy per-view-layer NLA track mute overrides. */
+    BLI_listbase_clear(&base_dst->nla_track_overrides);
+    for (const NlaTrackOverride &override_src : base_src.nla_track_overrides) {
+      NlaTrackOverride *override_dst = MEM_dupalloc(&override_src);
+      BLI_addtail(&base_dst->nla_track_overrides, override_dst);
     }
   }
 
@@ -1427,6 +1500,9 @@ bool BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     }
   }
 
+  for (Base &base : view_layer->object_bases) {
+    base_nla_track_overrides_free(&base);
+  }
   BLI_freelistN(&view_layer->object_bases);
   view_layer->object_bases = new_object_bases;
 
@@ -2437,6 +2513,13 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
   writer->write_struct(view_layer);
   writer->write_struct_list(BKE_view_layer_object_bases_get(view_layer));
 
+  /* Write per-base NLA track mute overrides. */
+  for (const Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    for (const NlaTrackOverride &override_entry : base.nla_track_overrides) {
+      writer->write_struct(&override_entry);
+    }
+  }
+
   if (view_layer->id_properties) {
     IDP_BlendWrite(writer, view_layer->id_properties);
   }
@@ -2488,6 +2571,11 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   BLO_read_struct_list(reader, Base, &view_layer->object_bases);
   BLO_read_struct(reader, Base, &view_layer->basact);
 
+  /* Read per-base NLA track mute overrides. */
+  for (Base &base : view_layer->object_bases) {
+    BLO_read_struct_list(reader, NlaTrackOverride, &base.nla_track_overrides);
+  }
+
   bool active_collection_found = false;
   BLO_read_struct(reader, LayerCollection, &view_layer->active_collection);
 
@@ -2524,6 +2612,8 @@ void BKE_view_layer_blend_read_after_liblink(BlendLibReader * /*reader*/,
 {
   for (Base &base : view_layer->object_bases.items_mutable()) {
     if (base.object == nullptr) {
+      /* Free nested NLA track overrides before freeing the orphan base. */
+      base_nla_track_overrides_free(&base);
       /* Free in case linked object got lost. */
       BLI_freelinkN(&view_layer->object_bases, &base);
       if (view_layer->basact == &base) {
