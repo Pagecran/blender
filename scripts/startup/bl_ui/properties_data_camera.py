@@ -425,6 +425,32 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                     col.prop(bg, "use_flip_y", text="Y")
 
 
+class DATA_PT_camera_aim_target(CameraButtonsPanel, Panel):
+    bl_label = "Aim Target"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw_header(self, context):
+        cam = context.camera
+        self.layout.prop(cam, "use_aim_target", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cam = context.camera
+        layout.active = cam.use_aim_target
+
+        col = layout.column()
+        col.prop(cam, "aim_target", text="Target")
+        col.prop(cam, "aim_roll", text="Roll")
+        col.label(text="Used for locked camera pan/orbit/frame selected")
+
+
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -591,6 +617,7 @@ classes = (
     DATA_PT_camera_safe_areas,
     DATA_PT_camera_safe_areas_center_cut,
     DATA_PT_camera_background_image,
+    DATA_PT_camera_aim_target,
     DATA_PT_camera_display,
     DATA_PT_camera_display_composition_guides,
     DATA_PT_camera_animation,

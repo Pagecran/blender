@@ -130,6 +130,7 @@ struct ViewOpsData {
     float camdx, camdy;  /* MOVE and ZOOM. */
     float camzoom;       /* ZOOM. */
     float dist;          /* ROTATE and ZOOM. */
+    float aim_roll;      /* ROLL. */
     float quat[4];       /* ROLL and ROTATE. */
     char persp;          /* ROTATE. */
     char view;           /* ROTATE. */

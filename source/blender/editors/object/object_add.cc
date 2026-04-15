@@ -1214,6 +1214,83 @@ static wmOperatorStatus object_camera_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus object_camera_rig_add_exec(bContext *C, wmOperator *op)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  RNA_enum_set(op->ptr, "align", ALIGN_VIEW);
+
+  ushort local_view_bits;
+  float loc[3], rot[3];
+  add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr);
+
+  Object *camera_grp = add_type(C, OB_EMPTY, "Cam_grp", loc, rot, false, local_view_bits);
+  BKE_object_empty_draw_type_set(camera_grp, OB_PLAINAXES);
+  BKE_object_obdata_size_init(camera_grp, 1.0f);
+  zero_v3(camera_grp->rot);
+  zero_v3(camera_grp->drot);
+
+  Object *camera_aim = add_type(C, OB_EMPTY, "Cam_aim", loc, rot, false, local_view_bits);
+  BKE_object_empty_draw_type_set(camera_aim, OB_PLAINAXES);
+  BKE_object_obdata_size_init(camera_aim, 0.5f);
+
+  Object *camera_ob = add_type(C, OB_CAMERA, "Cam", loc, rot, false, local_view_bits);
+  Camera *cam = id_cast<Camera *>(camera_ob->data);
+  cam->drawsize = v3d ? ED_view3d_grid_scale(scene, v3d, nullptr) : ED_scene_grid_scale(scene, nullptr);
+
+  camera_aim->parent = camera_grp;
+  camera_aim->partype = PAROBJECT;
+  unit_m4(camera_aim->parentinv);
+  zero_v3(camera_aim->loc);
+  zero_v3(camera_aim->rot);
+  zero_v3(camera_aim->dloc);
+  zero_v3(camera_aim->drot);
+  copy_v3_fl(camera_aim->scale, 1.0f);
+
+  camera_ob->parent = camera_grp;
+  camera_ob->partype = PAROBJECT;
+  unit_m4(camera_ob->parentinv);
+  camera_ob->loc[0] = 0.0f;
+  camera_ob->loc[1] = -10.0f;
+  camera_ob->loc[2] = 5.0f;
+  zero_v3(camera_ob->rot);
+  zero_v3(camera_ob->dloc);
+  zero_v3(camera_ob->drot);
+  copy_v3_fl(camera_ob->scale, 1.0f);
+
+  PointerRNA camera_ptr = RNA_id_pointer_create(&cam->id);
+  PointerRNA aim_ptr = RNA_id_pointer_create(&camera_aim->id);
+  RNA_pointer_set(&camera_ptr, "aim_target", aim_ptr);
+  RNA_property_update(C, &camera_ptr, RNA_struct_find_property(&camera_ptr, "aim_target"));
+  RNA_boolean_set(&camera_ptr, "use_aim_target", true);
+  RNA_property_update(C, &camera_ptr, RNA_struct_find_property(&camera_ptr, "use_aim_target"));
+
+  if (v3d) {
+    if (v3d->camera == nullptr) {
+      v3d->camera = camera_ob;
+    }
+    if (v3d->scenelock && scene->camera == nullptr) {
+      scene->camera = camera_ob;
+    }
+  }
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base_grp = BKE_view_layer_base_find(view_layer, camera_grp);
+  Base *base_aim = BKE_view_layer_base_find(view_layer, camera_aim);
+  Base *base_cam = BKE_view_layer_base_find(view_layer, camera_ob);
+  if (base_grp && base_aim && base_cam) {
+    base_select(base_grp, BA_SELECT);
+    base_select(base_aim, BA_SELECT);
+    base_select(base_cam, BA_SELECT);
+    base_activate(C, base_cam);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+  return OPERATOR_FINISHED;
+}
+
 void OBJECT_OT_camera_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1233,6 +1310,25 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
   add_generic_props(ot, true);
 
   /* hide this for cameras, default */
+  prop = RNA_struct_type_find_property(ot->srna, "align");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+void OBJECT_OT_camera_rig_add(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  ot->name = "Add Camera Rig";
+  ot->description = "Add a simple camera rig with a group, aim target, and configured camera";
+  ot->idname = "OBJECT_OT_camera_rig_add";
+
+  ot->exec = object_camera_rig_add_exec;
+  ot->poll = ED_operator_objectmode;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  add_generic_props(ot, true);
+
   prop = RNA_struct_type_find_property(ot->srna, "align");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
