@@ -36,7 +36,9 @@
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_anim_enums.h"
 #include "DNA_armature_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -383,6 +385,9 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
 void scene_remove_all_bases(Scene *scene_cow)
 {
   for (ViewLayer &view_layer : scene_cow->view_layers) {
+    for (Base &base : view_layer.object_bases) {
+      BLI_freelistN(&base.nla_track_overrides);
+    }
     BLI_freelistN(&view_layer.object_bases);
   }
 }
@@ -418,6 +423,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
       if (&base == view_layer->basact) {
         view_layer->basact = nullptr;
       }
+      BLI_freelistN(&base.nla_track_overrides);
       MEM_delete(&base);
     }
   }
@@ -674,6 +680,47 @@ void update_animation_data_after_copy(const ID *id_orig, ID *id_cow)
   update_nla_tracks_orig_pointers(&anim_data_orig->nla_tracks, &anim_data_cow->nla_tracks);
 }
 
+/* Apply per-view-layer NLA track mute overrides on the COW copy of an object.
+ * This sets NLATRACK_MUTED on COW NLA tracks present in the view layer's
+ * Base.nla_track_overrides list. */
+void apply_nla_view_layer_overrides(const Depsgraph *depsgraph, const ID *id_orig, ID *id_cow)
+{
+  if (GS(id_orig->name) != ID_OB) {
+    return;
+  }
+  const ViewLayer *view_layer = depsgraph->view_layer;
+  if (view_layer == nullptr) {
+    return;
+  }
+  /* Find the Base for this object in the (original) view layer. */
+  const Object *object_orig = reinterpret_cast<const Object *>(id_orig);
+  const Base *base = nullptr;
+  for (const Base &b : view_layer->object_bases) {
+    if (b.object == object_orig) {
+      base = &b;
+      break;
+    }
+  }
+  if (base == nullptr || BLI_listbase_is_empty(&base->nla_track_overrides)) {
+    return;
+  }
+  AnimData *anim_data_cow = BKE_animdata_from_id(id_cow);
+  if (anim_data_cow == nullptr) {
+    return;
+  }
+  /* For each override entry, find the matching COW NLA track by name and mute it. */
+  for (const NlaTrackOverride &override_entry : base->nla_track_overrides) {
+    NlaTrack *track_cow = reinterpret_cast<NlaTrack *>(anim_data_cow->nla_tracks.first);
+    while (track_cow != nullptr) {
+      if (STREQ(track_cow->name, override_entry.track_name)) {
+        track_cow->flag |= NLATRACK_MUTED;
+        break;
+      }
+      track_cow = track_cow->next;
+    }
+  }
+}
+
 /* Do some special treatment of data transfer from original ID to its
  * evaluated complementary part.
  *
@@ -685,6 +732,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
 {
   const ID_Type type = GS(id_orig->name);
   update_animation_data_after_copy(id_orig, id_cow);
+  apply_nla_view_layer_overrides(depsgraph, id_orig, id_cow);
   switch (type) {
     case ID_OB: {
       /* Ensure we don't drag someone's else derived mesh to the

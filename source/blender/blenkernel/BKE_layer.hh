@@ -101,6 +101,14 @@ void BKE_view_layer_base_deselect_all(const Scene *scene, ViewLayer *view_layer)
 
 void BKE_view_layer_base_select_and_set_active(ViewLayer *view_layer, Base *selbase);
 
+bool BKE_view_layer_nla_track_mute_get(ViewLayer *view_layer,
+                                       Object *object,
+                                       const char *track_name);
+bool BKE_view_layer_nla_track_mute_set(ViewLayer *view_layer,
+                                       Object *object,
+                                       const char *track_name,
+                                       bool mute);
+
 /**
  * Only copy internal data of #ViewLayer from source to already allocated/initialized destination.
  *
