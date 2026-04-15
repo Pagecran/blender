@@ -1936,6 +1936,9 @@ void DepsgraphNodeBuilder::build_camera(Camera *camera)
   build_idproperties(camera->id.system_properties);
   build_animdata(&camera->id);
   build_parameters(&camera->id);
+  if (camera->aim_target != nullptr) {
+    build_object(-1, camera->aim_target, DEG_ID_LINKED_INDIRECTLY, false);
+  }
   if (camera->dof.focus_object != nullptr) {
     build_object(-1, camera->dof.focus_object, DEG_ID_LINKED_INDIRECTLY, false);
   }

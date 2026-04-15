@@ -99,7 +99,13 @@ static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_i
   }
 
   if (zfac != 1.0f) {
-    view_dolly_to_vector_3d(vod->region, vod->init.ofs, vod->init.mousevec, zfac);
+    if (ED_view3d_camera_aim_check(vod->v3d, vod->rv3d)) {
+      const Bounds<float> dist_range = ED_view3d_dist_soft_range_get(vod->v3d, false);
+      vod->rv3d->dist = clamp_f(vod->init.dist * zfac, dist_range.min, dist_range.max);
+    }
+    else {
+      view_dolly_to_vector_3d(vod->region, vod->init.ofs, vod->init.mousevec, zfac);
+    }
   }
 
   if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
@@ -222,7 +228,14 @@ static wmOperatorStatus viewdolly_exec(bContext *C, wmOperator *op)
     negate_v3(mousevec);
   }
 
-  view_dolly_to_vector_3d(region, rv3d->ofs, mousevec, delta < 0 ? 1.8f : 0.2f);
+  if (ED_view3d_camera_aim_check(v3d, rv3d)) {
+    const Bounds<float> dist_range = ED_view3d_dist_soft_range_get(v3d, false);
+    const float factor = delta < 0 ? 1.8f : 0.2f;
+    rv3d->dist = clamp_f(rv3d->dist * factor, dist_range.min, dist_range.max);
+  }
+  else {
+    view_dolly_to_vector_3d(region, rv3d->ofs, mousevec, delta < 0 ? 1.8f : 0.2f);
+  }
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(area, region);
