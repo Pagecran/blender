@@ -1236,6 +1236,18 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2]);
  * \return true when the 3D Viewport is locked to its camera.
  */
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d);
+bool ED_view3d_camera_aim_check(const View3D *v3d, const RegionView3D *rv3d);
+bool ED_view3d_camera_aim_roll_get(const View3D *v3d, float *r_roll);
+bool ED_view3d_camera_aim_roll_set(View3D *v3d, float roll);
+bool ED_view3d_camera_aim_target_get(const Depsgraph *depsgraph,
+                                     const View3D *v3d,
+                                     float r_target[3]);
+bool ED_view3d_camera_aim_target_set(const Depsgraph *depsgraph,
+                                     View3D *v3d,
+                                     const float target[3]);
+bool ED_view3d_camera_aim_target_sync(const Depsgraph *depsgraph,
+                                      View3D *v3d,
+                                      RegionView3D *rv3d);
 /**
  * Copy the camera to the view before starting a view transformation.
  *
