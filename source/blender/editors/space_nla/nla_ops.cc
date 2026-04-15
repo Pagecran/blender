@@ -90,6 +90,7 @@ void nla_operatortypes()
 
   WM_operatortype_append(NLA_OT_tracks_add);
   WM_operatortype_append(NLA_OT_tracks_delete);
+  WM_operatortype_append(NLA_OT_tracks_mute_toggle_all_view_layers);
 
   WM_operatortype_append(NLA_OT_selected_objects_add);
 

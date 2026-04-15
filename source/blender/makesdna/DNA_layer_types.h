@@ -164,6 +164,18 @@ enum {
   VIEW_LAYER_HAS_EXPORT_COLLECTIONS = (1 << 4),
 };
 
+/**
+ * Per-view-layer NLA track mute override.
+ * Stored on Base so each view layer can independently mute NLA tracks.
+ * Presence of an entry means the track is muted in that view layer.
+ */
+struct NlaTrackOverride {
+  struct NlaTrackOverride *next = nullptr, *prev = nullptr;
+
+  /** Name of the NLA track to override (matched by name). */
+  char track_name[/*MAX_NAME*/ 64] = "";
+};
+
 struct Base {
   struct Base *next = nullptr, *prev = nullptr;
 
@@ -184,6 +196,9 @@ struct Base {
   unsigned short local_view_bits = 0;
   unsigned short local_collections_bits = 0;
   char _pad1[2] = {};
+
+  /** Per-view-layer NLA track mute overrides (NlaTrackOverride). */
+  ListBaseT<NlaTrackOverride> nla_track_overrides = {nullptr, nullptr};
 };
 
 struct LayerCollection {
