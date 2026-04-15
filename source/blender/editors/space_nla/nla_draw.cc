@@ -12,7 +12,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -24,6 +26,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_fcurve.hh"
+#include "BKE_layer.hh"
 #include "BKE_nla.hh"
 
 #include "ED_anim_api.hh"
@@ -410,10 +413,25 @@ static bool is_nlastrip_enabled(AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
   return adt->actstrip == strip;
 }
 
+static bool nla_track_muted_get(const bAnimContext *ac,
+                                const bAnimListElem *ale,
+                                const NlaTrack *nlt)
+{
+  const bool shared_mute = (nlt->flag & NLATRACK_MUTED) != 0;
+  if (ac == nullptr || ac->view_layer == nullptr || ale->id == nullptr || GS(ale->id->name) != ID_OB)
+  {
+    return shared_mute;
+  }
+
+  Object *object = reinterpret_cast<Object *>(ale->id);
+  return shared_mute || BKE_view_layer_nla_track_mute_get(ac->view_layer, object, nlt->name);
+}
+
 /* main call for drawing a single NLA-strip */
 static void nla_draw_strip(SpaceNla *snla,
                            AnimData *adt,
                            NlaTrack *nlt,
+                           const bool track_muted,
                            NlaStrip *strip,
                            View2D *v2d,
                            float yminc,
@@ -429,7 +447,7 @@ static void nla_draw_strip(SpaceNla *snla,
   const bool is_track_solo = (nlt->flag & NLATRACK_SOLO);
   const bool is_other_track_soloed = adt_has_solo_track && !is_track_solo;
 
-  const bool muted = ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED));
+  const bool muted = (track_muted || (strip->flag & NLASTRIP_FLAG_MUTED));
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   uint shdr_pos;
 
@@ -819,6 +837,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         case ANIMTYPE_NLATRACK: {
           AnimData *adt = ale->adt;
           NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+          const bool track_muted = nla_track_muted_get(ac, ale, nlt);
           ListBaseT<NlaStrip> visible_nla_strips = get_visible_nla_strips(nlt, v2d);
 
           /* Draw each visible strip in the track. */
@@ -827,7 +846,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
             const float xmaxc = strip.end - text_margin_x;
 
             /* draw the visualization of the strip */
-            nla_draw_strip(snla, adt, nlt, &strip, v2d, ymin, ymax);
+            nla_draw_strip(snla, adt, nlt, track_muted, &strip, v2d, ymin, ymax);
 
             /* add the text for this strip to the cache */
             if (xminc < xmaxc) {

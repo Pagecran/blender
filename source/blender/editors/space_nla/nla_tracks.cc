@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -768,6 +769,112 @@ void NLA_OT_tracks_delete(wmOperatorType *ot)
   ot->poll = nlaop_poll_tweakmode_off;
 
   /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ******************** Toggle Mute Tracks In All View Layers ***************************** */
+
+static wmOperatorStatus nlaedit_mute_toggle_tracks_all_view_layers_exec(bContext *C,
+                                                                        wmOperator *op)
+{
+  bAnimContext ac;
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  bool changed = false;
+  bool scene_changed = false;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
+                              ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type != ANIMTYPE_NLATRACK) {
+      continue;
+    }
+
+    NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
+    bool track_changed = false;
+    const bool shared_mute = (nlt->flag & NLATRACK_MUTED) != 0;
+    bool has_view_layer_mute = false;
+    const bool is_object_track = ac.scene != nullptr && ale.id != nullptr && GS(ale.id->name) == ID_OB;
+
+    if (is_object_track) {
+      Object *object = reinterpret_cast<Object *>(ale.id);
+      for (ViewLayer &view_layer : ac.scene->view_layers) {
+        if (BKE_view_layer_nla_track_mute_get(&view_layer, object, nlt->name)) {
+          has_view_layer_mute = true;
+          break;
+        }
+      }
+    }
+
+    const bool mute = !(shared_mute || has_view_layer_mute);
+
+    if (shared_mute) {
+      nlt->flag &= ~NLATRACK_MUTED;
+      changed = true;
+      track_changed = true;
+    }
+
+    if (!is_object_track) {
+      if (mute) {
+        nlt->flag |= NLATRACK_MUTED;
+        changed = true;
+        track_changed = true;
+      }
+    }
+
+    if (is_object_track) {
+      Object *object = reinterpret_cast<Object *>(ale.id);
+      for (ViewLayer &view_layer : ac.scene->view_layers) {
+        if (BKE_view_layer_nla_track_mute_set(&view_layer, object, nlt->name, mute)) {
+          changed = true;
+          scene_changed = true;
+          track_changed = true;
+        }
+      }
+    }
+
+    if (track_changed && ac.bmain != nullptr && ale.id != nullptr) {
+      DEG_id_tag_update_ex(ac.bmain, ale.id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+    }
+
+    if (track_changed) {
+      ale.update |= ANIM_UPDATE_DEPS;
+    }
+  }
+
+  ANIM_animdata_update(&ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+
+  if (!changed) {
+    BKE_report(op->reports, RPT_INFO, "No NLA track mute state changed");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (scene_changed && ac.bmain != nullptr && ac.scene != nullptr) {
+    DEG_id_tag_update_ex(ac.bmain, &ac.scene->id, ID_RECALC_SYNC_TO_EVAL);
+  }
+  if (ac.bmain != nullptr) {
+    DEG_relations_tag_update(ac.bmain);
+  }
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+void NLA_OT_tracks_mute_toggle_all_view_layers(wmOperatorType *ot)
+{
+  ot->name = "Toggle Mute in All View Layers";
+  ot->idname = "NLA_OT_tracks_mute_toggle_all_view_layers";
+  ot->description =
+      "Toggle mute for selected NLA tracks across every view layer, clearing shared mute when needed";
+
+  ot->exec = nlaedit_mute_toggle_tracks_all_view_layers_exec;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 

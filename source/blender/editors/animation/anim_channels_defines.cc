@@ -62,6 +62,7 @@
 #include "BKE_curve.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_nla.hh"
 
@@ -4449,6 +4450,70 @@ static void *acf_nlatrack_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(nlt->flag, r_type);
 }
 
+static bool acf_nlatrack_uses_view_layer_mute(const bAnimContext *ac, const bAnimListElem *ale)
+{
+  return ac != nullptr && ac->view_layer != nullptr && ale->id != nullptr && GS(ale->id->name) == ID_OB;
+}
+
+static bool acf_nlatrack_mute_get(const bAnimContext *ac, const bAnimListElem *ale)
+{
+  const NlaTrack *nlt = static_cast<const NlaTrack *>(ale->data);
+  const bool shared_mute = (nlt->flag & NLATRACK_MUTED) != 0;
+
+  if (!acf_nlatrack_uses_view_layer_mute(ac, ale)) {
+    return shared_mute;
+  }
+
+  Object *object = reinterpret_cast<Object *>(ale->id);
+  return shared_mute || BKE_view_layer_nla_track_mute_get(ac->view_layer, object, nlt->name);
+}
+
+static bool acf_nlatrack_mute_state_resolve(const eAnimChannels_SetFlag mode,
+                                            const bool current_state,
+                                            bool *r_mute)
+{
+  switch (mode) {
+    case ACHANNEL_SETFLAG_ADD:
+      *r_mute = true;
+      return true;
+    case ACHANNEL_SETFLAG_CLEAR:
+      *r_mute = false;
+      return true;
+    case ACHANNEL_SETFLAG_EXTEND_RANGE:
+      /* Range-extend is a selection concept, not applicable to mute.
+       * Treat as clear (unmute) for safety. */
+      *r_mute = false;
+      return true;
+    case ACHANNEL_SETFLAG_INVERT:
+    case ACHANNEL_SETFLAG_TOGGLE:
+      *r_mute = !current_state;
+      return true;
+  }
+
+  return false;
+}
+
+static bool acf_nlatrack_mute_set(bAnimContext *ac, bAnimListElem *ale, const bool mute)
+{
+  if (!acf_nlatrack_uses_view_layer_mute(ac, ale)) {
+    return false;
+  }
+
+  Object *object = reinterpret_cast<Object *>(ale->id);
+  NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+  const bool changed = BKE_view_layer_nla_track_mute_set(ac->view_layer, object, nlt->name, mute);
+  if (!changed || ac->bmain == nullptr) {
+    return changed;
+  }
+
+  DEG_id_tag_update_ex(ac->bmain, ale->id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+  if (ac->scene != nullptr) {
+    DEG_id_tag_update_ex(ac->bmain, &ac->scene->id, ID_RECALC_SYNC_TO_EVAL);
+  }
+
+  return true;
+}
+
 static void acf_nlatrack_setting_post_update(Main &bmain,
                                              const bAnimListElem & /*ale*/,
                                              const eAnimChannel_Settings setting)
@@ -4908,6 +4973,12 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
 
   /* 1) check that the setting exists for the current context */
   if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
+    if (setting == ACHANNEL_SETTING_MUTE && acf == &ACF_NLATRACK &&
+        acf_nlatrack_uses_view_layer_mute(ac, ale))
+    {
+      return acf_nlatrack_mute_get(ac, ale);
+    }
+
     /* 2) get pointer to check for flag in, and the flag to check for */
     short ptrsize;
     bool negflag;
@@ -4993,6 +5064,22 @@ void ANIM_channel_setting_set(bAnimContext *ac,
 
   /* 1) check that the setting exists for the current context */
   if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
+    if (setting == ACHANNEL_SETTING_MUTE && acf == &ACF_NLATRACK &&
+        acf_nlatrack_uses_view_layer_mute(ac, ale))
+    {
+      bool mute = false;
+      if (!acf_nlatrack_mute_state_resolve(mode, acf_nlatrack_mute_get(ac, ale), &mute)) {
+        return;
+      }
+
+      if (acf_nlatrack_mute_set(ac, ale, mute) && acf->setting_post_update) {
+        BLI_assert(ale);
+        BLI_assert(ac->bmain);
+        acf->setting_post_update(*ac->bmain, *ale, setting);
+      }
+      return;
+    }
+
     /* 2) get pointer to check for flag in, and the flag to check for */
     short ptrsize;
     bool negflag;
@@ -5569,6 +5656,37 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
   ANIM_animdata_freelist(&anim_data);
 }
 
+struct NlaTrackMuteWidgetData {
+  bAnimListElem ale;
+  bool was_muted;
+  bool was_shared_muted;
+};
+
+static void achannel_nlatrack_mute_widget_cb(bContext *C, void *mute_data_p, void *setting_wrap)
+{
+  NlaTrackMuteWidgetData *mute_data = static_cast<NlaTrackMuteWidgetData *>(mute_data_p);
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return;
+  }
+  if (!acf_nlatrack_uses_view_layer_mute(&ac, &mute_data->ale)) {
+    return;
+  }
+
+  NlaTrack *nlt = static_cast<NlaTrack *>(mute_data->ale.data);
+  const bool changed = acf_nlatrack_mute_set(&ac, &mute_data->ale, !mute_data->was_muted);
+  SET_FLAG_FROM_TEST(nlt->flag, mute_data->was_shared_muted, NLATRACK_MUTED);
+  if (!changed) {
+    return;
+  }
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, nullptr);
+  if (ac.scene != nullptr) {
+    WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, ac.scene);
+  }
+  achannel_setting_flush_widget_cb(C, &mute_data->ale, setting_wrap);
+}
+
 /* callback for wrapping NLA Track "solo" toggle logic */
 static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *setting_wrap)
 {
@@ -5937,11 +6055,23 @@ static void draw_setting_widget(bAnimContext *ac,
   /* Set callback to send relevant notifiers and/or perform type-specific updates */
   {
     ui::ButtonHandleNFunc button_callback;
+    void *button_callback_data = nullptr;
     switch (setting) {
       /* Settings needing flushing up/down hierarchy. */
       case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - "visibility" toggles. */
       case ACHANNEL_SETTING_PROTECT: /* General - protection flags. */
       case ACHANNEL_SETTING_MUTE:    /* General - muting flags. */
+        if (acf == &ACF_NLATRACK && acf_nlatrack_uses_view_layer_mute(ac, ale)) {
+          auto *mute_data = MEM_new<NlaTrackMuteWidgetData>(__func__);
+          mute_data->ale = *ale;
+          mute_data->was_muted = enabled;
+          mute_data->was_shared_muted =
+              (static_cast<NlaTrack *>(ale->data)->flag & NLATRACK_MUTED) != 0;
+          button_callback = achannel_nlatrack_mute_widget_cb;
+          button_callback_data = mute_data;
+          break;
+        }
+        ATTR_FALLTHROUGH;
       case ACHANNEL_SETTING_PINNED:  /* NLA Actions - "map/no-map". */
       case ACHANNEL_SETTING_MOD_OFF:
       case ACHANNEL_SETTING_ALWAYS_VISIBLE:
@@ -5960,7 +6090,10 @@ static void draw_setting_widget(bAnimContext *ac,
         button_callback = achannel_setting_widget_cb;
         break;
     }
-    button_funcN_set(but, button_callback, MEM_dupalloc(ale), POINTER_FROM_INT(setting));
+    if (button_callback_data == nullptr) {
+      button_callback_data = MEM_dupalloc(ale);
+    }
+    button_funcN_set(but, button_callback, button_callback_data, POINTER_FROM_INT(setting));
   }
 
   if ((ale->fcurve_owner_id != nullptr && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
