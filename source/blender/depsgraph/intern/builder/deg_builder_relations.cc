@@ -1046,7 +1046,11 @@ void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
   build_camera(camera);
   ComponentKey object_parameters_key(&object->id, NodeType::PARAMETERS);
   ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
+  OperationKey transform_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
   add_relation(camera_parameters_key, object_parameters_key, "Camera -> Object");
+  if ((camera->aim_target != nullptr) && (camera->aim_target != object)) {
+    add_relation(camera_parameters_key, transform_eval_key, "Camera Aim -> Object Transform");
+  }
 }
 
 void DepsgraphRelationBuilder::build_object_data_light(Object *object)
@@ -2909,6 +2913,12 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
   build_idproperties(camera->id.system_properties);
   build_animdata(&camera->id);
   build_parameters(&camera->id);
+  if (camera->aim_target != nullptr) {
+    build_object(camera->aim_target);
+    ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
+    ComponentKey aim_target_key(&camera->aim_target->id, NodeType::TRANSFORM);
+    add_relation(aim_target_key, camera_parameters_key, "Camera Aim");
+  }
   if (camera->dof.focus_object != nullptr) {
     build_object(camera->dof.focus_object);
     ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);

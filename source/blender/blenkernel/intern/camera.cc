@@ -108,6 +108,7 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof.focus_object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->aim_target, IDWALK_CB_NOP);
   for (CameraBGImage &bgpic : camera->bg_images) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic.ima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic.clip, IDWALK_CB_USER);

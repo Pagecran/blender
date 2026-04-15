@@ -6,6 +6,10 @@
  * \ingroup spview3d
  */
 
+#include "DNA_camera_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
 #include "BLI_dial_2d.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -18,12 +22,32 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "ANIM_keyframing.hh"
+
 #include "ED_screen.hh"
 
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
 namespace blender {
+
+static bool viewroll_aim_roll_autokey(View3D *v3d, bContext *C)
+{
+  if ((v3d->camera == nullptr) || (v3d->camera->type != OB_CAMERA) || (v3d->camera->data == nullptr)) {
+    return false;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  Camera *camera = reinterpret_cast<Camera *>(v3d->camera->data);
+  PointerRNA camera_ptr = RNA_id_pointer_create(&camera->id);
+  PropertyRNA *aim_roll_prop = RNA_struct_find_property(&camera_ptr, "aim_roll");
+  if (aim_roll_prop == nullptr) {
+    return false;
+  }
+
+  return animrig::autokeyframe_property(
+      C, scene, &camera_ptr, aim_roll_prop, -1, float(scene->r.cfra), false);
+}
 
 /* -------------------------------------------------------------------- */
 /** \name View Roll Operator
@@ -80,6 +104,9 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
   }
 
   ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+  if (ED_view3d_camera_aim_check(vod->v3d, vod->rv3d)) {
+    ED_view3d_camera_aim_roll_set(vod->v3d, vod->init.aim_roll + angle);
+  }
 
   ED_region_tag_redraw(vod->region);
 }
@@ -152,6 +179,9 @@ static wmOperatorStatus viewroll_modal(bContext *C, wmOperator *op, const wmEven
 
   if (use_autokey) {
     ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, true, false);
+    if (ED_view3d_camera_aim_check(vod->v3d, vod->rv3d)) {
+      viewroll_aim_roll_autokey(vod->v3d, C);
+    }
   }
 
   if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
@@ -226,6 +256,9 @@ static wmOperatorStatus viewroll_exec(bContext *C, wmOperator *op)
   }
 
   ED_view3d_smooth_view(C, vod->v3d, vod->region, smooth_viewtx, &sview_params);
+  if (ED_view3d_camera_aim_check(vod->v3d, vod->rv3d)) {
+    ED_view3d_camera_aim_roll_set(vod->v3d, vod->init.aim_roll + angle);
+  }
 
   viewops_data_free(C, vod);
   op->customdata = nullptr;
