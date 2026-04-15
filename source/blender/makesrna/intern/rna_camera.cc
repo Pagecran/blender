@@ -6,6 +6,7 @@
  * \ingroup RNA
  */
 
+#include <cfloat>
 #include <cstdlib>
 
 #include "DNA_camera_types.h"
@@ -43,6 +44,25 @@
 #  include "RE_engine.h"
 
 namespace blender {
+
+static void rna_Camera_aim_update(Main *bmain, Camera *camera, const bool relations_changed)
+{
+  for (Object &object : bmain->objects) {
+    if ((object.type != OB_CAMERA) || (object.data != reinterpret_cast<ID *>(camera))) {
+      continue;
+    }
+
+    DEG_id_tag_update(&object.id, ID_RECALC_TRANSFORM);
+    WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, &object);
+  }
+
+  if (relations_changed) {
+    DEG_relations_tag_update(bmain);
+  }
+
+  DEG_id_tag_update(&camera->id, 0);
+  WM_main_add_notifier(NC_CAMERA | ND_DRAW, camera);
+}
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
@@ -94,6 +114,18 @@ static void rna_Camera_dependency_update(Main *bmain, Scene * /*scene*/, Pointer
   Camera *camera = id_cast<Camera *>(ptr->owner_id);
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&camera->id, 0);
+}
+
+static void rna_Camera_aim_target_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
+  rna_Camera_aim_update(bmain, camera, true);
+}
+
+static void rna_Camera_aim_roll_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
+  rna_Camera_aim_update(bmain, camera, false);
 }
 
 static void rna_Camera_custom_update(Main * /*bmain*/, Scene *scene, PointerRNA *ptr)
@@ -1111,6 +1143,26 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CameraDOFSettings");
   RNA_def_property_ui_text(prop, "Depth Of Field", "");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
+  prop = RNA_def_property(srna, "use_aim_target", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "aim_flag", CAM_AIM_TARGET_ENABLED);
+  RNA_def_property_ui_text(prop, "Use Aim Target", "Use a target object for locked camera navigation");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_target_update");
+
+  prop = RNA_def_property(srna, "aim_target", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_pointer_sdna(prop, nullptr, "aim_target");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Aim Target", "Object used as the aim/orbit target in locked camera view");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_target_update");
+
+  prop = RNA_def_property(srna, "aim_roll", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "aim_roll");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 10, 2);
+  RNA_def_property_ui_text(prop, "Aim Roll", "Twist the camera around its aim axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_aim_roll_update");
 
   prop = RNA_def_property(srna, "background_images", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "bg_images", nullptr);

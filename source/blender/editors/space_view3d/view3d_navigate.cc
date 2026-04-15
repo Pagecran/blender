@@ -98,6 +98,10 @@ void ViewOpsData::state_backup()
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
   this->init.dist = rv3d->dist;
+  this->init.aim_roll = 0.0f;
+  if (ED_view3d_camera_aim_check(this->v3d, this->rv3d)) {
+    ED_view3d_camera_aim_roll_get(this->v3d, &this->init.aim_roll);
+  }
   copy_qt_qt(this->init.quat, rv3d->viewquat);
 
   this->init.persp = rv3d->persp;
@@ -171,6 +175,9 @@ void ViewOpsData::state_restore()
   /* NOTE: there is no need to restore "last" values (as set by #ED_view3d_lastview_store). */
 
   ED_view3d_camera_lock_sync(this->depsgraph, this->v3d, this->rv3d);
+  if (ED_view3d_camera_aim_check(this->v3d, this->rv3d)) {
+    ED_view3d_camera_aim_roll_set(this->v3d, this->init.aim_roll);
+  }
 }
 
 static eViewOpsFlag navigate_pivot_get(bContext *C,
@@ -1044,6 +1051,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
       float(vod->prev.event_xy[0] - x),
       float(vod->prev.event_xy[1] - y),
   };
+  const bool use_camera_aim = ED_view3d_camera_aim_check(vod->v3d, vod->rv3d);
 
   if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
     ED_view3d_camera_view_pan(vod->region, event_ofs);
@@ -1068,6 +1076,9 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
   vod->prev.event_xy[1] = y;
 
   ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+  if (use_camera_aim) {
+    ED_view3d_camera_aim_target_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+  }
 
   ED_region_tag_redraw(vod->region);
 }

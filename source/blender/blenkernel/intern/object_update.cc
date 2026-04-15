@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -14,6 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
@@ -45,6 +47,115 @@
 #include "DEG_depsgraph_query.hh"
 
 namespace blender {
+
+static void object_eval_camera_aim(Depsgraph *depsgraph, Object *ob)
+{
+  if ((ob->type != OB_CAMERA) || (ob->data == nullptr)) {
+    return;
+  }
+
+  const Camera *camera = id_cast<const Camera *>(ob->data);
+  if (((camera->aim_flag & CAM_AIM_TARGET_ENABLED) == 0) || (camera->aim_target == nullptr)) {
+    return;
+  }
+
+  Object *target_eval = DEG_get_evaluated(depsgraph, camera->aim_target);
+  if ((target_eval == nullptr) || (target_eval == ob)) {
+    return;
+  }
+
+  Object *parent_eval = (ob->parent != nullptr) ? DEG_get_evaluated(depsgraph, ob->parent) : nullptr;
+
+  float camera_loc[3];
+  float target_loc[3];
+  float target_to_camera[3];
+  float x_axis[3];
+  float y_axis[3];
+  float z_axis[3];
+  float base_rot[3][3];
+  float object_rot[3][3];
+  float up_ref[3];
+  float fallback_up_y[3];
+  float fallback_up_x[3];
+  copy_v3_v3(camera_loc, ob->object_to_world().location());
+  copy_v3_v3(target_loc, target_eval->object_to_world().location());
+  sub_v3_v3v3(target_to_camera, camera_loc, target_loc);
+  if (len_squared_v3(target_to_camera) <= 1.0e-12f) {
+    return;
+  }
+
+  float roll_rot[3][3];
+  float scale[3];
+  float object_mat[4][4];
+  const float world_up[3] = {0.0f, 0.0f, 1.0f};
+  const float world_y[3] = {0.0f, 1.0f, 0.0f};
+  const float world_x[3] = {1.0f, 0.0f, 0.0f};
+
+  mat4_to_size(scale, ob->object_to_world().ptr());
+  if (is_negative_m4(ob->object_to_world().ptr())) {
+    scale[0] = -scale[0];
+  }
+
+  if (parent_eval != nullptr) {
+    copy_v3_v3(up_ref, parent_eval->object_to_world()[2]);
+    copy_v3_v3(fallback_up_y, parent_eval->object_to_world()[1]);
+    copy_v3_v3(fallback_up_x, parent_eval->object_to_world()[0]);
+    if (normalize_v3(up_ref) == 0.0f) {
+      copy_v3_v3(up_ref, world_up);
+    }
+    if (normalize_v3(fallback_up_y) == 0.0f) {
+      copy_v3_v3(fallback_up_y, world_y);
+    }
+    if (normalize_v3(fallback_up_x) == 0.0f) {
+      copy_v3_v3(fallback_up_x, world_x);
+    }
+  }
+  else {
+    copy_v3_v3(up_ref, world_up);
+    copy_v3_v3(fallback_up_y, world_y);
+    copy_v3_v3(fallback_up_x, world_x);
+  }
+
+  normalize_v3_v3(z_axis, target_to_camera);
+
+  project_v3_v3v3(y_axis, up_ref, z_axis);
+  sub_v3_v3v3(y_axis, up_ref, y_axis);
+  if (normalize_v3(y_axis) == 0.0f) {
+    project_v3_v3v3(y_axis, fallback_up_y, z_axis);
+    sub_v3_v3v3(y_axis, fallback_up_y, y_axis);
+    if (normalize_v3(y_axis) == 0.0f) {
+      project_v3_v3v3(y_axis, fallback_up_x, z_axis);
+      sub_v3_v3v3(y_axis, fallback_up_x, y_axis);
+      if (normalize_v3(y_axis) == 0.0f) {
+        return;
+      }
+    }
+  }
+
+  cross_v3_v3v3(x_axis, y_axis, z_axis);
+  normalize_v3(x_axis);
+  cross_v3_v3v3(y_axis, z_axis, x_axis);
+  normalize_v3(y_axis);
+
+  copy_v3_v3(base_rot[0], x_axis);
+  copy_v3_v3(base_rot[1], y_axis);
+  copy_v3_v3(base_rot[2], z_axis);
+
+  if (camera->aim_roll != 0.0f) {
+    axis_angle_to_mat3_single(roll_rot, 'Z', camera->aim_roll);
+    mul_m3_m3m3(object_rot, base_rot, roll_rot);
+  }
+  else {
+    copy_m3_m3(object_rot, base_rot);
+  }
+
+  unit_m4(object_mat);
+  copy_m4_m3(object_mat, object_rot);
+  rescale_m4(object_mat, scale);
+  copy_v3_v3(object_mat[3], camera_loc);
+
+  copy_m4_m4(ob->runtime->object_to_world.ptr(), object_mat);
+}
 
 void BKE_object_eval_reset(Object *ob_eval)
 {
@@ -328,7 +439,11 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   }
 }
 
-void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/) {}
+void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+  object_eval_camera_aim(depsgraph, object);
+}
 
 void BKE_object_batch_cache_dirty_tag(Object *ob)
 {
