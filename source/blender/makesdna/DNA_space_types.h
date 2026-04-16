@@ -973,6 +973,31 @@ struct SpaceUserPref {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tool Window
+ * \{ */
+
+/** Minimal editor that only hosts Python panels. */
+struct SpaceToolWindow {
+  DNA_DEFINE_CXX_METHODS(SpaceToolWindow)
+  SpaceLink *next = nullptr, *prev = nullptr;
+  /** Storage of regions for inactive spaces. */
+  ListBaseT<ARegion> regionbase = {nullptr, nullptr};
+  char spacetype = 0;
+  char link_flag = 0;
+  char _pad0[6] = {};
+  /* End 'SpaceLink' header. */
+
+  /** Identifier used by Python panels to filter which tool to display. */
+  char tool_id[64] = {};
+
+  /** Maximum temporary window client size used for auto-fitting floating panels. */
+  int max_size_x = 0;
+  int max_size_y = 0;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Motion Tracking
  * \{ */
 

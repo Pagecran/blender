@@ -37,6 +37,7 @@ set(LIB
   bf_editor_space_spreadsheet
   bf_editor_space_statusbar
   bf_editor_space_text
+  bf_editor_space_toolwindow
   bf_editor_space_topbar
   bf_editor_space_userpref
   bf_editor_space_view3d
