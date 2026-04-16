@@ -716,6 +716,12 @@ void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
   }
 
   GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (!win->runtime->title_override.empty()) {
+    ghost_window->setTitle(win->runtime->title_override.c_str());
+    wm_window_title_state_refresh(wm, win);
+    return;
+  }
+
   auto window_filepath_fn = (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_PATH) ?
                                 std::optional([&ghost_window](const char *filepath) {
                                   ghost_window->setPath(filepath);
@@ -984,6 +990,61 @@ static void wm_window_ensure_eventstate(wmWindow *win)
 }
 
 static bool wm_window_update_size_position(wmWindow *win);
+
+static bool wm_window_size_lock_apply(wmWindow *win)
+{
+  if (!win->runtime->lock_size_y) {
+    return false;
+  }
+
+  const int lock_y = win->runtime->size_lock_y;
+  if (lock_y <= 0) {
+    return false;
+  }
+
+  if (win->sizey == lock_y) {
+    return false;
+  }
+
+  win->sizey = lock_y;
+  return true;
+}
+
+static bool wm_window_size_lock_apply_deferred(wmWindowManager *wm, wmWindow *win)
+{
+  if (!win->runtime->size_lock_apply_pending) {
+    return false;
+  }
+
+  const int lock_y = win->runtime->size_lock_apply_pending_y;
+  win->runtime->size_lock_apply_pending = false;
+  win->runtime->size_lock_apply_pending_y = 0;
+
+  if (lock_y <= 0) {
+    return false;
+  }
+
+  wm_window_set_size(win, win->sizex, lock_y);
+
+  if (wm_window_update_size_position(win)) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    wm_window_make_drawable(wm, win);
+    BKE_icon_changed(screen->id.icon_id);
+    WM_event_add_notifier_ex(wm, win, NC_SCREEN | NA_EDITED, nullptr);
+    WM_event_add_notifier_ex(wm, win, NC_WINDOW | NA_EDITED, nullptr);
+  }
+
+  return true;
+}
+
+static bool wm_window_size_lock_apply_pending_process(wmWindowManager *wm)
+{
+  bool changed = false;
+  for (wmWindow &win : wm->windows) {
+    changed |= wm_window_size_lock_apply_deferred(wm, &win);
+  }
+  return changed;
+}
 
 /* Belongs to below. */
 static void wm_window_ghostwindow_add(wmWindowManager *wm,
@@ -1308,14 +1369,17 @@ wmWindow *WM_window_open(bContext *C,
   /* Changes rect to fit within desktop. */
   wm_window_check_size(&rect);
 
-  /* Reuse temporary windows when they share the same single area. */
+   /* Reuse temporary windows when they share the same single area.
+   * Exception: SPACE_TOOLWINDOW is never reused because each tool window
+   * carries its own tool_id and must remain independent. */
   wmWindow *win = nullptr;
   if (temp) {
     for (wmWindow &win_iter : wm->windows) {
       const bScreen *screen = WM_window_get_active_screen(&win_iter);
       if (screen && screen->temp && BLI_listbase_is_single(&screen->areabase)) {
         ScrArea *area = static_cast<ScrArea *>(screen->areabase.first);
-        if (space_type == (area->butspacetype ? area->butspacetype : area->spacetype)) {
+        int existing_type = area->butspacetype ? area->butspacetype : area->spacetype;
+        if (space_type == existing_type && space_type != SPACE_TOOLWINDOW) {
           win = &win_iter;
           break;
         }
@@ -1431,7 +1495,8 @@ wmWindow *WM_window_open(bContext *C,
   return nullptr;
 }
 
-wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bool dialog)
+wmWindow *WM_window_open_temp(
+    bContext *C, const char *title, int space_type, bool dialog, int size_x, int size_y)
 {
   rcti rect;
   WM_window_dpi_set_userdef(CTX_wm_window(C));
@@ -1450,9 +1515,12 @@ wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bo
   }
   else {
     wmWindow *win_cur = CTX_wm_window(C);
-    const int width = int((bounds_valid ? BLI_rctf_size_x(stored_bounds) : 800.0f) * UI_SCALE_FAC);
-    const int height = int((bounds_valid ? BLI_rctf_size_y(stored_bounds) : 600.0f) *
-                           UI_SCALE_FAC);
+    const float def_w = (size_x > 0) ? float(size_x) :
+                         (bounds_valid ? BLI_rctf_size_x(stored_bounds) : 800.0f);
+    const float def_h = (size_y > 0) ? float(size_y) :
+                         (bounds_valid ? BLI_rctf_size_y(stored_bounds) : 600.0f);
+    const int width = int(def_w * UI_SCALE_FAC);
+    const int height = int(def_h * UI_SCALE_FAC);
     /* Use eventstate, not event from _invoke, so this can be called through exec(). */
     const wmEvent *event = win_cur->runtime->eventstate;
     rect.xmin = event->xy[0];
@@ -1905,6 +1973,12 @@ static bool ghost_event_proc(const GHOST_IEvent *ghost_event, GHOST_TUserDataPtr
          * It might be good to eventually do that at GHOST level, but that is for another time.
          */
         if (wm_window_update_size_position(win)) {
+          if (type == GHOST_kEventWindowSize && wm_window_size_lock_apply(win)) {
+            win->runtime->size_lock_apply_pending = true;
+            win->runtime->size_lock_apply_pending_y = win->runtime->size_lock_y;
+            break;
+          }
+
           const bScreen *screen = WM_window_get_active_screen(win);
 
           /* Debug prints. */
@@ -2198,6 +2272,14 @@ void wm_window_events_process(const bContext *C)
 
   if (has_event) {
     g_system->dispatchEvents();
+  }
+
+  if (wm_window_size_lock_apply_pending_process(CTX_wm_manager(C))) {
+    const bool has_resize_event = g_system->processEvents(false);
+    if (has_resize_event) {
+      has_event = true;
+      g_system->dispatchEvents();
+    }
   }
 
   /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle. */
@@ -3509,3 +3591,5 @@ void WM_ghost_show_message_box(const char *title,
 /** \} */
 
 }  // namespace blender
+
+
