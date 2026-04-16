@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -32,6 +33,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
@@ -6858,6 +6860,162 @@ static void SCREEN_OT_info_log_show(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Open Temporary Space Window Operator
+ * \{ */
+
+static wmOperatorStatus temp_space_show_exec(bContext *C, wmOperator *op)
+{
+  const int space_type = RNA_enum_get(op->ptr, "space_type");
+  char title[256];
+  RNA_string_get(op->ptr, "title", title);
+  const int req_width = RNA_int_get(op->ptr, "width");
+  const int req_height = RNA_int_get(op->ptr, "height");
+
+  /* changes context! */
+  if (WM_window_open_temp(C, title[0] ? title : IFACE_("Tool Window"),
+                          eSpace_Type(space_type), false, req_width, req_height))
+  {
+    wmWindow *win = CTX_wm_window(C);
+    ScrArea *area = CTX_wm_area(C);
+    const char *window_title = title[0] ? title : IFACE_("Tool Window");
+
+    /* For TOOL_WINDOW: set the tool_id on the space data so panels can filter. */
+    if (space_type == SPACE_TOOLWINDOW) {
+      char tool_id[64];
+      RNA_string_get(op->ptr, "tool_id", tool_id);
+      SpaceToolWindow *stw = reinterpret_cast<SpaceToolWindow *>(area->spacedata.first);
+      stw->max_size_x = (req_width > 0) ? req_width : area->winx;
+      stw->max_size_y = (req_height > 0) ? min_ii(req_height, area->winy) : area->winy;
+
+      if (win != nullptr) {
+        win->runtime->title_override = window_title;
+        win->runtime->lock_size_y = true;
+        win->runtime->size_lock_y = stw->max_size_y;
+      }
+
+      if (tool_id[0]) {
+        BLI_strncpy(stw->tool_id, tool_id, sizeof(stw->tool_id));
+      }
+    }
+
+    if (win != nullptr) {
+      WM_window_title_set(win, window_title);
+    }
+
+    /* content_only: hide every region except RGN_TYPE_WINDOW.
+     * This turns any editor into a bare panel host (useful for tool windows). */
+    if (RNA_boolean_get(op->ptr, "content_only")) {
+      static const int hide_types[] = {
+          RGN_TYPE_HEADER,
+          RGN_TYPE_TOOL_HEADER,
+          RGN_TYPE_FOOTER,
+          RGN_TYPE_NAV_BAR,
+          RGN_TYPE_EXECUTE,
+          RGN_TYPE_UI,
+          RGN_TYPE_TOOLS,
+      };
+      for (int i = 0; i < int(ARRAY_SIZE(hide_types)); i++) {
+        ARegion *region = BKE_area_find_region_type(area, hide_types[i]);
+        if (region && !(region->flag & RGN_FLAG_HIDDEN)) {
+          region->flag |= RGN_FLAG_HIDDEN;
+          ED_region_visibility_change_update(C, area, region);
+        }
+      }
+    }
+    else {
+      /* Optionally show sidebar (N-panel). */
+      if (RNA_boolean_get(op->ptr, "show_sidebar")) {
+        ARegion *region_ui = BKE_area_find_region_type(area, RGN_TYPE_UI);
+        if (region_ui && (region_ui->flag & RGN_FLAG_HIDDEN)) {
+          region_ui->flag &= ~RGN_FLAG_HIDDEN;
+          ED_region_visibility_change_update(C, area, region_ui);
+        }
+      }
+
+      /* Optionally hide the header to save space. */
+      if (RNA_boolean_get(op->ptr, "hide_header")) {
+        ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+        if (region_header && !(region_header->flag & RGN_FLAG_HIDDEN)) {
+          region_header->flag |= RGN_FLAG_HIDDEN;
+          ED_region_visibility_change_update(C, area, region_header);
+        }
+      }
+    }
+
+    return OPERATOR_FINISHED;
+  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
+}
+
+static void SCREEN_OT_temp_space_show(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Open Temporary Space";
+  ot->description = "Open an editor in a separate temporary window";
+  ot->idname = "SCREEN_OT_temp_space_show";
+
+  /* API callbacks. */
+  ot->exec = temp_space_show_exec;
+  ot->poll = ED_operator_screenactive_nobackground;
+
+  RNA_def_enum(ot->srna,
+               "space_type",
+               rna_enum_space_type_items,
+               SPACE_VIEW3D,
+               "Space Type",
+               "Type of editor to open in the temporary window");
+  RNA_def_string(ot->srna,
+                 "title",
+                 nullptr,
+                 256,
+                 "Title",
+                 "Window title (empty for default)");
+  RNA_def_boolean(ot->srna,
+                  "show_sidebar",
+                  false,
+                  "Show Sidebar",
+                  "Show the sidebar (N-panel) in the new window");
+  RNA_def_boolean(ot->srna,
+                  "hide_header",
+                  false,
+                  "Hide Header",
+                  "Hide the header bar in the new window");
+  RNA_def_boolean(ot->srna,
+                  "content_only",
+                  false,
+                  "Content Only",
+                  "Hide all regions except the main content area, "
+                  "turning the editor into a bare panel host");
+  RNA_def_string(ot->srna,
+                 "tool_id",
+                 nullptr,
+                 64,
+                 "Tool ID",
+                 "Identifier for filtering panels in a TOOL_WINDOW space");
+  RNA_def_int(ot->srna,
+              "width",
+              0,
+              0,
+              4096,
+              "Width",
+              "Preferred window width in pixels (0 = default)",
+              0,
+              4096);
+  RNA_def_int(ot->srna,
+              "height",
+              0,
+              0,
+              4096,
+              "Height",
+              "Preferred window height in pixels (0 = default)",
+              0,
+              4096);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name New Screen Operator
  * \{ */
 
@@ -7327,6 +7485,7 @@ void ED_operatortypes_screen()
   WM_operatortype_append(SCREEN_OT_userpref_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);
+  WM_operatortype_append(SCREEN_OT_temp_space_show);
   WM_operatortype_append(SCREEN_OT_region_blend);
   WM_operatortype_append(SCREEN_OT_space_type_set_or_cycle);
   WM_operatortype_append(SCREEN_OT_space_context_cycle);
