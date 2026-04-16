@@ -177,6 +177,11 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
      ICON_PREFERENCES,
      "Preferences",
      "Edit persistent configuration settings"},
+    {SPACE_TOOLWINDOW,
+     "TOOL_WINDOW",
+     ICON_WINDOW,
+     "Tool Window",
+     "Lightweight floating window for Python panels"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -760,6 +765,8 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
     case SPACE_TOPBAR:
     case SPACE_STATUSBAR:
       break;
+    case SPACE_TOOLWINDOW:
+      return RNA_SpaceToolWindow;
   }
 
   return RNA_Space;
@@ -8090,6 +8097,23 @@ static void rna_def_space_userpref(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceUserPref_search_filter_update");
 }
 
+static void rna_def_space_toolwindow(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SpaceToolWindow", "Space");
+  RNA_def_struct_sdna(srna, "SpaceToolWindow");
+  RNA_def_struct_ui_text(
+      srna, "Space Tool Window", "Tool window space data for hosting Python panels");
+
+  prop = RNA_def_property(srna, "tool_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "tool_id");
+  RNA_def_property_ui_text(
+      prop, "Tool ID", "Identifier used to filter which panels are displayed");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+}
+
 static void rna_def_node_tree_path(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9319,6 +9343,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_console_line(brna);
   rna_def_space_info(brna);
   rna_def_space_userpref(brna);
+  rna_def_space_toolwindow(brna);
   rna_def_node_tree_path(brna);
   rna_def_space_node(brna);
   rna_def_space_clip(brna);
