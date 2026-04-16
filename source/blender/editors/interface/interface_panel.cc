@@ -2219,7 +2219,15 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 void panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
   wmWindow *win = CTX_wm_window(C);
+  const ARegion *region = CTX_wm_region(C);
   const wmEvent *event = win->runtime->eventstate;
+
+  /* Auto-sized floating panel regions can move other headers under the cursor while a panel is
+   * expanding/collapsing, which makes the drag-collapse gesture toggle unrelated panels. */
+  if (region != nullptr && (region->flag & RGN_FLAG_DYNAMIC_SIZE)) {
+    return;
+  }
+
   PanelDragCollapseHandle *dragcol_data = MEM_new_zeroed<PanelDragCollapseHandle>(__func__);
 
   dragcol_data->was_first_open = was_open;

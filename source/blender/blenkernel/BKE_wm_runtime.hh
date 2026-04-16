@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "BKE_report.hh"
 
 #include "DNA_windowmanager_types.h"
@@ -177,6 +179,15 @@ struct WindowRuntime {
 
   /** Private runtime info to show text in the status bar. */
   void *cursor_keymap_status = nullptr;
+
+  /** Optional explicit title for temporary windows. */
+  std::string title_override;
+
+  /** Lock the client height while still allowing the width to be resized by the user. */
+  bool lock_size_y = false;
+  int size_lock_y = 0;
+  bool size_lock_apply_pending = false;
+  int size_lock_apply_pending_y = 0;
 
   WindowRuntime() = default;
   ~WindowRuntime();
