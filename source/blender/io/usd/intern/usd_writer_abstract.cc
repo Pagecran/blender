@@ -268,7 +268,7 @@ const pxr::SdfPath &USDAbstractWriter::usd_path() const
 
 pxr::SdfPath USDAbstractWriter::get_material_library_path() const
 {
-  static std::string material_library_path("/_materials");
+  static std::string material_library_path("/mtl");
 
   const std::string &root_prim_path = usd_export_context_.export_params.root_prim_path;
 
@@ -281,7 +281,7 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path() const
 
 pxr::SdfPath USDAbstractWriter::get_proto_material_root_path(const HierarchyContext &context) const
 {
-  static std::string material_library_path("/_materials");
+  static std::string material_library_path("/mtl");
 
   std::string path_prefix(usd_export_context_.export_params.root_prim_path);
 
@@ -296,8 +296,8 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material_created(
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
-  pxr::TfToken material_name(
-      make_safe_name(material->id.name + 2, usd_export_context_.export_params.allow_unicode));
+  pxr::TfToken material_name(get_export_material_shading_group_name(
+      material, usd_export_context_.export_params.allow_unicode));
   pxr::SdfPath usd_path = pxr::UsdGeomScope::Define(stage, get_material_library_path())
                               .GetPath()
                               .AppendChild(material_name);
