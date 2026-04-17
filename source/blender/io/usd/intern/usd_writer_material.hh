@@ -21,6 +21,9 @@ namespace io::usd {
 struct USDExporterContext;
 struct USDExportParams;
 
+std::string get_export_material_shader_name(const Material *material, bool allow_unicode);
+std::string get_export_material_shading_group_name(const Material *material, bool allow_unicode);
+
 /**
  * Create USDMaterial from Blender material.
  *
