@@ -289,9 +289,10 @@ TEST_F(UsdExportTest, usd_export_material)
   const bNode *bsdf_node = find_node_for_type_in_graph(material->nodetree,
                                                        "ShaderNodeBsdfPrincipled"_ustr);
 
-  const std::string prim_name = pxr::TfMakeValidIdentifier(bsdf_node->name);
+  const std::string material_sg_name = pxr::TfMakeValidIdentifier(std::string(material->id.name + 2) + "SG");
+  const std::string prim_name = pxr::TfMakeValidIdentifier(material->id.name + 2);
   const pxr::UsdPrim bsdf_prim = stage->GetPrimAtPath(
-      pxr::SdfPath("/_materials/Material/" + prim_name));
+      pxr::SdfPath("/_materials/" + material_sg_name + "/" + prim_name));
 
   compare_blender_node_to_usd_prim(bsdf_node, bsdf_prim);
 
@@ -303,12 +304,71 @@ TEST_F(UsdExportTest, usd_export_material)
   const std::string image_prim_name = pxr::TfMakeValidIdentifier(image_node->name);
 
   const pxr::UsdPrim image_prim = stage->GetPrimAtPath(
-      pxr::SdfPath("/_materials/Material/" + image_prim_name));
+      pxr::SdfPath("/_materials/" + material_sg_name + "/" + image_prim_name));
 
   ASSERT_TRUE(bool(image_prim)) << "Unable to find Material prim from exported stage "
                                 << output_filename;
 
   compare_blender_image_to_usd_image_shader(image_node, image_prim);
+}
+
+TEST_F(UsdExportTest, usd_export_material_materialx_only)
+{
+  if (!load_file_and_depsgraph(materials_filename)) {
+    FAIL() << "Unable to load file: " << materials_filename;
+    return;
+  }
+
+  Material *material = reinterpret_cast<Material *>(
+      BKE_libblock_find_name(bfile->main, ID_MA, "Material"));
+  ASSERT_TRUE(bool(material));
+
+  USDExportParams params;
+  params.export_materials = true;
+  params.export_normals = true;
+  params.export_textures = false;
+  params.export_uvmaps = true;
+  params.generate_preview_surface = false;
+  params.generate_materialx_network = true;
+  params.convert_world_material = false;
+  params.relative_paths = false;
+
+  const bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
+  ASSERT_TRUE(result) << "Unable to export stage to " << output_filename;
+
+  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);
+  ASSERT_NE(stage, nullptr) << "Unable to open exported stage: " << output_filename;
+
+  const std::string material_sg_name = pxr::TfMakeValidIdentifier(
+      std::string(material->id.name + 2) + "SG");
+  const pxr::UsdPrim material_prim =
+      stage->GetPrimAtPath(pxr::SdfPath("/_materials/" + material_sg_name));
+  ASSERT_TRUE(bool(material_prim)) << "Unable to find Material prim from exported stage "
+                                   << output_filename;
+
+  const pxr::UsdAttribute preview_surface_output = material_prim.GetAttribute(
+      pxr::TfToken("outputs:surface"));
+  EXPECT_FALSE(bool(preview_surface_output));
+
+  const pxr::UsdAttribute materialx_surface_output = material_prim.GetAttribute(
+      pxr::TfToken("outputs:mtlx:surface"));
+  ASSERT_TRUE(bool(materialx_surface_output));
+
+  pxr::SdfPathVector output_paths;
+  materialx_surface_output.GetConnections(&output_paths);
+  ASSERT_EQ(output_paths.size(), 1);
+
+  const std::string shader_name = pxr::TfMakeValidIdentifier(material->id.name + 2);
+  EXPECT_EQ(output_paths[0].GetPrimPath().GetName(), shader_name);
+
+  const pxr::UsdPrim shader_prim = stage->GetPrimAtPath(output_paths[0].GetPrimPath());
+  ASSERT_TRUE(bool(shader_prim));
+
+  pxr::VtValue shader_id_value;
+  ASSERT_TRUE(shader_prim.GetAttribute(pxr::TfToken("info:id")).Get(&shader_id_value));
+  ASSERT_TRUE(shader_id_value.IsHolding<pxr::TfToken>());
+  EXPECT_EQ(shader_id_value.UncheckedGet<pxr::TfToken>(),
+            pxr::TfToken("ND_open_pbr_surface_surfaceshader"));
 }
 
 TEST(utilities, make_safe_name)
@@ -384,3 +444,4 @@ TEST(utilities, make_safe_primvar_name)
 }
 
 }  // namespace blender::io::usd
+
