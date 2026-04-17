@@ -61,7 +61,6 @@ static const pxr::TfToken clearcoatRoughness("clearcoatRoughness", pxr::TfToken:
 static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
 static const pxr::TfToken emissive_color("emissiveColor", pxr::TfToken::Immortal);
 static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
-static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
 static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
 static const pxr::TfToken UsdTransform2d("UsdTransform2d", pxr::TfToken::Immortal);
 static const pxr::TfToken uv_texture("UsdUVTexture", pxr::TfToken::Immortal);
@@ -104,6 +103,17 @@ static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace io::usd {
+
+std::string get_export_material_shader_name(const Material *material, const bool allow_unicode)
+{
+  return make_safe_name(material->id.name + 2, allow_unicode);
+}
+
+std::string get_export_material_shading_group_name(const Material *material,
+                                                   const bool allow_unicode)
+{
+  return make_safe_name(std::string(material->id.name + 2) + "SG", allow_unicode);
+}
 
 /* Preview surface input specification. */
 struct InputSpec {
@@ -458,8 +468,10 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     return;
   }
 
+  const std::string shader_name = get_export_material_shader_name(
+      material, usd_export_context.export_params.allow_unicode);
   pxr::UsdShadeShader preview_surface = create_usd_preview_shader(
-      usd_export_context, usd_material, surface_node);
+      usd_export_context, usd_material, shader_name, surface_node->type_legacy);
 
   /* Handle the primary "surface" output. */
   process_inputs(
@@ -597,7 +609,9 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
                                   const pxr::UsdShadeMaterial &usd_material)
 {
   /* Construct the shader. */
-  pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);
+  pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(
+      pxr::TfToken(get_export_material_shader_name(
+          material, usd_export_context.export_params.allow_unicode)));
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
 
   shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
@@ -1532,9 +1546,11 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
                                           const std::string &active_uvmap_name,
                                           const pxr::UsdShadeMaterial &usd_material)
 {
+  const std::string shader_name = get_export_material_shader_name(
+      material, usd_export_context.export_params.allow_unicode);
   nodes::materialx::ExportParams export_params = {
       /* Output surface material node will have this name. */
-      usd_path.GetElementString(),
+      shader_name,
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
        * While the graph is traversed, we also want it to export the textures out. */
       (usd_export_context.export_image_fn) ?
@@ -1574,9 +1590,10 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
   auto temp_stage = pxr::UsdStage::CreateInMemory();
   pxr::UsdMtlxRead(doc, temp_stage, pxr::SdfPath("/root"));
 
-  /* Next we need to find the Material that matches this materials name */
+  /* The in-memory MaterialX stage is keyed by the exported shader/material name, not by the
+   * USD assignment container name (the SG-style UsdShadeMaterial prim). */
   auto temp_material_path = pxr::SdfPath("/root/Materials");
-  temp_material_path = temp_material_path.AppendChild(material_prim.GetName());
+  temp_material_path = temp_material_path.AppendChild(pxr::TfToken(shader_name));
   auto temp_material_prim = temp_stage->GetPrimAtPath(temp_material_path);
   if (!temp_material_prim) {
     return;
@@ -1606,6 +1623,16 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     temp_used_names.add(child.GetName().GetString());
   }
 
+  std::string surface_shader_name;
+  for (const auto &temp_material_output : temp_material.GetOutputs()) {
+    pxr::SdfPathVector output_paths;
+    temp_material_output.GetAttr().GetConnections(&output_paths);
+    if (output_paths.size() == 1) {
+      surface_shader_name = output_paths[0].GetPrimPath().GetName();
+      break;
+    }
+  }
+
   /* We loop through the top level children of the material, and make sure that the names are
    * unique across both the destination stage, and this temporary stage.
    * This is stored for later use so that we can reflow any connections */
@@ -1613,18 +1640,16 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
   for (const auto &temp_material_child : temp_material_prim.GetChildren()) {
     uint32_t conflict_counter = 0;
     const std::string &name = temp_material_child.GetName().GetString();
-    std::string target_name = name;
-    while (used_names.contains(target_name)) {
-      ++conflict_counter;
-      target_name = name + "_mtlx" + std::to_string(conflict_counter);
+    const std::string desired_name = (name == surface_shader_name) ? shader_name : name;
+    std::string target_name = desired_name;
 
-      while (temp_used_names.contains(target_name)) {
-        ++conflict_counter;
-        target_name = name + "_mtlx" + std::to_string(conflict_counter);
-      }
+    while (used_names.contains(target_name) ||
+           ((target_name != name) && temp_used_names.contains(target_name))) {
+      ++conflict_counter;
+      target_name = desired_name + "_mtlx" + std::to_string(conflict_counter);
     }
 
-    if (conflict_counter == 0) {
+    if (target_name == name) {
       continue;
     }
 
@@ -1736,20 +1761,25 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Define(usd_export_context.stage,
                                                                      usd_path);
 
+  bool created_shader_network = false;
+
   if (usd_export_context.export_params.generate_preview_surface) {
     create_usd_preview_surface_material(
         usd_export_context, material, usd_material, active_uvmap_name, reports);
-  }
-  else {
-    create_usd_viewport_material(usd_export_context, material, usd_material);
+    created_shader_network = true;
   }
 
 #ifdef WITH_MATERIALX
   if (usd_export_context.export_params.generate_materialx_network) {
     create_usd_materialx_material(
         usd_export_context, usd_path, material, active_uvmap_name, usd_material);
+    created_shader_network = true;
   }
 #endif
+
+  if (!created_shader_network) {
+    create_usd_viewport_material(usd_export_context, material, usd_material);
+  }
 
   call_material_export_hooks(
       usd_export_context.stage, material, usd_material, usd_export_context.export_params, reports);
@@ -1759,3 +1789,4 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
 
 }  // namespace io::usd
 }  // namespace blender
+
