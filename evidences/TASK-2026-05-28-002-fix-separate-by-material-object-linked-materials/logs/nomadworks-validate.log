@@ -1,0 +1,9 @@
+nomadworks_validate result: FAIL
+
+Summary:
+- Root codemap links reference missing files: Agents_Common.md, docs/core/agent_orchestration.md, docs/architecture/TECHNICAL_ARCHITECTURE.md.
+- Root codemap entries violate the local-knowledge rule for nested docs paths.
+- The validator reported broad pre-existing missing CodeMap coverage across build_files, doc, extern, intern, lib, and other Blender source/dependency directories.
+
+Assessment:
+These validation failures predate and are unrelated to the narrow material separation implementation. No task-scoped CodeMap update was practical because this Blender checkout does not maintain local codemap.yml files for the modified source/test directories.

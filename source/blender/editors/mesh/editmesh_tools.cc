@@ -4198,8 +4198,27 @@ enum {
 };
 
 /** TODO: Use #mesh_separate_arrays since it's more efficient. */
-static Base *mesh_separate_tagged(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
+static void mesh_separate_copy_object_material_slots(Main *bmain,
+                                                     Object *ob_src,
+                                                     Object *ob_dst)
+{
+  for (int i = 0; i < ob_src->totcol; i++) {
+    Material *ma_src = BKE_object_material_get(ob_src, i + 1);
+    if (ob_src->matbits && ob_src->matbits[i]) {
+      BKE_object_material_assign(bmain, ob_dst, ma_src, i + 1, BKE_MAT_ASSIGN_OBJECT);
+    }
+    else {
+      BKE_object_material_assign(bmain, ob_dst, ma_src, i + 1, BKE_MAT_ASSIGN_OBDATA);
+    }
+  }
+}
+
+static Base *mesh_separate_tagged(Main *bmain,
+                                  Scene *scene,
+                                  ViewLayer *view_layer,
+                                  Base *base_old,
+                                  BMesh *bm_old,
+                                  const bool preserve_object_material_slots)
 {
   Object *obedit = base_old->object;
   BMeshCreateParams create_params{};
@@ -4229,6 +4248,9 @@ static Base *mesh_separate_tagged(
                                    BKE_object_material_array_p(obedit),
                                    *BKE_object_material_len_p(obedit),
                                    false);
+  if (preserve_object_material_slots) {
+    mesh_separate_copy_object_material_slots(bmain, obedit, base_new->object);
+  }
 
   ed::object::base_select(base_new, ed::object::BA_SELECT);
 
@@ -4343,7 +4365,7 @@ static bool mesh_separate_selected(
   BM_mesh_elem_hflag_enable_test(
       bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, true, false, BM_ELEM_SELECT);
 
-  Base *base_new = mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old);
+  Base *base_new = mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old, false);
 
   BM_custom_loop_normals_from_vector_layer(bm_old, false);
 
@@ -4369,35 +4391,20 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
   }
 
   if (*totcolp) {
-    Material *ma_ob;
-    Material *ma_obdata;
-    char matbit;
+    Material *ma;
+    const char matbit = (mat_nr < ob->totcol && ob->matbits) ? ob->matbits[mat_nr] : 0;
 
-    if (mat_nr < ob->totcol) {
-      ma_ob = ob->mat[mat_nr];
-      matbit = ob->matbits[mat_nr];
-    }
-    else {
-      ma_ob = nullptr;
-      matbit = 0;
-    }
-
-    if (mat_nr < *totcolp) {
-      ma_obdata = (*matarar)[mat_nr];
-    }
-    else {
-      ma_obdata = nullptr;
-    }
+    ma = BKE_object_material_get(ob, mat_nr + 1);
 
     BKE_id_material_clear(bmain, obdata);
     BKE_id_material_resize(bmain, obdata, 1, true);
     BKE_objects_materials_sync_length_all(bmain, obdata);
 
-    ob->mat[0] = ma_ob;
-    id_us_plus(id_cast<ID *>(ma_ob));
+    ob->mat[0] = matbit ? ma : nullptr;
+    id_us_plus(id_cast<ID *>(ob->mat[0]));
     ob->matbits[0] = matbit;
-    (*matarar)[0] = ma_obdata;
-    id_us_plus(id_cast<ID *>(ma_obdata));
+    (*matarar)[0] = matbit ? nullptr : ma;
+    id_us_plus(id_cast<ID *>((*matarar)[0]));
   }
   else {
     BKE_id_material_clear(bmain, obdata);
@@ -4448,7 +4455,7 @@ static bool mesh_separate_material(
     }
 
     /* Move selection into a separate object */
-    base_new = mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old);
+    base_new = mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old, true);
     if (base_new) {
       mesh_separate_material_assign_mat_nr(bmain, base_new->object, mat_nr);
     }
