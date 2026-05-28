@@ -1,0 +1,20 @@
+QA validation performed by qa_engineer on 2026-05-28.
+
+Commands/checks:
+- Read full task file: tasks/todo/TASK-2026-05-28-002-fix-separate-by-material-object-linked-materials.md
+- Read evidence summary: evidences/TASK-2026-05-28-002-fix-separate-by-material-object-linked-materials/SUMMARY.md
+- Static review: tests/python/mesh_separate.py covers object-linked and data-linked Separate by Material paths.
+- Static review: tests/python/CMakeLists.txt registers mesh_separate Blender Python test.
+- Static review: source/blender/editors/mesh/editmesh_tools.cc preserves material slot link/material state before condensation.
+- Static review: source/blender/blenkernel/BKE_blender_version.h has BLENDER_VERSION_BUILD 4.
+- Runtime availability check: no Windows blender.exe found under workspace; only release/darwin/Blender.app/Contents/MacOS/blender was present and not executable in this Windows environment.
+- Command: python -m py_compile tests/python/mesh_separate.py
+  Result: PASS, no output.
+- Command: git diff --check
+  Result: PASS, only Git line-ending normalization warnings for modified tracked files.
+
+Runtime gap:
+- Blender operator regression test could not be executed because no compatible local Blender runtime/build was available.
+
+Evidence discrepancy:
+- SUMMARY.md references logs/python-py-compile.log, but that file was not present at QA review time; this QA log records the repeated py_compile PASS.
