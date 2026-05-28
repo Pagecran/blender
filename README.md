@@ -4,68 +4,110 @@ linking to external resources instead of including content in-line.
 See 'release/text/readme.html' for the end user read-me.
 -->
 
-Pagecran Blender Fork
+Fork Blender Pagecran
 =====================
 
-Blender is the free and open source 3D creation suite.
-It supports the entirety of the 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing,
-motion tracking and video editing.
+Blender est une suite de création 3D libre et open source.
+Elle couvre toute la chaîne 3D : modélisation, rigging, animation, simulation, rendu, compositing,
+motion tracking et montage vidéo.
 
-This repository is the Pagecran fork of Blender, based on upstream Blender `v5.1.1` and maintained on the
-`Pagec5.1.1` branch. The current Pagecran build version is `5.1.1.4`: Blender `5.1.1` plus Pagecran build
-number `4` as the fourth version component.
+Ce dépôt est le fork Pagecran de Blender, basé sur Blender amont `v5.1.1` et maintenu sur la branche
+`Pagec5.1.1`. La version Pagecran courante est `5.1.1.4` : Blender `5.1.1` avec le numéro de build
+Pagecran `4` comme quatrième composant de version.
 
 ![Blender screenshot](https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg "Blender screenshot")
 
-Pagecran Changes
-----------------
+Changements Pagecran
+--------------------
 
-The fork currently adds these changes on top of Blender `v5.1.1`:
+Le fork ajoute notamment ces changements au-dessus de Blender `v5.1.1` :
 
-- Material override operators for library materials from the material menu.
-- Library Override Push Back support in the Outliner.
-- Pagecran build-number support through `BLENDER_VERSION_BUILD` for Windows executable versioning.
-- Cycles per-pass denoising support for light passes.
-- Select Through support ported to edit and object modes.
-- Outliner defaults adjusted so filter toggles are enabled by default.
-- Hidden objects are treated as non-renderable.
-- A dedicated tool window editor for modeless panels.
-- Camera aim target navigation and rig support.
-- NLA track mute state stored per view layer.
-- USD material export naming conventions that use an `mtl` folder and SG/shader naming.
-- Separate by Material preserves object-linked material slots when separating meshes.
+- Déploiement interne Pagecran de Blender 5.x, avec raccourci bureau `blender 5.1` pour la compatibilité
+  addons et Royal Render.
+- Visibilité objet connectée à la rendabilité, avec gestion de visibilité par render layer et restauration du
+  comportement où un objet caché dans le viewport est aussi caché au rendu.
+- Workflow USD Pagecran : export USD adapté, conversion MaterialX/OpenPBR, conservation des matériaux de même
+  nom à l'import USD, dossier `mtl` et conventions de nommage SG/shader.
+- Overrides sur bibliothèques liées : override de matériaux de library, override de bibliothèques liées imbriquées
+  et push back vers la bibliothèque d'origine depuis l'Outliner.
+- Cycles : denoise AOV/light passes au rendu pour les passes sélectionnées, via l'option en bas de la liste
+  `Light Passes`.
+- Select Through complet en Object Mode et Edit Mode : sélection de la face avant seule ou de tout ce qui est dans
+  la sélection, même derrière la géométrie, sans activer X-Ray. Les outils Circle et Lasso sont compatibles.
+- Overrides d'animation dans les shots : l'état mute des tracks/canaux NLA est spécifique à chaque View Layer.
+- Panneaux flottants modeless : panneaux qui restent ouverts hors clic extérieur et ne sont pas fixés à la zone
+  gauche du viewport, utilisés dans le menu Pagecran Blender pour Material Utilities et Cleaning Tools.
+- Navigation et support de rig pour camera aim target.
+- `Separate by Material` conserve les slots de matériaux liés à l'objet lors de la séparation.
+- Support du numéro de build Pagecran via `BLENDER_VERSION_BUILD` pour le versioning Windows.
 
-Pagecran Build Number Procedure
--------------------------------
+Les captures d'écran de certaines fonctionnalités sont disponibles dans les annonces Teams PagecranTeam/General
+de Pascal ; elles ne sont pas intégrées ici car les URLs Teams sont protégées par authentification.
 
-When incrementing the Pagecran build number:
+Compilation et packaging Windows
+--------------------------------
 
-1. Update `BLENDER_VERSION_BUILD` in `source/blender/blenkernel/BKE_blender_version.h` to the next integer.
-2. Treat that integer as the fourth version component. For example, Blender `5.1.1` with
-   `BLENDER_VERSION_BUILD 4` is documented as `5.1.1.4`.
-3. Commit only that build-number change separately with subject `Update BKE_blender_version.h` and commit body
-   `build <N>`, replacing `<N>` with the new build number.
+Depuis la racine du dépôt, le build de release standard se lance avec :
 
-Project Pages
+```bat
+.\make.bat release
+```
+
+Pour nettoyer puis reconstruire une release, utiliser la cible `clean` avec une cible de build explicite :
+
+```bat
+.\make.bat clean release
+```
+
+`clean` est documenté par l'aide de `make.bat` comme nécessitant une cible ; avec le générateur MSBuild, ce chemin
+appelle la cible MSBuild `clean` avant de relancer le build.
+
+Après un build release configuré, le MSI vérifié est généré depuis la configuration CPack du répertoire de build :
+
+```bat
+cpack -C Release -G WIX --config "D:\build_windows_Release_x64_vc17_Release\CPackConfig.cmake"
+```
+
+Sortie vérifiée pour la version courante :
+
+```text
+D:\build_windows_Release_x64_vc17_Release\blender-5.1.1.4-windows-x64.msi
+```
+
+La configuration WIX/CPack se trouve dans `build_files/cmake/packaging.cmake`. Le nom du package inclut le
+quatrième composant de version Pagecran.
+
+Procédure du numéro de build Pagecran
+-------------------------------------
+
+Lors de l'incrément du numéro de build Pagecran :
+
+1. Mettre à jour `BLENDER_VERSION_BUILD` dans `source/blender/blenkernel/BKE_blender_version.h` avec l'entier suivant.
+2. Utiliser cet entier comme quatrième composant de version. Par exemple, Blender `5.1.1` avec
+   `BLENDER_VERSION_BUILD 4` est documenté comme `5.1.1.4`.
+3. Commiter uniquement ce changement de numéro de build séparément, avec le sujet `Update BKE_blender_version.h`
+   et le corps de commit `build <N>`, en remplaçant `<N>` par le nouveau numéro.
+
+Pages du projet
+---------------
+
+- [Site principal](http://www.blender.org)
+- [Manuel de référence](https://docs.blender.org/manual/en/latest/index.html)
+- [Communauté utilisateur](https://www.blender.org/community/)
+
+Développement
 -------------
 
-- [Main Website](http://www.blender.org)
-- [Reference Manual](https://docs.blender.org/manual/en/latest/index.html)
-- [User Community](https://www.blender.org/community/)
-
-Development
------------
-
-- [Build Instructions](https://developer.blender.org/docs/handbook/building_blender/)
-- [Code Review & Bug Tracker](https://projects.blender.org)
-- [Developer Forum](https://devtalk.blender.org)
-- [Developer Documentation](https://developer.blender.org/docs/)
+- [Instructions de compilation](https://developer.blender.org/docs/handbook/building_blender/)
+- [Code review et suivi des bugs](https://projects.blender.org)
+- [Forum développeur](https://devtalk.blender.org)
+- [Documentation développeur](https://developer.blender.org/docs/)
 
 
-License
+Licence
 -------
 
-Blender as a whole is licensed under the GNU General Public License, Version 3.
-Individual files may have a different but compatible license.
+Blender dans son ensemble est distribué sous licence GNU General Public License, version 3.
+Certains fichiers peuvent utiliser une licence différente mais compatible.
 
-See [blender.org/about/license](https://www.blender.org/about/license) for details.
+Voir [blender.org/about/license](https://www.blender.org/about/license) pour les détails.
