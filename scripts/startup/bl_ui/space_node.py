@@ -638,6 +638,44 @@ class NODE_PT_node_color_presets(PresetPanel, Panel):
     preset_add_operator = "node.node_color_preset_add"
 
 
+class NODE_PT_palette(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Color"
+    bl_label = "Palette"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode is not None and snode.tree_type == 'ShaderNodeTree'
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        if brush and brush.image_paint_capabilities.has_color:
+            ups = settings.unified_paint_settings
+            prop_owner = ups if ups.use_unified_color else brush
+
+            col = layout.column()
+            col.template_color_picker(prop_owner, "color", value_slider=True)
+
+            row = col.row(align=True)
+            row.prop(prop_owner, "color", text="")
+            row.prop(prop_owner, "secondary_color", text="")
+            row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
+            row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
+        else:
+            layout.label(text="No image paint color brush", icon='INFO')
+
+        layout.separator()
+
+        layout.template_ID(settings, "palette", new="palette.new")
+        if settings.palette:
+            layout.template_palette(settings, "palette", color=True)
+
+
 class NODE_MT_node_color_context_menu(Menu):
     bl_label = "Node Color Specials"
 
@@ -1239,6 +1277,7 @@ classes = (
     NODE_PT_geometry_node_tool_mode,
     NODE_PT_geometry_node_tool_options,
     NODE_PT_node_color_presets,
+    NODE_PT_palette,
     NODE_PT_node_tree_properties,
     NODE_MT_node_tree_interface_new_item,
     NODE_MT_node_tree_interface_context_menu,
