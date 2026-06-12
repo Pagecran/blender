@@ -641,24 +641,6 @@ class NODE_PT_palette(Panel):
     def draw(self, context):
         layout = self.layout
         settings = context.tool_settings.image_paint
-        brush = settings.brush
-
-        if brush and brush.image_paint_capabilities.has_color:
-            ups = settings.unified_paint_settings
-            prop_owner = ups if ups.use_unified_color else brush
-
-            col = layout.column()
-            col.template_color_picker(prop_owner, "color", value_slider=True)
-
-            row = col.row(align=True)
-            row.prop(prop_owner, "color", text="")
-            row.prop(prop_owner, "secondary_color", text="")
-            row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
-            row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
-        else:
-            layout.label(text="No image paint color brush", icon='INFO')
-
-        layout.separator()
 
         layout.template_ID(settings, "palette", new="palette.new")
         if settings.palette:
