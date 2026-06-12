@@ -175,6 +175,29 @@ Le remote `upstream` est en lecture seule (mirror Blender officiel) et le remote
 depuis un clone non autorisé). Le seul remote sur lequel un push doit réussir
 est `origin`, qui après la configuration ci-dessus ne tente plus d'upload LFS.
 
+Build d'une nouvelle branche de release Pagecran
+------------------------------------------------
+
+Aucune procédure manuelle de récupération des libs n'est nécessaire : `.\make.bat
+update` fait tout. Le script détecte l'architecture (x64 → `lib/windows_x64`,
+ARM64 → `lib/windows_arm64`), configure le submodule en mode `checkout`, lance
+`git submodule update --init --progress <lib>` pour ramener le bon SHA depuis
+`projects.blender.org/blender/lib-*.git`, puis exécute `make_update.py` pour
+les opérations annexes. Les submodules Linux/macOS ne sont pas touchés.
+
+Procédure type après création de la branche depuis upstream :
+
+```bash
+git checkout Pagec5.2.0
+.\make.bat update
+```
+
+Puis build classique :
+
+```bat
+.\make.bat release
+```
+
 Pages du projet
 ---------------
 
