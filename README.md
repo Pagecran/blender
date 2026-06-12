@@ -12,8 +12,8 @@ Elle couvre toute la chaîne 3D : modélisation, rigging, animation, simulation,
 motion tracking et montage vidéo.
 
 Ce dépôt est le fork Pagecran de Blender, basé sur Blender amont `v5.1.1` et maintenu sur la branche
-`Pagec5.1.1`. La version Pagecran courante est `5.1.1.4` : Blender `5.1.1` avec le numéro de build
-Pagecran `4` comme quatrième composant de version.
+`Pagec5.1.1`. La version Pagecran courante est `5.1.1.8` : Blender `5.1.1` avec le numéro de build
+Pagecran `8` comme quatrième composant de version.
 
 ![Blender screenshot](https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg "Blender screenshot")
 
@@ -30,8 +30,10 @@ Le fork ajoute notamment ces changements au-dessus de Blender `v5.1.1` :
   nom à l'import USD, dossier `mtl` et conventions de nommage SG/shader.
 - Overrides sur bibliothèques liées : override de matériaux de library, override de bibliothèques liées imbriquées
   et push back vers la bibliothèque d'origine depuis l'Outliner.
-- Cycles : denoise AOV/light passes au rendu pour les passes sélectionnées, via l'option en bas de la liste
-  `Light Passes`.
+- Shader Editor : l'onglet N-panel `Color` expose le widget natif `Palette`; Ctrl+clic sur une couleur ouvre le
+  sélecteur natif Blender pour ce swatch.
+- Cycles : denoise AOV/light passes, y compris les passes Light Group `Combined_<Group>`, en conservant les
+  métadonnées Light Group et le comportement des light passes standards.
 - Select Through complet en Object Mode et Edit Mode : sélection de la face avant seule ou de tout ce qui est dans
   la sélection, même derrière la géométrie, sans activer X-Ray. Les outils Circle et Lasso sont compatibles.
 - Overrides d'animation dans les shots : l'état mute des tracks/canaux NLA est spécifique à chaque View Layer.
@@ -68,10 +70,10 @@ Après un build release configuré, le MSI vérifié est généré depuis la con
 cpack -C Release -G WIX --config "D:\build_windows_Release_x64_vc17_Release\CPackConfig.cmake"
 ```
 
-Sortie vérifiée pour la version courante :
+Chemin attendu après génération MSI pour le build courant :
 
 ```text
-D:\build_windows_Release_x64_vc17_Release\blender-5.1.1.4-windows-x64.msi
+D:\build_windows_Release_x64_vc17_Release\blender-5.1.1.<build>-windows-x64.msi
 ```
 
 La configuration WIX/CPack se trouve dans `build_files/cmake/packaging.cmake`. Le nom du package inclut le
@@ -84,7 +86,7 @@ Lors de l'incrément du numéro de build Pagecran :
 
 1. Mettre à jour `BLENDER_VERSION_BUILD` dans `source/blender/blenkernel/BKE_blender_version.h` avec l'entier suivant.
 2. Utiliser cet entier comme quatrième composant de version. Par exemple, Blender `5.1.1` avec
-   `BLENDER_VERSION_BUILD 4` est documenté comme `5.1.1.4`.
+   `BLENDER_VERSION_BUILD 8` est documenté comme `5.1.1.8`.
 3. Commiter uniquement ce changement de numéro de build séparément, avec le sujet `Update BKE_blender_version.h`
    et le corps de commit `build <N>`, en remplaçant `<N>` par le nouveau numéro.
 
