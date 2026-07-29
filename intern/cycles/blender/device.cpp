@@ -178,6 +178,20 @@ DeviceInfo blender_device_info(blender::UserDef &b_preferences,
   else {
     /* 1 is a "GPU compute" in properties.py for Scene settings. */
     if (get_enum(cscene, "device") == 1) {
+      if (preferences_device.type == DEVICE_CPU) {
+        const int threads = blender_device_threads(b_scene);
+        const vector<DeviceInfo> optix_devices = Device::available_devices(DEVICE_MASK_OPTIX);
+        if (!optix_devices.empty()) {
+          preferences_device = Device::get_multi_device(optix_devices, threads, background);
+        }
+        else {
+          const vector<DeviceInfo> cuda_devices = Device::available_devices(DEVICE_MASK_CUDA);
+          if (!cuda_devices.empty()) {
+            preferences_device = Device::get_multi_device(cuda_devices, threads, background);
+          }
+        }
+        adjust_device_info(preferences_device, cpreferences, preview);
+      }
       device = preferences_device;
     }
     else {

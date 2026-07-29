@@ -68,6 +68,8 @@
 
 #include "BLT_translation.hh"
 
+#include "IMB_colormanagement.hh"
+
 #include "versioning_common.hh"
 
 namespace blender {
@@ -426,7 +428,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 {
   ToolSettings *ts = scene->toolsettings;
 
-  STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+  STRNCPY_UTF8(scene->r.engine, RE_engine_id_CYCLES);
 
   scene->r.cfra = 1.0f;
   scene->r.im_format.exr_flag |= R_IMF_EXR_FLAG_MULTIPART;
@@ -449,6 +451,10 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Disable Z pass by default. */
   for (ViewLayer &view_layer : scene->view_layers) {
     view_layer.passflag &= ~SCE_PASS_DEPTH;
+    /* Pagecran: enable common compositing passes by default. */
+    view_layer.passflag |= SCE_PASS_DIFFUSE_COLOR | SCE_PASS_AO;
+    view_layer.cryptomatte_flag |= VIEW_LAYER_CRYPTOMATTE_OBJECT |
+                                   VIEW_LAYER_CRYPTOMATTE_MATERIAL;
     view_layer.eevee.ambient_occlusion_distance = 10.0f;
   }
 
@@ -572,11 +578,28 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (cscene) {
     /* Set the default sampling pattern to AUTOMATIC. */
     version_cycles_property_int_set(cscene, "sampling_pattern", 5);
+    version_cycles_property_int_set(cscene, "samples", 2048);
+    version_cycles_property_boolean_set(cscene, "use_denoising", true);
+  }
+
+  for (ViewLayer &view_layer : scene->view_layers) {
+    IDProperty *cview_layer = version_cycles_properties_from_view_layer(&view_layer);
+    if (cview_layer) {
+      version_cycles_property_boolean_set(cview_layer, "use_denoising", true);
+      version_cycles_property_boolean_set(cview_layer, "denoising_store_passes", true);
+      version_cycles_property_boolean_set(cview_layer, "use_denoising_all_light_passes", true);
+    }
   }
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
+  /* Pagecran: store new blend files in the studio ACEScg working space. */
+  if (IMB_colormanagement_working_space_set_from_name("ACEScg")) {
+    STRNCPY_UTF8(bmain->colorspace.scene_linear_name, "ACEScg");
+    bmain->colorspace.scene_linear_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
+  }
+
   /* For all app templates. */
   for (WorkSpace &workspace : bmain->workspaces) {
     BLO_update_defaults_workspace(&workspace, app_template);
@@ -725,8 +748,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       STRNCPY_UTF8(scene.view_settings.look, "None");
     }
     else {
-      /* Default to AgX view transform. */
-      STRNCPY_UTF8(scene.view_settings.view_transform, "AgX");
+      /* Pagecran: default renders to the studio ACES SDR view. */
+      STRNCPY_UTF8(scene.view_settings.view_transform, "ACES 1.3");
     }
 
     if (app_template && STREQ(app_template, "Video_Editing")) {
