@@ -388,7 +388,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Device",
         description="Device to use for rendering",
         items=enum_devices,
-        default='CPU',
+        default='GPU',
         update=update_render_passes,
     )
     shading_system: BoolProperty(
@@ -2048,6 +2048,15 @@ def register():
     bpy.utils.register_class(CyclesPreferences)
     bpy.utils.register_class(CyclesRenderLayerSettings)
     bpy.utils.register_class(CyclesView3DShadingSettings)
+
+    try:
+        preferences = bpy.context.preferences.addons[__package__].preferences
+        # Pagecran NVIDIA workstations use OptiX when it is available.
+        if preferences.compute_device_type in {'', 'NONE'}:
+            if any(device[1] == 'OPTIX' for device in preferences.get_device_list('OPTIX')):
+                preferences.compute_device_type = 'OPTIX'
+    except Exception:
+        pass
 
     bpy.types.View3DShading.cycles = bpy.props.PointerProperty(
         name="Cycles Settings",
