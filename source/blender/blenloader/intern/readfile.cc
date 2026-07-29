@@ -3603,6 +3603,14 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   STRNCPY(bfd->main->colorspace.scene_linear_name, fg->colorspace_scene_linear_name);
   bfd->main->colorspace.scene_linear_to_xyz = float3x3(fg->colorspace_scene_linear_to_xyz);
 
+  /* Pagecran 5.2.0.9 stored new files in ACEScg, which overexposes Rec.709 HDRIs in 5.2.
+   * Migrate those files at load time to the studio Rec.709 working space. */
+  if (STREQ(bfd->main->colorspace.scene_linear_name, "ACEScg")) {
+    IMB_colormanagement_working_space_set_from_name("Linear Rec.709");
+    STRNCPY(bfd->main->colorspace.scene_linear_name, "Linear Rec.709");
+    bfd->main->colorspace.scene_linear_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
+  }
+
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
 
