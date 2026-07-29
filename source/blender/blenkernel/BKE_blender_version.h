@@ -25,7 +25,7 @@ namespace blender {
 #define BLENDER_VERSION_PATCH 0
 
 /** Blender build number for Pagecran Studio releases. */
-#define BLENDER_VERSION_BUILD 9
+#define BLENDER_VERSION_BUILD 10
 /** Blender release cycle stage: alpha/beta/rc/release. */
 #define BLENDER_VERSION_CYCLE release
 /** Blender release type suffix. LTS or blank. */
