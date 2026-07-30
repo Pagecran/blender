@@ -68,6 +68,8 @@
 
 #include "BLT_translation.hh"
 
+#include "IMB_colormanagement.hh"
+
 #include "versioning_common.hh"
 
 namespace blender {
@@ -592,6 +594,12 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
+  /* Match the Pagec Tools ACEScg workflow for new blend files. */
+  if (IMB_colormanagement_working_space_set_from_name("ACEScg")) {
+    STRNCPY_UTF8(bmain->colorspace.scene_linear_name, "ACEScg");
+    bmain->colorspace.scene_linear_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
+  }
+
   /* For all app templates. */
   for (WorkSpace &workspace : bmain->workspaces) {
     BLO_update_defaults_workspace(&workspace, app_template);
