@@ -303,7 +303,7 @@ display_colorspaces:
         - !<FileTransform> {src: pbrNeutral.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Linear Rec.709, dst: sRGB}
 
-default_view_transform: ACES 1.3 Rec.1886
+default_view_transform: Standard
 
 view_transforms:
   - !<ViewTransform>
