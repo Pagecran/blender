@@ -663,6 +663,11 @@ class NODE_PT_palette(Panel):
 
             row = col.row(align=True)
             row.prop(prop_owner, "color", text="")
+            eye = row.operator("ui.eyedropper_color", text="", icon='EYEDROPPER')
+            eye.prop_data_path = (
+                "tool_settings.image_paint.unified_paint_settings.color"
+                if ups.use_unified_color else "tool_settings.image_paint.brush.color"
+            )
             row.prop(prop_owner, "secondary_color", text="")
             row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
             row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
