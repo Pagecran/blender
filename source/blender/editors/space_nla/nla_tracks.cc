@@ -771,6 +771,60 @@ void NLA_OT_tracks_delete(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ******************** Toggle Mute Tracks In All View Layers ***************************** */
+
+static wmOperatorStatus nlaedit_mute_toggle_tracks_all_view_layers_exec(bContext *C,
+                                                                         wmOperator *op)
+{
+  bAnimContext ac;
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  bool changed = false;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_SEL | ANIMFILTER_NODUPLIS |
+                                    ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  for (bAnimListElem &ale : anim_data) {
+    if (ale.type != ANIMTYPE_NLATRACK) {
+      continue;
+    }
+
+    NlaTrack *track = static_cast<NlaTrack *>(ale.data);
+    track->flag ^= NLATRACK_MUTED;
+    ale.update |= ANIM_UPDATE_DEPS;
+    changed = true;
+  }
+
+  ANIM_animdata_update(&ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+
+  if (!changed) {
+    BKE_report(op->reports, RPT_INFO, "No selected NLA tracks");
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_relations_tag_update(ac.bmain);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+void NLA_OT_tracks_mute_toggle_all_view_layers(wmOperatorType *ot)
+{
+  ot->name = "Toggle Mute in All View Layers";
+  ot->idname = "NLA_OT_tracks_mute_toggle_all_view_layers";
+  ot->description = "Toggle mute for selected NLA tracks in every view layer";
+
+  ot->exec = nlaedit_mute_toggle_tracks_all_view_layers_exec;
+  ot->poll = nlaop_poll_tweakmode_off;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* *********************************************** */
 /* AnimData Related Operators */
 
