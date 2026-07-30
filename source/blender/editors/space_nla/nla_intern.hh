@@ -144,6 +144,7 @@ void NLA_OT_action_unlink(wmOperatorType *ot);
 
 void NLA_OT_tracks_add(wmOperatorType *ot);
 void NLA_OT_tracks_delete(wmOperatorType *ot);
+void NLA_OT_tracks_mute_toggle_all_view_layers(wmOperatorType *ot);
 
 void NLA_OT_selected_objects_add(wmOperatorType *ot);
 

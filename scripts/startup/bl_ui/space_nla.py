@@ -228,6 +228,7 @@ class NLA_MT_tracks(Menu):
         layout.operator("nla.tracks_add", text="Add").above_selected = False
         layout.operator("nla.tracks_add", text="Add Above Selected").above_selected = True
         layout.operator("nla.tracks_delete", text="Delete")
+        layout.operator("nla.tracks_mute_toggle_all_view_layers", text="Toggle Mute in All View Layers")
 
         layout.separator()
         layout.operator_menu_enum("anim.channels_move", "direction", text="Move")
@@ -399,6 +400,7 @@ class NLA_MT_channel_context_menu(Menu):
         layout.operator("nla.tracks_add", text="Add Track Above Selected").above_selected = True
         layout.separator()
         layout.operator("nla.tracks_delete")
+        layout.operator("nla.tracks_mute_toggle_all_view_layers", text="Toggle Mute in All View Layers")
         layout.operator("anim.channels_clean_empty")
 
 
